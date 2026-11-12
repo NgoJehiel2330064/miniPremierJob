@@ -2,7 +2,21 @@
 (function () {
   const HORAIRES = { jour: "Jour", soirs: "Soirs", nuit: "Nuit", fds: "Fins de semaine", flexible: "Flexible" };
   const TYPES = ["Temps partiel", "Temps plein", "Stage", "Été"];
-  const VILLES = ["Jonquière", "Chicoutimi", "La Baie"];
+  // Villes et secteurs : même liste que la base (pj_villes). « Autre » reste possible.
+  const REGIONS = [["Saguenay", ["Chicoutimi", "Jonquière", "La Baie", "Laterrière", "Alma"]]];
+  const VILLES = REGIONS.flatMap(([, v]) => v);
+  // Remplit une liste déroulante, villes groupées par secteur (+ « Autre » au besoin)
+  function remplirVilles(select, opts = {}) {
+    const garde = select.value; select.querySelectorAll("optgroup, option[data-ville]").forEach(x => x.remove());
+    const seules = opts.seulement ? new Set(opts.seulement) : null;
+    REGIONS.forEach(([r, vs]) => {
+      const liste = vs.filter(v => !seules || seules.has(v)); if (!liste.length) return;
+      const g = REGIONS.length > 1 ? document.createElement("optgroup") : select; if (g !== select) { g.label = r; select.appendChild(g); }
+      liste.forEach(v => { const o = new Option(v, v); o.dataset.ville = "1"; g.appendChild(o); });
+    });
+    if (opts.autre && (!seules || seules.has("Autre"))) { const o = new Option("Autre", "Autre"); o.dataset.ville = "1"; select.appendChild(o); }
+    if (garde && [...select.options].some(o => o.value === garde)) select.value = garde;
+  }
   const JOURS = [["lun", "Lun"], ["mar", "Mar"], ["mer", "Mer"], ["jeu", "Jeu"], ["ven", "Ven"], ["sam", "Sam"], ["dim", "Dim"]];
   const PERIODES = [["jour", "Jour"], ["soir", "Soir"], ["nuit", "Nuit"]];
   const ETABLISSEMENTS = ["Pas aux études", "Cégep de Jonquière", "Cégep de Chicoutimi", "UQAC", "École secondaire", "Formation professionnelle (DEP)", "Francisation", "Autre"];
@@ -251,5 +265,5 @@
     document.head.appendChild(s);
   })();
 
-  window.PJ = { RESULTATS_DECLARES, lienConcurrent, lienEtiquete, experienceExigee, experienceMentionnee, messageErreur, OFFRE_STATUTS, CAND_STATUTS, grilleOffre, grilleLecture, jumelerV2, nomCreneau, uuid, verifierCV, deposerCV, HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
+  window.PJ = { REGIONS, remplirVilles, RESULTATS_DECLARES, lienConcurrent, lienEtiquete, experienceExigee, experienceMentionnee, messageErreur, OFFRE_STATUTS, CAND_STATUTS, grilleOffre, grilleLecture, jumelerV2, nomCreneau, uuid, verifierCV, deposerCV, HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
 })();

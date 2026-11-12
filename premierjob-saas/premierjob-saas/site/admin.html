@@ -133,7 +133,7 @@
       <label for="o_debut">Date de début<input id="o_debut" name="date_debut" type="date"></label>
     </div>
     <fieldset><legend>Quarts <span class="opt"><span class="g req">R</span> requis · <span class="g ideal">I</span> idéal</span></legend><div class="avail"><table id="o_grille"></table></div></fieldset>
-    <label for="o_description">Tâches et formation<textarea id="o_description" name="description" maxlength="1500"></textarea></label>
+    <label for="o_description">Description du poste<textarea id="o_description" name="description" maxlength="1500"></textarea></label>
     <label for="o_qualification">Permis ou qualification obligatoire<input id="o_qualification" name="qualification" maxlength="160"></label>
     <div id="o_alerte" role="status"></div>
     <label for="o_lien">Lien vers le formulaire officiel ou l'annonce de l'employeur<input id="o_lien" name="lien" type="url" maxlength="500" placeholder="https://"></label>
@@ -355,7 +355,7 @@
   });
 
   // ---------- Éditeur d'offre ----------
-  VILLES.concat(["Autre"]).forEach(v => $("#o_ville").add(new Option(v, v)));
+  PJ.remplirVilles($("#o_ville"));
   TYPES.forEach(t => $("#o_type").add(new Option(t, t)));
   const CHAMPS = ["titre","employeur","ville","lieu","type","salaire","description","qualification","lien","contact_nom","contact_courriel","contact_tel","reception","notes_admin"];
   function verifAlerte(){

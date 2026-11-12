@@ -375,3 +375,4 @@ details.plus[open]{padding-bottom:14px}
 .points li::before{content:"✓";position:absolute;left:0;color:var(--go)}
 .points b{color:var(--ink);font-weight:600}
 @media (max-width:899px){ .hero.emp .sticky{position:static} }
+.grid2.salaire{grid-template-columns:1fr 1fr}
