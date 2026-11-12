@@ -24,7 +24,7 @@ premierjob-saas/
 
 Si ta base existait avant la refonte visuelle, colle aussi `supabase/migration-002-transport.sql` dans le *SQL Editor* et clique **Run**. Elle ajoute le moyen de transport des candidats. Sans elle, le site marche quand même, mais le transport n'est pas enregistré.
 
-Migrations déjà appliquées sur le projet PremierJob (12 nov. 2026) : 002 transport, 003 is_admin hors du public, 004 travail de nuit, 005 dépôt de CV (bucket privé `cvs`). Pour une nouvelle base, exécute `schema.sql` puis les migrations dans l'ordre.
+Migrations déjà appliquées sur le projet PremierJob (12 nov. 2026) : 002 transport, 003 is_admin hors du public, 004 travail de nuit, 005 dépôt de CV (bucket privé `cvs`), 006 candidatures. Pour une nouvelle base, exécute `schema.sql` puis les migrations dans l'ordre.
 
 ## Étape 2 — Créer ton compte admin (3 min)
 

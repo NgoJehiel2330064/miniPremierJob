@@ -73,7 +73,7 @@
     </div>
     <div class="pal-foot">
       <span id="count">Chargement…</span>
-      <span class="keys"><span><kbd>↑</kbd><kbd>↓</kbd> naviguer</span><span><kbd>↵</kbd> ouvrir l'offre</span><span><kbd>/</kbd> chercher</span></span>
+      <span class="keys"><span><kbd>↑</kbd><kbd>↓</kbd> naviguer</span><span><kbd>↵</kbd> postuler</span><span><kbd>/</kbd> chercher</span></span>
     </div>
   </div>
 </section>
@@ -154,6 +154,33 @@
 </footer>
 </div>
 
+<!-- Postuler à une offre -->
+<dialog id="apply" aria-labelledby="applyT">
+  <form id="applyForm" novalidate>
+    <div class="hp" aria-hidden="true"><label for="site_web2">Ne pas remplir<input type="text" id="site_web2" name="site_web" tabindex="-1" autocomplete="off"></label></div>
+    <div><span class="small" id="applyEmp"></span><h3 id="applyT" style="font-size:20px;margin-top:2px"></h3></div>
+    <div id="applyFields" style="display:grid;gap:14px">
+      <div class="grid2">
+        <label for="a_prenom">Prénom<input type="text" id="a_prenom" name="prenom" required maxlength="60" autocomplete="given-name"></label>
+        <label for="a_tel">Téléphone<input type="tel" id="a_tel" name="telephone" required maxlength="30" autocomplete="tel" inputmode="tel" placeholder="418 555-0123"></label>
+      </div>
+      <label for="a_courriel">Courriel<input type="email" id="a_courriel" name="courriel" required maxlength="160" autocomplete="email" inputmode="email"></label>
+      <div class="field">
+        <span>Ton CV <span class="opt">(PDF ou Word, 5 Mo max)</span></span>
+        <label class="drop" for="a_cv"><input type="file" id="a_cv" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+          <span class="drop-t" id="a_cvNom">Ajouter mon CV</span><span class="drop-s">Presque tous les employeurs le demandent. Sans CV, ta candidature passe quand même.</span></label>
+      </div>
+      <label for="a_msg">Un mot pour l'employeur <span class="opt">(facultatif)</span><textarea id="a_msg" name="message" maxlength="500" placeholder="Ex. : Je peux commencer lundi, j'habite à 5 minutes."></textarea></label>
+      <label class="consent" for="a_consent"><input type="checkbox" id="a_consent" required>
+        <span>J'accepte que PremierJob transmette ma candidature et mon CV à <b id="applyEmp2"></b> pour ce poste.</span>
+      </label>
+      <div class="actions"><button class="btn" type="submit" id="applyBtn">Envoyer ma candidature</button><button class="btn ghost" type="button" data-apply-close>Annuler</button></div>
+    </div>
+    <div id="applyMsg" role="status"></div>
+    <div id="applyDone" class="actions" hidden><a class="btn" href="#alerte" data-apply-close>Recevoir les prochaines offres</a><button class="btn ghost" type="button" data-apply-close>Fermer</button></div>
+  </form>
+</dialog>
+
 <!-- Détail sur mobile -->
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Détail de l'offre"><div class="grab"></div><button class="sheet-x" type="button" id="sheetX" aria-label="Fermer">✕</button><div id="sheetBody"></div></div>
@@ -221,9 +248,9 @@
       </dl>
       ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
       <div class="cta" style="margin-top:4px">
-        ${lien ? `<a class="btn" href="${esc(lien)}" target="_blank" rel="noopener" data-track="${esc(o.id)}">Postuler sur l'offre originale ↗</a>` : ""}
+        <button class="btn" type="button" data-apply="${esc(o.id)}">Postuler via PremierJob</button>
         <button class="btn ghost" type="button" data-share="${esc(o.id)}">Partager</button>
-        <a class="btn ghost" href="#alerte" data-close>Recevoir des offres comme celle-ci</a>
+        ${lien ? `<a class="btn ghost" href="${esc(lien)}" target="_blank" rel="noopener" data-track="${esc(o.id)}">Annonce originale ↗</a>` : ""}
       </div>
     </div>`;
   }
@@ -300,6 +327,8 @@
   document.addEventListener("click", e => {
     const t = e.target.closest("[data-track]"); if (t) PJ.track("clic-offre/" + t.dataset.track);
     const sh = e.target.closest("[data-share]"); if (sh) partager(sh, sh.dataset.share);
+    const ap = e.target.closest("[data-apply]"); if (ap) ouvrirPostuler(ap.dataset.apply);
+    if (e.target.closest("[data-apply-close]")) $("#apply").close();
     if (e.target.closest("[data-close]")) fermer();
   });
 
@@ -312,7 +341,60 @@
     if (!dansPalette || !VUE.length) return;
     if (e.key === "ArrowDown") { e.preventDefault(); select(Math.min(VUE.length - 1, state.sel + 1)); }
     if (e.key === "ArrowUp") { e.preventDefault(); select(Math.max(0, state.sel - 1)); }
-    if (e.key === "Enter" && document.activeElement === $("#q")) { const l = safeUrl(VUE[state.sel].lien); if (l) { PJ.track("clic-offre/" + VUE[state.sel].id); window.open(l, "_blank", "noopener"); } }
+    if (e.key === "Enter" && document.activeElement === $("#q")) { e.preventDefault(); ouvrirPostuler(VUE[state.sel].id); }
+  });
+
+  // ----- Postuler à une offre -----
+  let offreCible = null;
+  const memo = { get(){ try { return JSON.parse(localStorage.getItem("pj_moi") || "{}"); } catch (e) { return {}; } },
+                 set(v){ try { localStorage.setItem("pj_moi", JSON.stringify(v)); } catch (e) {} } };
+  function ouvrirPostuler(id){
+    offreCible = OFFRES.find(o => o.id === id); if (!offreCible) return;
+    const f = $("#applyForm"); f.reset();
+    const m = memo.get(); if (m.prenom) f.prenom.value = m.prenom; if (m.courriel) f.courriel.value = m.courriel; if (m.telephone) f.telephone.value = m.telephone;
+    $("#applyT").textContent = offreCible.titre;
+    $("#applyEmp").textContent = offreCible.employeur + " · " + offreCible.ville;
+    $("#applyEmp2").textContent = offreCible.employeur;
+    $("#a_cvNom").textContent = "Ajouter mon CV"; $("#a_cvNom").closest(".drop").classList.remove("ok","bad");
+    $("#applyFields").hidden = false; $("#applyDone").hidden = true; $("#applyMsg").className = ""; $("#applyMsg").textContent = "";
+    $("#apply").showModal();
+    PJ.track("postuler-ouvert/" + id);
+  }
+  $("#a_cv").addEventListener("change", e => {
+    const fi = e.target.files[0], err = PJ.verifierCV(fi);
+    $("#a_cvNom").textContent = fi ? (err ? err : "✓ " + fi.name) : "Ajouter mon CV";
+    $("#a_cvNom").closest(".drop").classList.toggle("ok", !!fi && !err);
+    $("#a_cvNom").closest(".drop").classList.toggle("bad", !!err);
+  });
+  $("#applyForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.target, msg = $("#applyMsg"), btn = $("#applyBtn");
+    const say = (cls, t) => { msg.className = "msg " + cls; msg.textContent = t; };
+    const fini = (t) => { say("ok", t); $("#applyFields").hidden = true; $("#applyDone").hidden = false; };
+    if (f.site_web.value) return fini("Candidature envoyée.");
+    const v = (n) => f[n].value.trim();
+    if (!v("prenom") || !/^\S+@\S+\.\S+$/.test(v("courriel"))) return say("err", "Entre ton prénom et un courriel valide.");
+    if (v("telephone").replace(/\D/g, "").length < 10) return say("err", "Entre un numéro de téléphone à 10 chiffres : l'employeur va t'appeler.");
+    const fichier = f.cv.files[0], errCV = PJ.verifierCV(fichier);
+    if (errCV) return say("err", errCV);
+    if (!$("#a_consent").checked) return say("err", "Coche la case pour accepter que ta candidature soit transmise.");
+    const row = { offre_id: offreCible.id, prenom: v("prenom"), courriel: v("courriel"), telephone: v("telephone"), message: v("message") || null, consentement: true };
+    btn.disabled = true;
+    try {
+      if (fichier) { btn.textContent = "Envoi du CV…"; row.cv_path = await PJ.deposerCV(fichier); }
+      const { error } = await PJ.client().from("candidatures").insert(row);
+      if (error) {
+        if (error.code === "23505") return say("info", "Tu as déjà postulé à cette offre avec ce courriel.");
+        if (error.code === "42501") return say("err", "Cette offre n'est plus disponible. Regarde les autres offres.");
+        throw error;
+      }
+      memo.set({ prenom: row.prenom, courriel: row.courriel, telephone: row.telephone });
+      PJ.track("candidature/" + offreCible.id);
+      fini(`C'est envoyé, ${row.prenom}. Je transmets ta candidature à ${offreCible.employeur}. S'ils te rappellent, ce sera peut-être d'un numéro inconnu : réponds!`);
+    } catch (err) {
+      say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)
+        : (err.statusCode || err.status) ? "Ton CV n'a pas pu être envoyé. Essaie en PDF, ou postule sans CV." : "L'envoi n'a pas fonctionné. Vérifie ta connexion et réessaie.");
+    } finally { btn.disabled = false; btn.textContent = "Envoyer ma candidature"; }
   });
 
   async function charger(){
