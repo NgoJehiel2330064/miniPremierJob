@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
       "Nouvelle offre à valider sur PremierJob", "",
       `Poste : ${o.titre}`,
       `Entreprise : ${o.employeur} (${o.ville}${o.lieu ? ", " + o.lieu : ""})`,
-      `Contact : ${o.contact_nom} · ${o.contact_courriel} · ${o.contact_tel ?? "—"}`,
+      `Contact : ${o.contact_nom} · ${o.contact_courriel ?? "pas de courriel"} · ${o.contact_tel ?? "pas de téléphone"}`,
       `Salaire : ${o.salaire ?? "—"} · ${o.type}`,
       o.alerte_experience ? `\nATTENTION : ${o.alerte_experience}` : "",
       "", `Vérifier et publier : ${SITE}/admin.html`,
@@ -97,6 +97,18 @@ Deno.serve(async (req) => {
     if (!c || !recent(c.created_at)) return new Response("ignoré", { status: 200 });
     const o = ((await rest(`offres?id=eq.${c.offre_id}&select=titre,employeur,ville`)).data ?? [])[0] ?? {};
     const ref = String(c.id).slice(0, 8).toUpperCase();
+    if (c.canal === "externe") {
+      // Le candidat part vers le formulaire de l'employeur : on prévient l'admin, pas de confirmation au candidat.
+      const texte = [
+        "Un candidat est parti vers le formulaire de l'employeur", "",
+        `${c.prenom} ${c.nom ?? ""} · ${c.telephone} · ${c.courriel}`,
+        `Poste : ${o.titre ?? "?"} chez ${o.employeur ?? "?"}`,
+        `Référence : ${ref} · Statut : intention (candidature pas encore déclarée)`,
+        "", `Tableau de bord : ${SITE}/admin.html`,
+      ].join("\n");
+      for (const a of admins) resultats.push(await envoyer("intention_externe", c.id, a, `PremierJob · Intention : ${c.prenom} vers ${o.employeur ?? "un employeur"}`, texte));
+      return new Response(JSON.stringify({ ok: true, resultats }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
     const pourAdmin = [
       "Nouvelle candidature à traiter", "",
       `${c.prenom} ${c.nom ?? ""} · ${c.telephone} · ${c.courriel}`,

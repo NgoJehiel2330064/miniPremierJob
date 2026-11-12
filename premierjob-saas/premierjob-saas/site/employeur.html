@@ -34,58 +34,69 @@
   </div>
 </nav>
 
-<main class="wrap hero">
+<main class="wrap hero emp">
   <div class="split">
     <div class="sticky">
-      <span class="place">Gratuit pendant le lancement</span>
-      <h1 style="font-size:clamp(2.6rem,7vw,4.4rem)">Des étudiants libres <em>pendant vos quarts.</em></h1>
-      <p class="lead">PremierJob publie seulement des postes <b style="color:#fff">sans expérience exigée</b>. Vous décrivez le poste, nous le validons avec vous, puis nous vous envoyons des candidats dont l'horaire concorde déjà avec le vôtre.</p>
-      <div class="steps" style="grid-template-columns:1fr;margin-top:26px">
-        <div class="card"><span class="num">2 minutes</span><h3>Vous décrivez le poste</h3><p>Le poste, les quarts et le salaire. Pas besoin d'une annonce parfaite.</p></div>
-        <div class="card"><span class="num">Moins de 48 h</span><h3>Validé avant publication</h3><p>Rien n'est publié sans notre appel : on confirme ensemble qu'aucune expérience n'est exigée et que les horaires sont justes.</p></div>
-        <div class="card"><span class="num">Ensuite</span><h3>Vous recevez des candidats par courriel</h3><p>Seulement des personnes disponibles pendant vos quarts, avec leur CV, et qui ont accepté que leur candidature vous soit transmise. Vous menez l'entrevue et décidez seul.</p></div>
-      </div>
+      <span class="place">Jonquière · Chicoutimi · La Baie</span>
+      <h1 style="font-size:clamp(2.5rem,7vw,4.4rem)">Affichez un poste, <em>c'est gratuit.</em></h1>
+      <p class="lead">Affichage 100 % gratuit. Laissez-nous vos coordonnées : on vous appelle, puis on rédige et publie votre annonce en 24 h.</p>
+      <ul class="points">
+        <li>Des débutants du Saguenay (étudiants, premier emploi, retour au travail, nouveaux arrivants), triés selon <b>vos quarts</b>.</li>
+        <li>Seulement des postes <b>sans expérience exigée</b> : on le vérifie avec vous.</li>
+        <li>Vous menez l'entrevue et décidez seul.</li>
+      </ul>
     </div>
 
-    <div class="formcard">
+    <div class="formcard" id="afficher">
       <form id="form" novalidate>
         <div class="hp" aria-hidden="true"><label for="site_web">Ne pas remplir<input type="text" id="site_web" name="site_web" tabindex="-1" autocomplete="off"></label></div>
-        <h3 style="font-size:18px">Afficher un poste</h3>
-        <p class="regle">Seuls les postes qui n'exigent <b>aucune expérience professionnelle préalable</b> sont acceptés. Une formation, un permis ou une qualification légale peuvent être demandés.</p>
+        <h3 style="font-size:19px">Afficher un poste en 1 minute</h3>
         <div class="grid2">
           <label for="employeur">Entreprise<input type="text" id="employeur" name="employeur" required maxlength="120" autocomplete="organization"></label>
-          <label for="titre">Poste<input type="text" id="titre" name="titre" required maxlength="120" placeholder="Ex. : Préposé à l'entretien ménager"></label>
           <label for="ville">Ville<select id="ville" name="ville"></select></label>
-          <label for="lieu">Lieu de travail <span class="opt">(adresse ou secteur)</span><input type="text" id="lieu" name="lieu" maxlength="160" placeholder="Ex. : boul. Talbot, Chicoutimi"></label>
-          <label for="type">Type<select id="type" name="type"></select></label>
-          <label for="salaire">Salaire<input type="text" id="salaire" name="salaire" required maxlength="40" placeholder="Ex. : 17,50 $/h ou 17 à 19 $/h"></label>
-          <label for="nb_postes">Nombre de postes<input type="number" id="nb_postes" name="nb_postes" min="1" max="50" value="1" inputmode="numeric"></label>
-          <label for="date_debut">Date de début <span class="opt">(facultatif)</span><input type="date" id="date_debut" name="date_debut"></label>
         </div>
-        <fieldset>
-          <legend>Quarts de travail <span class="opt">Touchez une case : <span class="g req">R</span> requis, puis <span class="g ideal">I</span> idéal.</span></legend>
-          <div class="avail"><table id="grille" aria-label="Quarts de travail du poste"></table></div>
-          <p class="small" style="margin:0">Requis : le candidat doit être libre. Idéal : un plus, sans être obligatoire.</p>
+        <label for="titre">Poste recherché<input type="text" id="titre" name="titre" required maxlength="120" placeholder="Ex. : Caissier, préposé à l'entretien, plongeur"></label>
+        <fieldset><legend>Horaires recherchés <span class="opt">Touchez tout ce qui s'applique.</span></legend>
+          <div class="chips rapides" id="horRapide"></div>
         </fieldset>
-        <label for="description">Tâches et formation offerte<textarea id="description" name="description" required maxlength="1500" placeholder="Ex. : Entretien de bureaux le soir, 15 à 20 h par semaine. Formation sur place, aucune expérience exigée."></textarea></label>
-        <div id="expMsg" role="status"></div>
-        <label for="qualification">Permis ou qualification obligatoire <span class="opt">(facultatif, ex. permis BSP, permis de conduire)</span><input type="text" id="qualification" name="qualification" maxlength="160"></label>
-        <label for="lien">Lien vers votre annonce <span class="opt">(facultatif)</span><input type="url" id="lien" name="lien" maxlength="500" placeholder="https://" inputmode="url"></label>
         <div class="grid2">
-          <label for="contact_nom">Personne responsable<input type="text" id="contact_nom" name="contact_nom" required maxlength="120" autocomplete="name"></label>
+          <label for="contact_nom">Votre nom<input type="text" id="contact_nom" name="contact_nom" required maxlength="120" autocomplete="name"></label>
           <label for="contact_tel">Téléphone<input type="tel" id="contact_tel" name="contact_tel" maxlength="30" autocomplete="tel" inputmode="tel"></label>
         </div>
-        <label for="contact_courriel">Courriel<input type="email" id="contact_courriel" name="contact_courriel" required maxlength="160" autocomplete="email" inputmode="email"></label>
-        <fieldset><legend>Comment voulez-vous recevoir les candidats?</legend>
-          <div class="chips" id="reception"></div></fieldset>
-        <p class="small" style="margin:0">Vos coordonnées ne sont jamais affichées sur le site.</p>
+        <label for="contact_courriel">Courriel <span class="opt">(téléphone ou courriel, au choix)</span><input type="email" id="contact_courriel" name="contact_courriel" maxlength="160" autocomplete="email" inputmode="email"></label>
         <label class="consent" for="sansExp"><input type="checkbox" id="sansExp" required>
-          <span><b>Je confirme qu'aucune expérience professionnelle préalable n'est exigée pour ce poste.</b></span></label>
-        <label class="consent" for="engagement"><input type="checkbox" id="engagement" required>
-          <span>Nous répondrons aux candidats que PremierJob nous présente.</span></label>
-        <button class="btn" type="submit" id="submitBtn">Envoyer le poste pour validation</button>
+          <span><b>Aucune expérience professionnelle préalable n'est exigée pour ce poste.</b> <span class="small">Une formation, un permis ou une qualification légale peuvent être demandés.</span></span></label>
+        <details class="plus" id="precisions"><summary>Ajouter des précisions <span class="opt">(facultatif : salaire, tâches, quarts exacts…)</span></summary>
+          <div class="plus-corps">
+            <div class="grid2">
+              <label for="type">Type<select id="type" name="type"></select></label>
+              <label for="salaire">Salaire<input type="text" id="salaire" name="salaire" maxlength="40" placeholder="Ex. : 17,50 $/h"></label>
+              <label for="nb_postes">Nombre de postes<input type="number" id="nb_postes" name="nb_postes" min="1" max="50" value="1" inputmode="numeric"></label>
+              <label for="date_debut">Date de début<input type="date" id="date_debut" name="date_debut"></label>
+            </div>
+            <label for="lieu">Lieu de travail<input type="text" id="lieu" name="lieu" maxlength="160" placeholder="Ex. : boul. Talbot, Chicoutimi"></label>
+            <label for="description">Tâches et formation offerte<textarea id="description" name="description" maxlength="1500" placeholder="Ex. : Entretien de bureaux le soir. Formation sur place."></textarea></label>
+            <div id="expMsg" role="status"></div>
+            <label for="qualification">Permis ou qualification obligatoire<input type="text" id="qualification" name="qualification" maxlength="160" placeholder="Ex. : permis de conduire"></label>
+            <fieldset>
+              <legend>Quarts exacts <span class="opt">Touchez une case : <span class="g req">R</span> requis, puis <span class="g ideal">I</span> idéal.</span></legend>
+              <div class="avail"><table id="grille" aria-label="Quarts de travail du poste"></table></div>
+              <p class="small" style="margin:0">Si vous remplissez cette grille, elle remplace les horaires choisis plus haut.</p>
+            </fieldset>
+            <label for="lien">Lien vers votre site ou formulaire d'embauche<input type="url" id="lien" name="lien" maxlength="500" placeholder="https://" inputmode="url"></label>
+            <fieldset><legend>Comment voulez-vous recevoir les candidats?</legend><div class="chips" id="reception"></div></fieldset>
+          </div>
+        </details>
+        <button class="btn" type="submit" id="submitBtn">Envoyer : on s'occupe du reste</button>
+        <p class="small" style="margin:0">Vos coordonnées ne sont jamais affichées sur le site.</p>
         <div id="formMsg" role="status"></div>
       </form>
+      <div id="envoiOk" class="merci" hidden role="status">
+        <span class="merci-ico" aria-hidden="true">✓</span>
+        <h3>Merci, c'est reçu!</h3>
+        <p>On vous appelle pour valider le poste, puis on publie votre annonce dans les 24 h. Rien n'est public avant notre appel.</p>
+        <div class="cta"><button class="btn ghost" type="button" id="autrePoste">Afficher un autre poste</button><a class="btn ghost" href="index.html">Voir le site</a></div>
+      </div>
     </div>
   </div>
 </main>
@@ -93,7 +104,7 @@
 <footer>
   <div class="wrap">
     <div>Une question avant d'afficher? Écrivez-nous : <a id="contactTxt" href="#"></a>.</div>
-    <div>PremierJob · projet étudiant lancé au Saguenay · <a href="index.html">Offres</a> · <a href="confidentialite.html">Confidentialité</a></div>
+    <div>PremierJob · lancé au Saguenay · <a href="index.html">Offres</a> · <a href="confidentialite.html">Confidentialité</a></div>
   </div>
 </footer>
 </div>
@@ -103,12 +114,22 @@
   { const m = (window.PJ_CONFIG || {}).contactEmail || ""; $("#contactTxt").textContent = m; $("#contactTxt").href = "mailto:" + m; }
   PJ.VILLES.concat(["Autre"]).forEach(v => $("#ville").add(new Option(v, v)));
   PJ.TYPES.forEach(t => $("#type").add(new Option(t, t)));
+  $("#type").value = "Temps partiel";
   let grille = PJ.grilleOffre($("#grille"));
   let reception = "courriel";
   const recBtns = [["courriel","Par courriel"],["telephone","Par téléphone"]].map(([k,l]) => {
     const b = PJ.chip(l, k === reception, () => { reception = k; recBtns.forEach(x => x.setAttribute("aria-pressed", x.dataset.k === reception)); });
     b.dataset.k = k; return b; });
   recBtns.forEach(b => $("#reception").appendChild(b));
+
+  // Horaires en un toucher. Enregistrés comme « idéal » : les quarts exacts sont confirmés à l'appel.
+  const SEM = ["lun","mar","mer","jeu","ven"], TOUS = ["lun","mar","mer","jeu","ven","sam","dim"];
+  const GROUPES = [["Jours de semaine", SEM.map(j => j + "-jour")], ["Soirs de semaine", SEM.map(j => j + "-soir")],
+    ["Fins de semaine", ["sam-jour","sam-soir","dim-jour","dim-soir"]], ["Nuits", TOUS.map(j => j + "-nuit")]];
+  const choisis = new Set();
+  GROUPES.forEach(([l], i) => $("#horRapide").appendChild(PJ.chip(l, false, b => {
+    choisis.has(i) ? choisis.delete(i) : choisis.add(i); b.setAttribute("aria-pressed", choisis.has(i)); })));
+  const creneauxRapides = () => [...new Set([...choisis].flatMap(i => GROUPES[i][1]))];
 
   // Vérification en direct : exigence d'expérience
   const champsTexte = ["titre", "description", "qualification"];
@@ -127,34 +148,42 @@
     const say = (cls, t) => { msg.className = "msg " + cls; msg.textContent = t; msg.scrollIntoView({ block: "nearest" }); };
     if (f.site_web.value) return say("ok", "Merci! Votre poste a été reçu.");
     const v = (n) => f[n].value.trim();
-    if (v("employeur").length < 2 || v("titre").length < 3 || !v("contact_nom")) return say("err", "Indiquez l'entreprise, le poste et le nom de la personne responsable.");
-    if (!v("salaire")) return say("err", "Indiquez le salaire ou une fourchette, par exemple 17 à 19 $/h.");
-    if (!v("description")) return say("err", "Décrivez brièvement les tâches et la formation offerte.");
-    if (!/^\S+@\S+\.\S+$/.test(v("contact_courriel"))) return say("err", "Entrez un courriel valide pour qu'on puisse vous joindre.");
-    if (grille.O.size + grille.S.size === 0) return say("err", "Touchez au moins une case dans les quarts de travail.");
+    if (v("employeur").length < 2 || v("titre").length < 3 || !v("contact_nom")) return say("err", "Indiquez l'entreprise, le poste recherché et votre nom.");
+    const courriel = v("contact_courriel"), tel = v("contact_tel");
+    if (!courriel && tel.replace(/\D/g, "").length < 10) return say("err", "Laissez un téléphone ou un courriel pour qu'on puisse vous joindre.");
+    if (courriel && !/^\S+@\S+\.\S+$/.test(courriel)) return say("err", "Ce courriel ne semble pas valide.");
+    const exacts = grille.O.size + grille.S.size > 0;
+    if (!exacts && !choisis.size) return say("err", "Touchez au moins un horaire recherché (ex. : Soirs de semaine).");
     if (v("lien") && !/^https?:\/\//i.test(v("lien"))) return say("err", "Le lien doit commencer par https://");
-    if (!verifierTexte()) return say("err", "Retirez l'exigence d'expérience du texte pour envoyer le poste.");
-    if (!$("#sansExp").checked) return say("err", "Cochez la confirmation qu'aucune expérience préalable n'est exigée. Sinon, ce poste ne peut pas être publié sur PremierJob.");
-    if (!$("#engagement").checked) return say("err", "Cochez l'engagement à répondre aux candidats.");
+    if (PJ.lienConcurrent(v("lien"))) return say("err", "Indiquez le lien de votre propre site ou formulaire, pas celui d'une plateforme d'emploi.");
+    if (!verifierTexte()) { $("#precisions").open = true; return say("err", "Retirez l'exigence d'expérience du texte pour envoyer le poste."); }
+    if (!$("#sansExp").checked) return say("err", "Cochez la case « aucune expérience exigée ». Sinon, ce poste ne peut pas être affiché sur PremierJob.");
     const nb = parseInt(f.nb_postes.value, 10);
     const row = {
-      titre:v("titre"), employeur:v("employeur"), ville:f.ville.value, lieu:v("lieu") || null, secteur:null, type:f.type.value,
-      salaire:v("salaire"), description:v("description"), qualification:v("qualification") || null, lien:v("lien") || null,
+      titre:v("titre"), employeur:v("employeur"), ville:f.ville.value, lieu:v("lieu") || null, secteur:null, type:f.type.value || "Temps partiel",
+      salaire:v("salaire") || null, description:v("description") || null, qualification:v("qualification") || null, lien:v("lien") || null,
       nb_postes: nb >= 1 && nb <= 50 ? nb : 1, date_debut: f.date_debut.value || null,
-      creneaux_obligatoires:[...grille.O], creneaux_souhaites:[...grille.S], horaires:[],
-      contact_nom:v("contact_nom"), contact_courriel:v("contact_courriel"), contact_tel:v("contact_tel") || null,
-      reception, aucune_experience_confirmee:true
+      creneaux_obligatoires: exacts ? [...grille.O] : [], creneaux_souhaites: exacts ? [...grille.S] : creneauxRapides(), horaires:[],
+      contact_nom:v("contact_nom"), contact_courriel:courriel || null, contact_tel:tel || null,
+      reception: courriel ? reception : "telephone", aucune_experience_confirmee:true
     };
     btn.disabled = true; btn.textContent = "Envoi…";
     try {
       const { error } = await PJ.client().from("offres").insert(row);
       if (error) throw error;
-      say("ok", "Merci, c'est reçu. Le poste n'est pas encore public : nous vous contactons d'ici 48 heures pour le valider avec vous.");
       PJ.track("offre-employeur");
-      f.reset(); grille = PJ.grilleOffre($("#grille")); $("#expMsg").textContent = ""; $("#expMsg").className = "";
+      msg.className = ""; msg.textContent = "";
+      $("#form").hidden = true; $("#envoiOk").hidden = false; $("#envoiOk").scrollIntoView({ block: "nearest" });
     } catch (err) {
       say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err) : PJ.messageErreur(err, "L'envoi n'a pas fonctionné. Vérifiez vos réponses et réessayez."));
-    } finally { btn.disabled = false; btn.textContent = "Envoyer le poste pour validation"; }
+    } finally { btn.disabled = false; btn.textContent = "Envoyer : on s'occupe du reste"; }
+  });
+  $("#autrePoste").addEventListener("click", () => {
+    const f = $("#form"), garder = ["employeur","ville","contact_nom","contact_tel","contact_courriel"].map(n => [n, f[n].value]);
+    f.reset(); garder.forEach(([n, x]) => { f[n].value = x; }); $("#type").value = "Temps partiel";
+    choisis.clear(); document.querySelectorAll("#horRapide .chip").forEach(b => b.setAttribute("aria-pressed", "false"));
+    grille = PJ.grilleOffre($("#grille")); $("#expMsg").textContent = ""; $("#expMsg").className = "";
+    $("#envoiOk").hidden = true; f.hidden = false; f.titre.focus();
   });
 })();
 </script>

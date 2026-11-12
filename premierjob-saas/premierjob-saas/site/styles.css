@@ -326,3 +326,52 @@ dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(4px)}
 .cand-top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
 .cand input[type=checkbox]{margin-top:3px}
 textarea.mail{min-height:220px;font:13px/1.5 var(--mono)}
+
+/* Mes candidatures + candidature sur le formulaire de l'employeur */
+.mes{border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));margin-bottom:18px}
+.mes-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.mes-head h2{font-size:22px;margin:0}
+.mes-item{display:grid;gap:8px;padding:12px 0;border-top:1px solid var(--line)}
+.mes-item:first-child{border-top:0}
+.lien-discret{opacity:.7}
+.sec-mini{font-size:13px;color:var(--dim)}
+.pill-st.intent{color:var(--warn);border-color:rgba(250,204,21,.35)}
+.pill-st.declared{color:#93c5fd;border-color:rgba(147,197,253,.35)}
+
+/* Lancement (aucune offre) et lien employeur */
+.palette.vide .pal-search,.palette.vide .pal-filters,.palette.vide .pal-foot,.palette.vide .pal-detail{display:none}
+.palette.vide .pal-body{display:block}
+.palette.vide .pal-list{max-height:none;border:0}
+.pal-empty.lancement{padding:30px 18px}
+.pal-empty.lancement .big{font-size:20px}
+.pal-empty .cta{justify-content:center;margin-top:6px}
+.employeur-lien{display:inline-block;margin-top:16px;font-size:14px;color:var(--muted);text-decoration:none;padding:8px 2px}
+.employeur-lien b{color:var(--ink);font-weight:600}
+.employeur-lien:hover b{text-decoration:underline}
+@media (max-width:600px){
+  .hero{padding-block:36px 20px}
+  .hero h1{font-size:clamp(2.5rem,12vw,3.2rem)}
+  .hero .lead{font-size:16px}
+  .btn:not(.sm){min-height:48px}
+  .btn.sm{min-height:40px}
+}
+
+/* Formulaires courts : choix rapides, détails repliés, confirmation */
+.chips.rapides{gap:8px}
+.chips.rapides .chip{min-height:44px;padding-inline:14px;font-size:14.5px}
+details.plus{border:1px solid var(--line);border-radius:12px;padding:0 14px}
+details.plus>summary{cursor:pointer;list-style:none;padding:13px 0;font-size:14.5px;color:var(--ink);font-weight:500}
+details.plus>summary::-webkit-details-marker{display:none}
+details.plus>summary::before{content:"+";display:inline-block;width:18px;color:var(--muted)}
+details.plus[open]>summary::before{content:"–"}
+details.plus[open]{padding-bottom:14px}
+.plus-corps{display:grid;gap:14px}
+.merci{display:grid;gap:10px;justify-items:start;padding:8px 2px}
+.merci-ico{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:rgba(74,222,128,.12);color:var(--go);font-size:22px;box-shadow:inset 0 0 0 1px rgba(74,222,128,.3)}
+.merci h3{font-size:22px;margin:0}
+.merci p{margin:0;color:var(--muted)}
+.points{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:10px;color:var(--muted);font-size:15px}
+.points li{padding-left:24px;position:relative}
+.points li::before{content:"✓";position:absolute;left:0;color:var(--go)}
+.points b{color:var(--ink);font-weight:600}
+@media (max-width:899px){ .hero.emp .sticky{position:static} }
