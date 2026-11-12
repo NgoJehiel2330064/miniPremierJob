@@ -355,7 +355,7 @@
   });
 
   // ---------- Éditeur d'offre ----------
-  VILLES.concat(["Autre"]).forEach(v => $("#o_ville").add(new Option(v, v)));
+  PJ.remplirVilles($("#o_ville"), { autre: true });
   TYPES.forEach(t => $("#o_type").add(new Option(t, t)));
   const CHAMPS = ["titre","employeur","ville","lieu","type","salaire","description","qualification","lien","contact_nom","contact_courriel","contact_tel","reception","notes_admin"];
   function verifAlerte(){

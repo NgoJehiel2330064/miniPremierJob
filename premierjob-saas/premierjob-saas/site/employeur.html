@@ -37,7 +37,7 @@
 <main class="wrap hero emp">
   <div class="split">
     <div class="sticky">
-      <span class="place">Jonquière · Chicoutimi · La Baie</span>
+      <span class="place">Chicoutimi · Jonquière · La Baie · et tout le Saguenay</span>
       <h1 style="font-size:clamp(2.5rem,7vw,4.4rem)">Affichez un poste, <em>c'est gratuit.</em></h1>
       <p class="lead">Affichage 100 % gratuit. Laissez-nous vos coordonnées : on vous appelle, puis on rédige et publie votre annonce en 24 h.</p>
       <ul class="points">
@@ -50,7 +50,7 @@
     <div class="formcard" id="afficher">
       <form id="form" novalidate>
         <div class="hp" aria-hidden="true"><label for="site_web">Ne pas remplir<input type="text" id="site_web" name="site_web" tabindex="-1" autocomplete="off"></label></div>
-        <h3 style="font-size:19px">Afficher un poste en 1 minute</h3>
+        <h3 style="font-size:19px">Afficher un poste en 2 minutes</h3>
         <div class="grid2">
           <label for="employeur">Entreprise<input type="text" id="employeur" name="employeur" required maxlength="120" autocomplete="organization"></label>
           <label for="ville">Ville<select id="ville" name="ville"></select></label>
@@ -59,6 +59,11 @@
         <fieldset><legend>Horaires recherchés <span class="opt">Touchez tout ce qui s'applique.</span></legend>
           <div class="chips rapides" id="horRapide"></div>
         </fieldset>
+        <label for="lieu">Lieu de travail <span class="opt">(adresse ou secteur)</span><input type="text" id="lieu" name="lieu" required maxlength="160" placeholder="Ex. : 1234, boul. Talbot, Chicoutimi"></label>
+        <label for="salaire">Salaire<input type="text" id="salaire" name="salaire" required maxlength="40" placeholder="Ex. : 17,50 $/h ou 17 à 19 $/h"></label>
+        <label for="description">Tâches principales et formation offerte<textarea id="description" name="description" required maxlength="1500" placeholder="Ex. : Accueil des clients, caisse, préparation. Formation sur place."></textarea></label>
+        <p class="small" style="margin:-6px 0 0">Ce sont les infos que les candidats regardent en premier : lieu, salaire et tâches.</p>
+        <div id="expMsg" role="status"></div>
         <div class="grid2">
           <label for="contact_nom">Votre nom<input type="text" id="contact_nom" name="contact_nom" required maxlength="120" autocomplete="name"></label>
           <label for="contact_tel">Téléphone<input type="tel" id="contact_tel" name="contact_tel" maxlength="30" autocomplete="tel" inputmode="tel"></label>
@@ -66,17 +71,13 @@
         <label for="contact_courriel">Courriel <span class="opt">(téléphone ou courriel, au choix)</span><input type="email" id="contact_courriel" name="contact_courriel" maxlength="160" autocomplete="email" inputmode="email"></label>
         <label class="consent" for="sansExp"><input type="checkbox" id="sansExp" required>
           <span><b>Aucune expérience professionnelle préalable n'est exigée pour ce poste.</b> <span class="small">Une formation, un permis ou une qualification légale peuvent être demandés.</span></span></label>
-        <details class="plus" id="precisions"><summary>Ajouter des précisions <span class="opt">(facultatif : salaire, tâches, quarts exacts…)</span></summary>
+        <details class="plus" id="precisions"><summary>Autres détails <span class="opt">(facultatif : type d'emploi, date de début, quarts exacts…)</span></summary>
           <div class="plus-corps">
             <div class="grid2">
               <label for="type">Type<select id="type" name="type"></select></label>
-              <label for="salaire">Salaire<input type="text" id="salaire" name="salaire" maxlength="40" placeholder="Ex. : 17,50 $/h"></label>
               <label for="nb_postes">Nombre de postes<input type="number" id="nb_postes" name="nb_postes" min="1" max="50" value="1" inputmode="numeric"></label>
               <label for="date_debut">Date de début<input type="date" id="date_debut" name="date_debut"></label>
             </div>
-            <label for="lieu">Lieu de travail<input type="text" id="lieu" name="lieu" maxlength="160" placeholder="Ex. : boul. Talbot, Chicoutimi"></label>
-            <label for="description">Tâches et formation offerte<textarea id="description" name="description" maxlength="1500" placeholder="Ex. : Entretien de bureaux le soir. Formation sur place."></textarea></label>
-            <div id="expMsg" role="status"></div>
             <label for="qualification">Permis ou qualification obligatoire<input type="text" id="qualification" name="qualification" maxlength="160" placeholder="Ex. : permis de conduire"></label>
             <fieldset>
               <legend>Quarts exacts <span class="opt">Touchez une case : <span class="g req">R</span> requis, puis <span class="g ideal">I</span> idéal.</span></legend>
@@ -112,7 +113,7 @@
 (function(){
   const $ = (s) => document.querySelector(s);
   { const m = (window.PJ_CONFIG || {}).contactEmail || ""; $("#contactTxt").textContent = m; $("#contactTxt").href = "mailto:" + m; }
-  PJ.VILLES.concat(["Autre"]).forEach(v => $("#ville").add(new Option(v, v)));
+  PJ.remplirVilles($("#ville"), { autre: true });
   PJ.TYPES.forEach(t => $("#type").add(new Option(t, t)));
   $("#type").value = "Temps partiel";
   let grille = PJ.grilleOffre($("#grille"));
@@ -154,9 +155,12 @@
     if (courriel && !/^\S+@\S+\.\S+$/.test(courriel)) return say("err", "Ce courriel ne semble pas valide.");
     const exacts = grille.O.size + grille.S.size > 0;
     if (!exacts && !choisis.size) return say("err", "Touchez au moins un horaire recherché (ex. : Soirs de semaine).");
+    if (v("lieu").length < 3) { f.lieu.focus(); return say("err", "Indiquez le lieu de travail (adresse ou secteur) : c'est ce que les candidats regardent en premier."); }
+    if (!v("salaire")) { f.salaire.focus(); return say("err", "Indiquez le salaire, même approximatif (ex. : 17 à 19 $/h)."); }
+    if (v("description").length < 15) { f.description.focus(); return say("err", "Décrivez en une ou deux phrases les tâches et la formation offerte."); }
     if (v("lien") && !/^https?:\/\//i.test(v("lien"))) return say("err", "Le lien doit commencer par https://");
     if (PJ.lienConcurrent(v("lien"))) return say("err", "Indiquez le lien de votre propre site ou formulaire, pas celui d'une plateforme d'emploi.");
-    if (!verifierTexte()) { $("#precisions").open = true; return say("err", "Retirez l'exigence d'expérience du texte pour envoyer le poste."); }
+    if (!verifierTexte()) { return say("err", "Retirez l'exigence d'expérience du texte pour envoyer le poste."); }
     if (!$("#sansExp").checked) return say("err", "Cochez la case « aucune expérience exigée ». Sinon, ce poste ne peut pas être affiché sur PremierJob.");
     const nb = parseInt(f.nb_postes.value, 10);
     const row = {
@@ -179,7 +183,7 @@
     } finally { btn.disabled = false; btn.textContent = "Envoyer : on s'occupe du reste"; }
   });
   $("#autrePoste").addEventListener("click", () => {
-    const f = $("#form"), garder = ["employeur","ville","contact_nom","contact_tel","contact_courriel"].map(n => [n, f[n].value]);
+    const f = $("#form"), garder = ["employeur","ville","lieu","contact_nom","contact_tel","contact_courriel"].map(n => [n, f[n].value]);
     f.reset(); garder.forEach(([n, x]) => { f[n].value = x; }); $("#type").value = "Temps partiel";
     choisis.clear(); document.querySelectorAll("#horRapide .chip").forEach(b => b.setAttribute("aria-pressed", "false"));
     grille = PJ.grilleOffre($("#grille")); $("#expMsg").textContent = ""; $("#expMsg").className = "";

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#07080a">
 <title>PremierJob Saguenay</title>
-<meta name="description" content="Des jobs au Saguenay qui n'exigent pas d'expérience. Chaque offre est vérifiée, avec les vrais horaires. Jonquière, Chicoutimi, La Baie.">
+<meta name="description" content="Des jobs au Saguenay qui n'exigent pas d'expérience. Chaque offre est vérifiée, avec les vrais horaires. Chicoutimi, Jonquière, La Baie et partout autour du fjord.">
 <meta property="og:title" content="PremierJob Saguenay">
 <meta property="og:description" content="Des jobs sans expérience exigée, vérifiés un par un, avec les vrais horaires.">
 <meta property="og:type" content="website">
@@ -40,7 +40,7 @@
 </nav>
 
 <header class="wrap hero center">
-  <span class="place">Jonquière · Chicoutimi · La Baie</span>
+  <span class="place">Chicoutimi · Jonquière · La Baie · et tout le Saguenay</span>
   <h1>Ton premier emploi,<br><em>sans expérience exigée.</em></h1>
   <p class="lead">Des jobs ouverts aux débutants, vérifiés un par un, avec les vrais horaires pour voir tout de suite si ça marche avec ton horaire.</p>
   <div class="cta">
@@ -126,7 +126,7 @@
           <div class="small" id="dispoResume" role="status"></div>
           <details class="plus"><summary>Préciser jour par jour</summary><div class="avail"><table id="avail" aria-label="Grille de disponibilités"></table></div></details>
         </fieldset>
-        <label for="villeI">Ville où tu habites<select id="villeI" name="ville"><option>Jonquière</option><option>Chicoutimi</option><option>La Baie</option><option>Autre</option></select></label>
+        <label for="villeI">Ville où tu habites<select id="villeI" name="ville"></select></label>
         <details class="plus" id="plusDetails"><summary>Ajouter des détails <span class="opt">(facultatif : CV, téléphone, études…)</span></summary>
           <div class="plus-corps">
             <div class="field">
@@ -202,7 +202,7 @@
         <label for="a_prenom">Prénom<input type="text" id="a_prenom" name="prenom" required maxlength="60" autocomplete="given-name"></label>
         <label for="a_nom">Nom<input type="text" id="a_nom" name="nom" required maxlength="80" autocomplete="family-name"></label>
         <label for="a_tel">Téléphone<input type="tel" id="a_tel" name="telephone" required maxlength="30" autocomplete="tel" inputmode="tel" placeholder="418 555-0123"></label>
-        <label for="a_ville">Ville où tu habites<select id="a_ville" name="ville"><option>Jonquière</option><option>Chicoutimi</option><option>La Baie</option><option>Autre</option></select></label>
+        <label for="a_ville">Ville où tu habites<select id="a_ville" name="ville"></select></label>
       </div>
       <label for="a_courriel">Courriel<input type="email" id="a_courriel" name="courriel" required maxlength="160" autocomplete="email" inputmode="email"></label>
       <p class="msg info seul-externe" id="a_explique"></p>
@@ -245,7 +245,7 @@
 
   $("#contactLien").href = "mailto:" + ((window.PJ_CONFIG || {}).contactEmail || "");
   if (!window.matchMedia("(hover: hover)").matches) $("#kbdHint").hidden = true;
-  VILLES.forEach(v => $("#ville").add(new Option(v, v)));
+  PJ.remplirVilles($("#villeI"), { autre: true }); PJ.remplirVilles($("#a_ville"), { autre: true });
   ETABLISSEMENTS.forEach(e => $("#etablissement").add(new Option(e, e)));
 
   // ----- Filtres -----
@@ -606,6 +606,7 @@
       OFFRES = data || [];
       $("#nbOffres").textContent = OFFRES.length;
       $("#nbWrap").hidden = OFFRES.length === 0;
+      PJ.remplirVilles($("#ville"), { autre: true, seulement: OFFRES.map(o => o.ville) }); // seulement les villes où il y a des offres
       if (OFFRES.length) {
         $("#ctaPrincipal").textContent = "Voir les offres"; $("#ctaPrincipal").href = "#offres";
         $("#ctaOffres").textContent = "M'avertir des nouvelles"; $("#ctaOffres").href = "#alerte"; $("#ctaOffres").hidden = false;
