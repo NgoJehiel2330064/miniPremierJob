@@ -10,7 +10,7 @@ language plpgsql security definer set search_path = public, extensions as $$
 begin
   begin
     perform net.http_post(
-      url := 'https://zgmyybminggblctvfiif.supabase.co/functions/v1/notifier',
+      url := 'https://hejkousthfnfckblwkqw.supabase.co/functions/v1/notifier',
       body := jsonb_build_object('type', case when tg_table_name = 'offres' then 'offre' else 'candidature' end, 'id', new.id),
       headers := '{"Content-Type":"application/json"}'::jsonb,
       timeout_milliseconds := 8000);
