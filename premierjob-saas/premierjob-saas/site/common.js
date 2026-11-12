@@ -6,6 +6,26 @@
   const JOURS = [["lun", "Lun"], ["mar", "Mar"], ["mer", "Mer"], ["jeu", "Jeu"], ["ven", "Ven"], ["sam", "Sam"], ["dim", "Dim"]];
   const PERIODES = [["jour", "Jour"], ["soir", "Soir"]];
   const ETABLISSEMENTS = ["Cégep de Jonquière", "Cégep de Chicoutimi", "UQAC", "École secondaire", "Nouvel arrivant", "Autre"];
+  const HORAIRES_COURTS = { jour: "Jour", soirs: "Soir", fds: "FDS", flexible: "Flex" };
+  const TRANSPORTS = { auto: "J'ai une auto", autobus: "Autobus", "pied-velo": "À pied ou à vélo" };
+
+  // Teinte stable (0-359) tirée d'un texte : chaque secteur garde sa couleur d'icône.
+  const teinte = (s) => { let h = 0; for (const c of String(s || "")) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+  const initiale = (s) => (String(s || "?").trim()[0] || "?").toUpperCase();
+
+  // Insère une ligne. Si une colonne récente n'existe pas encore dans Supabase
+  // (migration pas encore exécutée), on réessaie sans ces colonnes.
+  async function insererAvecRepli(table, row, colonnesRecentes) {
+    const sb = client();
+    let r = await sb.from(table).insert(row);
+    const manque = r.error && (r.error.code === "42703" || r.error.code === "PGRST204" || /column/i.test(r.error.message || ""));
+    if (manque && colonnesRecentes && colonnesRecentes.some((c) => c in row)) {
+      const copie = { ...row };
+      colonnesRecentes.forEach((c) => delete copie[c]);
+      r = await sb.from(table).insert(copie);
+    }
+    return r;
+  }
   // Colonnes que le public a le droit de lire (voir schema.sql).
   const OFFRE_PUBLIQUE = "id,titre,employeur,ville,secteur,type,horaires,salaire,description,lien,confirme,statut,verifie_le";
 
@@ -77,7 +97,7 @@
         b.type = "button";
         b.className = "slot";
         b.setAttribute("aria-label", `${jl} ${pl.toLowerCase()}`);
-        const sync = () => { const on = dispo.has(k); b.setAttribute("aria-pressed", on ? "true" : "false"); b.textContent = on ? "Oui" : "—"; };
+        const sync = () => { const on = dispo.has(k); b.setAttribute("aria-pressed", on ? "true" : "false"); b.textContent = on ? "✓" : ""; };
         b.addEventListener("click", () => { dispo.has(k) ? dispo.delete(k) : dispo.add(k); sync(); });
         sync();
         td.appendChild(b);
@@ -92,5 +112,5 @@
     try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path, event: true }); } catch (e) { /* stats facultatives */ }
   }
 
-  window.PJ = { HORAIRES, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
+  window.PJ = { HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
 })();

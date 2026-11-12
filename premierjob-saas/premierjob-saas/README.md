@@ -20,6 +20,10 @@ premierjob-saas/
 3. Ouvre `supabase/schema.sql`. À la **dernière ligne**, remplace `ton-courriel@exemple.com` par **ton** courriel.
 4. Dans Supabase : *SQL Editor* → *New query* → colle tout le fichier → **Run**. Tu dois voir « Success ».
 
+### Base déjà créée? Lance la migration 002
+
+Si ta base existait avant la refonte visuelle, colle aussi `supabase/migration-002-transport.sql` dans le *SQL Editor* et clique **Run**. Elle ajoute le moyen de transport des candidats. Sans elle, le site marche quand même, mais le transport n'est pas enregistré.
+
 ## Étape 2 — Créer ton compte admin (3 min)
 
 1. *Authentication* → *Users* → *Add user* → *Create new user*.
