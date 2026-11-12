@@ -1,6 +1,7 @@
 -- =====================================================================
 -- PremierJob — migration 002 : moyen de transport des candidats
 -- À exécuter UNE fois dans Supabase > SQL Editor (peut être relancée sans risque).
+-- Appliquée sur le projet PremierJob le 12 nov. 2026.
 -- Sans cette migration, le site fonctionne quand même : il enregistre
 -- l'inscription sans le transport.
 -- =====================================================================
