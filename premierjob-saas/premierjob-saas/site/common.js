@@ -1,12 +1,12 @@
 // Code partagé par toutes les pages PremierJob.
 (function () {
-  const HORAIRES = { jour: "Jour", soirs: "Soirs", fds: "Fins de semaine", flexible: "Flexible" };
+  const HORAIRES = { jour: "Jour", soirs: "Soirs", nuit: "Nuit", fds: "Fins de semaine", flexible: "Flexible" };
   const TYPES = ["Temps partiel", "Temps plein", "Stage", "Été"];
   const VILLES = ["Jonquière", "Chicoutimi", "La Baie"];
   const JOURS = [["lun", "Lun"], ["mar", "Mar"], ["mer", "Mer"], ["jeu", "Jeu"], ["ven", "Ven"], ["sam", "Sam"], ["dim", "Dim"]];
-  const PERIODES = [["jour", "Jour"], ["soir", "Soir"]];
+  const PERIODES = [["jour", "Jour"], ["soir", "Soir"], ["nuit", "Nuit"]];
   const ETABLISSEMENTS = ["Cégep de Jonquière", "Cégep de Chicoutimi", "UQAC", "École secondaire", "Nouvel arrivant", "Autre"];
-  const HORAIRES_COURTS = { jour: "Jour", soirs: "Soir", fds: "FDS", flexible: "Flex" };
+  const HORAIRES_COURTS = { jour: "Jour", soirs: "Soir", nuit: "Nuit", fds: "FDS", flexible: "Flex" };
   const TRANSPORTS = { auto: "J'ai une auto", autobus: "Autobus", "pied-velo": "À pied ou à vélo" };
 
   // Teinte stable (0-359) tirée d'un texte : chaque secteur garde sa couleur d'icône.
@@ -57,6 +57,7 @@
     (horaires || []).forEach((h) => {
       if (h === "jour") semaine.forEach((j) => s.add(j + "-jour"));
       if (h === "soirs") semaine.forEach((j) => s.add(j + "-soir"));
+      if (h === "nuit") JOURS.forEach(([j]) => s.add(j + "-nuit"));
       if (h === "fds") ["sam", "dim"].forEach((j) => { s.add(j + "-jour"); s.add(j + "-soir"); });
       if (h === "flexible") JOURS.forEach(([j]) => PERIODES.forEach(([p]) => s.add(j + "-" + p)));
     });
@@ -112,5 +113,45 @@
     try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path, event: true }); } catch (e) { /* stats facultatives */ }
   }
 
-  window.PJ = { HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
+  // ----- CV -----
+  const CV_TYPES = {
+    "application/pdf": "pdf",
+    "application/msword": "doc",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx"
+  };
+  const CV_MAX = 5 * 1024 * 1024;
+  function verifierCV(f) {
+    if (!f) return "";
+    const ext = (f.name.split(".").pop() || "").toLowerCase();
+    if (!CV_TYPES[f.type] && !["pdf", "doc", "docx"].includes(ext)) return "Ton CV doit être un PDF ou un document Word.";
+    if (f.size > CV_MAX) return "Ton CV dépasse 5 Mo. Exporte-le en PDF, il sera plus léger.";
+    return "";
+  }
+  function uuid() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+    const h = [...b].map((x) => x.toString(16).padStart(2, "0")).join("");
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+  }
+  // Dépose le CV dans le stockage privé et renvoie son chemin (nom aléatoire, jamais le nom de la personne).
+  async function deposerCV(f) {
+    const ext = CV_TYPES[f.type] || (f.name.split(".").pop() || "pdf").toLowerCase();
+    const type = Object.keys(CV_TYPES).find((k) => CV_TYPES[k] === ext) || "application/pdf";
+    const chemin = uuid() + "." + ext;
+    const { error } = await client().storage.from("cvs").upload(chemin, f, { contentType: type, upsert: false });
+    if (error) throw error;
+    return chemin;
+  }
+
+  // Statistiques GoatCounter : chargées seulement si un code est configuré (pas sur la page admin).
+  (function chargerStats() {
+    const code = (window.PJ_CONFIG || {}).goatcounter;
+    if (!code || !/^[a-z0-9-]+$/i.test(code) || /admin\.html$/.test(location.pathname)) return;
+    const s = document.createElement("script");
+    s.async = true; s.src = "https://gc.zgo.at/count.js";
+    s.dataset.goatcounter = "https://" + code + ".goatcounter.com/count";
+    document.head.appendChild(s);
+  })();
+
+  window.PJ = { verifierCV, deposerCV, HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
 })();

@@ -8,6 +8,14 @@
 <meta name="description" content="Des jobs au Saguenay qui n'exigent pas d'expérience. Chaque offre est vérifiée, avec les vrais horaires. Jonquière, Chicoutimi, La Baie.">
 <meta property="og:title" content="PremierJob Saguenay">
 <meta property="og:description" content="Des jobs sans expérience exigée, vérifiés un par un, avec les vrais horaires.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://premierjob-saguenay.netlify.app/">
+<meta property="og:image" content="https://premierjob-saguenay.netlify.app/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="fr_CA">
+<meta property="og:site_name" content="PremierJob Saguenay">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff6363'/%3E%3Cstop offset='1' stop-color='%23ffb347'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='17' text-anchor='middle' fill='%231a0b0b'%3EP%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,6 +50,7 @@
   <div class="meta-row">
     <span><b id="nbOffres">–</b> offres en ligne</span>
     <span><b id="nbConf">–</b> confirmées par l'employeur</span>
+    <span id="nouvTxt" hidden></span>
     <span id="majTxt"></span>
   </div>
 </header>
@@ -104,12 +113,17 @@
           <label for="etablissement">École<select id="etablissement" name="etablissement"></select></label>
           <label for="domaine">Programme <span class="opt">(facultatif)</span><input type="text" id="domaine" name="domaine" maxlength="120" placeholder="Ex. : Techniques de l'informatique"></label>
         </div>
+        <div class="field">
+          <span>Ton CV <span class="opt">(PDF ou Word, 5 Mo max)</span></span>
+          <label class="drop" for="cv"><input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+            <span class="drop-t" id="cvNom">Ajouter mon CV</span><span class="drop-s">Les employeurs d'ici le demandent presque toujours. Pas de CV? Inscris-toi quand même, je t'aide à en faire un.</span></label>
+        </div>
         <fieldset><legend>Tes disponibilités</legend><div class="avail"><table id="avail" aria-label="Grille de disponibilités"></table></div></fieldset>
         <fieldset><legend>Comment tu te déplaces?</legend><div class="chips" id="transportF"></div></fieldset>
         <fieldset><legend>Ce que tu cherches <span class="opt">(facultatif)</span></legend><div class="chips" id="typeF"></div></fieldset>
         <label for="telephone">Téléphone <span class="opt">(facultatif, pour un appel d'entrevue plus rapide)</span><input type="tel" id="telephone" name="telephone" maxlength="30" autocomplete="tel" inputmode="tel"></label>
         <label class="consent" for="consent"><input type="checkbox" id="consent" required>
-          <span>J'accepte que PremierJob garde ces infos pour m'envoyer des offres. Je peux les faire supprimer en tout temps. <a href="#confidentialite">Confidentialité</a></span>
+          <span>J'accepte que PremierJob garde ces infos (et mon CV) pour m'envoyer des offres. Mon CV est envoyé à un employeur seulement si je dis oui pour son offre. Je peux tout faire supprimer en tout temps. <a href="#confidentialite">Confidentialité</a></span>
         </label>
         <button class="btn" type="submit" id="submitBtn">M'inscrire</button>
         <div id="formMsg" role="status"></div>
@@ -133,7 +147,7 @@
   <div class="wrap">
     <div id="confidentialite">
       <strong style="color:var(--muted)">Confidentialité (Loi 25).</strong>
-      Renseignements recueillis : prénom, courriel, téléphone facultatif, école, programme, disponibilités, moyen de transport et type d'emploi recherché. Ils servent à t'envoyer des offres et, seulement avec ton accord à chaque fois, à présenter ton profil à un employeur. Hébergement : Supabase. Pour consulter, corriger ou supprimer tes données, écris au responsable : <span id="respTxt"></span>.
+      Renseignements recueillis : prénom, courriel, téléphone facultatif, école, programme, disponibilités, moyen de transport, type d'emploi recherché et CV facultatif. Les CV sont dans un stockage privé que seul l'administrateur peut ouvrir. Ils servent à t'envoyer des offres et, seulement avec ton accord à chaque fois, à présenter ton profil à un employeur. Hébergement : Supabase. Pour consulter, corriger ou supprimer tes données, écris au responsable : <span id="respTxt"></span>.
     </div>
     <div>PremierJob · projet étudiant lancé au Saguenay · <a href="employeur.html">Afficher une offre</a></div>
   </div>
@@ -172,13 +186,16 @@
   $("#ville").addEventListener("change", e => { state.ville = e.target.value; state.sel = 0; render(); });
 
   // ----- Rendu -----
+  const JOUR = 864e5;
+  const estNouvelle = (o) => o.verifie_le && (Date.now() - new Date(o.verifie_le + "T12:00:00").getTime()) < 7 * JOUR;
+  const lienOffre = (o) => location.origin + location.pathname + "#offre-" + o.id;
   const icone = (o, lg) => `<span class="ico${lg ? " lg" : ""}" style="--h:${teinte(o.secteur || o.employeur)}">${esc(initiale(o.employeur))}</span>`;
 
   function ligne(o, i){
     const h = (o.horaires || []).map((x, n) => `<span class="k${n > 0 ? " hide-sm" : ""}">${esc(HORAIRES_COURTS[x] || x)}</span>`).join("");
     return `<button class="row" role="option" data-i="${i}" aria-selected="${i === state.sel}">
       ${icone(o)}
-      <span style="min-width:0"><span class="t">${esc(o.titre)}</span><span class="s">${esc(o.employeur)} · ${esc(o.ville)}</span></span>
+      <span style="min-width:0"><span class="t">${estNouvelle(o) ? '<span class="new">Nouveau</span>' : ""}${esc(o.titre)}</span><span class="s">${esc(o.employeur)} · ${esc(o.ville)}</span></span>
       <span class="acc">${h}${o.salaire ? `<span class="money hide-sm">${esc(o.salaire)}</span>` : ""}</span>
     </button>`;
   }
@@ -193,18 +210,19 @@
     const lien = safeUrl(o.lien);
     return `<div class="detail">
       <div class="head">${icone(o, true)}<div><h3 style="font-size:18px">${esc(o.titre)}</h3><div class="emp">${esc(o.employeur)}</div></div></div>
-      ${o.confirme ? '<span class="badge ok">✓ Sans expérience · confirmé par l\'employeur</span>' : '<span class="badge wait">Sans expérience selon l\'annonce · à confirmer</span>'}
+      <div class="tags">${o.confirme ? '<span class="badge ok">✓ Sans expérience · confirmé par l\'employeur</span>' : '<span class="badge wait">Sans expérience selon l\'annonce · à confirmer</span>'}${estNouvelle(o) ? '<span class="badge new-b">Nouveau</span>' : ""}</div>
       <dl class="kv">
         <dt>Lieu</dt><dd>${esc(o.ville)}</dd>
         <dt>Type</dt><dd>${esc(o.type)}</dd>
         <dt>Horaire</dt><dd>${esc((o.horaires || []).map(x => HORAIRES[x] || x).join(", ") || "—")}</dd>
-        ${o.salaire ? `<dt>Salaire</dt><dd class="mono">${esc(o.salaire)}</dd>` : ""}
+        ${o.salaire ? `<dt>Salaire</dt><dd>${esc(o.salaire)}</dd>` : ""}
         ${o.secteur ? `<dt>Secteur</dt><dd>${esc(o.secteur)}</dd>` : ""}
         ${o.verifie_le ? `<dt>Vérifiée le</dt><dd>${fmtDate(o.verifie_le)}</dd>` : ""}
       </dl>
       ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
       <div class="cta" style="margin-top:4px">
         ${lien ? `<a class="btn" href="${esc(lien)}" target="_blank" rel="noopener" data-track="${esc(o.id)}">Postuler sur l'offre originale ↗</a>` : ""}
+        <button class="btn ghost" type="button" data-share="${esc(o.id)}">Partager</button>
         <a class="btn ghost" href="#alerte" data-close>Recevoir des offres comme celle-ci</a>
       </div>
     </div>`;
@@ -240,17 +258,48 @@
 
   function select(i, ouvrir){
     state.sel = i;
+    if (VUE[i] && (ouvrir || large.matches)) try { history.replaceState(null, "", "#offre-" + VUE[i].id); } catch (e) {}
     document.querySelectorAll(".row").forEach(r => r.setAttribute("aria-selected", +r.dataset.i === i));
     const row = document.querySelector(`.row[data-i="${i}"]`); if (row) row.scrollIntoView({ block:"nearest" });
     if (large.matches) $("#detail").innerHTML = detail(VUE[i]);
     else if (ouvrir) { $("#sheetBody").innerHTML = detail(VUE[i]); $("#sheet").classList.add("open"); $("#scrim").classList.add("open"); }
   }
-  const fermer = () => { $("#sheet").classList.remove("open"); $("#scrim").classList.remove("open"); };
+  const fermer = () => {
+    $("#sheet").classList.remove("open"); $("#scrim").classList.remove("open");
+    if (!large.matches && location.hash.startsWith("#offre-")) try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  };
+
+  // Partage d'une offre : menu natif sur mobile, sinon copie du lien
+  async function partager(btn, id){
+    const o = OFFRES.find(x => x.id === id); if (!o) return;
+    const url = lienOffre(o), texte = `${o.titre} chez ${o.employeur} (${o.ville}) · sans expérience exigée`;
+    PJ.track("partage/" + id);
+    if (navigator.share) { try { await navigator.share({ title: o.titre, text: texte, url }); return; } catch (e) { if (e.name === "AbortError") return; } }
+    try { await navigator.clipboard.writeText(url); btn.textContent = "Lien copié ✓"; }
+    catch (e) { btn.textContent = url; }
+    setTimeout(() => { btn.textContent = "Partager"; }, 2500);
+  }
+
+  // Ouvre l'offre indiquée dans l'adresse (#offre-…)
+  function ouvrirDepuisAdresse(){
+    const m = location.hash.match(/^#offre-([0-9a-f-]{36})$/i); if (!m) return;
+    let i = VUE.findIndex(o => o.id === m[1]);
+    if (i < 0 && OFFRES.some(o => o.id === m[1])) {
+      state.q = ""; state.ville = ""; state.type = ""; state.horaires.clear(); $("#q").value = ""; $("#ville").value = "";
+      document.querySelectorAll("#filters .chip").forEach(b => b.setAttribute("aria-pressed","false"));
+      render(); i = VUE.findIndex(o => o.id === m[1]);
+    }
+    if (i < 0) return;
+    $("#offres").scrollIntoView({ block: "start" });
+    select(i, true);
+  }
+  window.addEventListener("hashchange", ouvrirDepuisAdresse);
   $("#list").addEventListener("click", e => { const r = e.target.closest(".row"); if (r) select(+r.dataset.i, true); });
   $("#scrim").addEventListener("click", fermer);
   $("#sheetX").addEventListener("click", fermer);
   document.addEventListener("click", e => {
     const t = e.target.closest("[data-track]"); if (t) PJ.track("clic-offre/" + t.dataset.track);
+    const sh = e.target.closest("[data-share]"); if (sh) partager(sh, sh.dataset.share);
     if (e.target.closest("[data-close]")) fermer();
   });
 
@@ -276,7 +325,10 @@
       $("#nbConf").textContent = OFFRES.filter(o => o.confirme).length;
       const d = OFFRES.map(o => o.verifie_le).filter(Boolean).sort().pop();
       $("#majTxt").innerHTML = d ? `mis à jour le <b>${fmtDate(d)}</b>` : "";
+      const nb = OFFRES.filter(estNouvelle).length;
+      if (nb) { $("#nouvTxt").hidden = false; $("#nouvTxt").innerHTML = `<b>${nb}</b> nouvelle${nb > 1 ? "s" : ""} cette semaine`; }
       render();
+      ouvrirDepuisAdresse();
     } catch (err) {
       $("#count").textContent = "";
       $("#list").innerHTML = `<div class="pal-empty"><span class="big">Impossible de charger les offres.</span><span>${esc(PJ.configMessage(err))}</span></div>`;
@@ -294,6 +346,12 @@
     transport = transport === k ? "" : k; trBtns.forEach(x => x.setAttribute("aria-pressed", x.dataset.k === transport)); }); b.dataset.k = k; return b; });
   trBtns.forEach(b => $("#transportF").appendChild(b));
   let dispo = PJ.grilleDispos($("#avail"));
+  $("#cv").addEventListener("change", e => {
+    const f = e.target.files[0], err = PJ.verifierCV(f);
+    $("#cvNom").textContent = f ? (err ? err : "✓ " + f.name) : "Ajouter mon CV";
+    $("#cvNom").closest(".drop").classList.toggle("ok", !!f && !err);
+    $("#cvNom").closest(".drop").classList.toggle("bad", !!err);
+  });
 
   $("#form").addEventListener("submit", async e => {
     e.preventDefault();
@@ -303,6 +361,8 @@
     if (!f.prenom.value.trim() || !/^\S+@\S+\.\S+$/.test(f.courriel.value.trim())) return say("err", "Entre ton prénom et un courriel valide.");
     if (dispo.size === 0) return say("err", "Coche au moins une case dans tes disponibilités.");
     if (!$("#consent").checked) return say("err", "Coche la case de consentement pour t'inscrire.");
+    const fichier = f.cv.files[0], errCV = PJ.verifierCV(fichier);
+    if (errCV) return say("err", errCV);
     const row = {
       prenom: f.prenom.value.trim(), courriel: f.courriel.value.trim(), telephone: f.telephone.value.trim() || null,
       etablissement: f.etablissement.value, domaine: f.domaine.value.trim() || null,
@@ -311,7 +371,8 @@
     if (transport) row.transport = transport;
     btn.disabled = true;
     try {
-      const { error } = await PJ.insererAvecRepli("candidats", row, ["transport"]);
+      if (fichier) { btn.textContent = "Envoi du CV…"; row.cv_path = await PJ.deposerCV(fichier); }
+      const { error } = await PJ.insererAvecRepli("candidats", row, ["transport", "cv_path"]);
       if (error) {
         if (error.code === "23505") return say("info", "Ce courriel est déjà inscrit. Pour changer tes disponibilités, écris-nous.");
         throw error;
@@ -319,11 +380,13 @@
       say("ok", `C'est noté, ${row.prenom}. Tu recevras les offres qui tombent dans ton horaire.`);
       PJ.track("inscription");
       f.reset(); typesChoisis.clear(); transport = "";
+      $("#cvNom").textContent = "Ajouter mon CV"; $("#cvNom").closest(".drop").classList.remove("ok","bad");
       document.querySelectorAll("#typeF .chip, #transportF .chip").forEach(b => b.setAttribute("aria-pressed","false"));
       dispo = PJ.grilleDispos($("#avail"));
     } catch (err) {
-      say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err) : "L'inscription n'a pas fonctionné. Vérifie tes réponses et réessaie.");
-    } finally { btn.disabled = false; }
+      say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)
+        : (err.statusCode || err.status) ? "Ton CV n'a pas pu être envoyé. Essaie en PDF, ou inscris-toi sans CV." : "L'inscription n'a pas fonctionné. Vérifie tes réponses et réessaie.");
+    } finally { btn.disabled = false; btn.textContent = "M'inscrire"; }
   });
 
   large.addEventListener("change", () => { fermer(); render(); });

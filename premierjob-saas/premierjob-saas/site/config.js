@@ -7,5 +7,8 @@ window.PJ_CONFIG = {
   supabaseUrl: "https://zgmyybminggblctvfiif.supabase.co",
   supabaseAnonKey: "sb_publishable_ku6QPwWlvrecBA9zffSirw_e7sLtjvi",
   contactEmail: "ngoumdjeuj@gmail.com",
-  responsable: "Jehiel, fondateur de PremierJob (ngoumdjeuj@gmail.com)"
+  responsable: "Jehiel, fondateur de PremierJob (ngoumdjeuj@gmail.com)",
+  // Statistiques (facultatif) : crée un compte gratuit sur goatcounter.com
+  // et mets ici ton code, ex. "premierjob" pour premierjob.goatcounter.com
+  goatcounter: ""
 };
