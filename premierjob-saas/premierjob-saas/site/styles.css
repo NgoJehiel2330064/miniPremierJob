@@ -326,3 +326,14 @@ dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(4px)}
 .cand-top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
 .cand input[type=checkbox]{margin-top:3px}
 textarea.mail{min-height:220px;font:13px/1.5 var(--mono)}
+
+/* Mes candidatures + candidature sur le formulaire de l'employeur */
+.mes{border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));margin-bottom:18px}
+.mes-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.mes-head h2{font-size:22px;margin:0}
+.mes-item{display:grid;gap:8px;padding:12px 0;border-top:1px solid var(--line)}
+.mes-item:first-child{border-top:0}
+.lien-discret{opacity:.7}
+.sec-mini{font-size:13px;color:var(--dim)}
+.pill-st.intent{color:var(--warn);border-color:rgba(250,204,21,.35)}
+.pill-st.declared{color:#93c5fd;border-color:rgba(147,197,253,.35)}

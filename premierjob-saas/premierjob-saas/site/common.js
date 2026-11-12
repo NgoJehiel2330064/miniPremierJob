@@ -27,7 +27,7 @@
     return r;
   }
   // Colonnes que le public a le droit de lire (voir schema.sql).
-  const OFFRE_PUBLIQUE = "id,titre,employeur,ville,lieu,secteur,type,horaires,salaire,description,lien,confirme,statut,verifie_le,publiee_le,date_debut,qualification,nb_postes,creneaux_obligatoires,creneaux_souhaites";
+  const OFFRE_PUBLIQUE = "id,titre,employeur,ville,lieu,secteur,type,horaires,salaire,description,lien,confirme,statut,verifie_le,publiee_le,date_debut,qualification,nb_postes,creneaux_obligatoires,creneaux_souhaites,candidature_externe";
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmtDate = (d) => (d ? new Date(d + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" }) : "");
@@ -176,7 +176,14 @@
 
   // ----- Statuts -----
   const OFFRE_STATUTS = { pending: "À valider", published: "Publiée", paused: "Suspendue", closed: "Fermée", rejected: "Refusée" };
-  const CAND_STATUTS = { received: "Reçue", forwarded: "Transmise", interview: "Entrevue", hired: "Embauché", rejected: "Non retenue", withdrawn: "Retirée" };
+  const CAND_STATUTS = { received: "Reçue", intent: "Intention", declared: "Déclarée", forwarded: "Transmise", interview: "Entrevue", hired: "Embauché", rejected: "Non retenue", withdrawn: "Retirée" };
+  const RESULTATS_DECLARES = { pas_encore: "pas encore envoyée", sans_nouvelles: "sans nouvelles", appele: "dit avoir été appelé(e)", embauche: "dit avoir été embauché(e)" };
+  // Même règle que la base (pj_lien_concurrent) : jamais de renvoi vers une autre plateforme d'emploi
+  const lienConcurrent = (u) => /^https?:\/\/([a-z0-9-]+\.)*(indeed|jobillico|jobboom|glassdoor|monster|workopolis|ziprecruiter|linkedin|talent|simplyhired|neuvoo|jooble|careerbeacon|eluta)\.[a-z.]+(\/|\?|#|$)/i.test(u || "");
+  // Lien vers le formulaire de l'employeur, étiqueté PremierJob (sans effet si son site ne le lit pas)
+  function lienEtiquete(u) {
+    try { const x = new URL(u); if (!/^https?:$/.test(x.protocol)) return null; if (!x.searchParams.has("utm_source")) { x.searchParams.set("utm_source", "premierjob"); x.searchParams.set("utm_medium", "referral"); } return x.toString(); } catch (e) { return null; }
+  }
 
   // ----- Horaires du poste : grille à 3 états (vide → Requis → Idéal → vide) -----
   function grilleOffre(table, oblig, souh) {
@@ -244,5 +251,5 @@
     document.head.appendChild(s);
   })();
 
-  window.PJ = { experienceExigee, experienceMentionnee, messageErreur, OFFRE_STATUTS, CAND_STATUTS, grilleOffre, grilleLecture, jumelerV2, nomCreneau, uuid, verifierCV, deposerCV, HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
+  window.PJ = { RESULTATS_DECLARES, lienConcurrent, lienEtiquete, experienceExigee, experienceMentionnee, messageErreur, OFFRE_STATUTS, CAND_STATUTS, grilleOffre, grilleLecture, jumelerV2, nomCreneau, uuid, verifierCV, deposerCV, HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
 })();

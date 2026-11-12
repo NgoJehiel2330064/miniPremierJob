@@ -55,6 +55,14 @@
   </div>
 </header>
 
+<!-- Mes candidatures (gardées sur ce téléphone seulement) -->
+<section class="wrap" id="mesCands" hidden aria-labelledby="t-mes">
+  <div class="mes">
+    <div class="mes-head"><h2 id="t-mes">Mes candidatures</h2><span class="small">Gardées sur cet appareil seulement</span></div>
+    <div id="mesList"></div>
+  </div>
+</section>
+
 <!-- Les offres, façon palette -->
 <section class="wrap" id="offres" aria-label="Offres d'emploi">
   <div class="palette">
@@ -169,23 +177,34 @@
         <label for="a_ville">Ville où tu habites<select id="a_ville" name="ville"><option>Jonquière</option><option>Chicoutimi</option><option>La Baie</option><option>Autre</option></select></label>
       </div>
       <label for="a_courriel">Courriel<input type="email" id="a_courriel" name="courriel" required maxlength="160" autocomplete="email" inputmode="email"></label>
-      <fieldset><legend>Tes disponibilités <span class="opt">Les cases encadrées sont requises pour ce poste.</span></legend>
+      <p class="msg info seul-externe" id="a_explique"></p>
+      <fieldset class="seul-interne"><legend>Tes disponibilités <span class="opt">Les cases encadrées sont requises pour ce poste.</span></legend>
         <div class="avail"><table id="a_avail" aria-label="Tes disponibilités"></table></div>
         <div id="a_fit" role="status"></div></fieldset>
-      <fieldset><legend>Comment tu te déplaces?</legend><div class="chips" id="a_transport"></div></fieldset>
-      <div class="field">
+      <fieldset class="seul-interne"><legend>Comment tu te déplaces?</legend><div class="chips" id="a_transport"></div></fieldset>
+      <div class="field seul-interne">
         <span>Ton CV <span class="opt">(PDF ou Word, 5 Mo max)</span></span>
         <label class="drop" for="a_cv"><input type="file" id="a_cv" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
           <span class="drop-t" id="a_cvNom">Ajouter mon CV</span><span class="drop-s">Presque tous les employeurs le demandent. Sans CV, ta candidature passe quand même.</span></label>
       </div>
-      <label for="a_msg">Un mot pour l'employeur <span class="opt">(facultatif)</span><textarea id="a_msg" name="message" maxlength="500" placeholder="Ex. : Je peux commencer lundi, j'habite à 5 minutes."></textarea></label>
+      <label for="a_msg" class="seul-interne">Un mot pour l'employeur <span class="opt">(facultatif)</span><textarea id="a_msg" name="message" maxlength="500" placeholder="Ex. : Je peux commencer lundi, j'habite à 5 minutes."></textarea></label>
       <label class="consent" for="a_consent"><input type="checkbox" id="a_consent" required>
-        <span>J'accepte que PremierJob transmette ma candidature et mon CV à <b id="applyEmp2"></b> pour ce poste. <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></span>
+        <span class="seul-interne">J'accepte que PremierJob transmette ma candidature et mon CV à <b class="applyEmp2"></b> pour ce poste. <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></span>
+        <span class="seul-externe">J'accepte que PremierJob signale ma candidature à <b class="applyEmp2"></b> en lui transmettant mon nom et mon téléphone. <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></span>
       </label>
-      <label class="consent" for="a_alertes"><input type="checkbox" id="a_alertes">
+      <label class="consent seul-interne" for="a_alertes"><input type="checkbox" id="a_alertes">
         <span>Envoie-moi aussi les prochaines offres qui fittent avec mon horaire (facultatif).</span>
       </label>
       <div class="actions"><button class="btn" type="submit" id="applyBtn">Envoyer ma candidature</button><button class="btn ghost" type="button" data-apply-close>Annuler</button></div>
+      <a class="small seul-externe" id="a_direct" href="#" target="_blank" rel="noopener">Aller directement au formulaire, sans être signalé ↗</a>
+    </div>
+    <div id="applyEtape2" hidden style="display:grid;gap:14px">
+      <div class="msg ok" id="e2Titre"></div>
+      <p style="margin:0">Étape 2 : termine ta candidature sur le site de <b class="applyEmp2"></b>. Elle n'est pas complète tant que tu n'as pas envoyé leur formulaire.</p>
+      <p class="small" style="margin:0">Si le formulaire demande comment tu as connu l'entreprise, écris <b style="color:var(--ink)">PremierJob</b>.</p>
+      <a class="btn" id="e2Lien" href="#" target="_blank" rel="noopener">Ouvrir le formulaire ↗</a>
+      <div class="sec-mini">Une fois envoyé, reviens ici :</div>
+      <div class="actions"><button class="btn ghost" type="button" data-repondre="envoyee">C'est fait, je l'ai envoyé</button><button class="btn ghost" type="button" data-repondre="pas_encore">Pas encore</button></div>
     </div>
     <div id="applyMsg" role="status"></div>
     <div id="applyDone" class="actions" hidden><a class="btn" href="#alerte" data-apply-close>Recevoir les prochaines offres</a><button class="btn ghost" type="button" data-apply-close>Fermer</button></div>
@@ -271,10 +290,11 @@
       </dl>
       ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites) ? `<div><div class="small" style="margin-bottom:6px">Quarts : <span class="g req">R</span> requis · <span class="g ideal">I</span> idéal</div>${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}</div>` : ""}
       ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
+      ${o.candidature_externe && lien ? `<p class="small" style="margin:0">Candidature en 2 étapes : tu laisses ton nom ici, puis tu remplis le formulaire officiel de ${esc(o.employeur)}. On signale ta candidature au gérant.</p>` : ""}
       <div class="cta" style="margin-top:4px">
-        <button class="btn" type="button" data-apply="${esc(o.id)}">Postuler via PremierJob</button>
+        <button class="btn" type="button" data-apply="${esc(o.id)}">${o.candidature_externe && lien ? "Postuler" : "Postuler via PremierJob"}</button>
         <button class="btn ghost" type="button" data-share="${esc(o.id)}">Partager</button>
-        ${lien ? `<a class="btn ghost" href="${esc(lien)}" target="_blank" rel="noopener" data-track="${esc(o.id)}">Annonce originale ↗</a>` : ""}
+        ${lien && !o.candidature_externe ? `<a class="btn ghost" href="${esc(lien)}" target="_blank" rel="noopener" data-track="${esc(o.id)}">Annonce originale ↗</a>` : ""}
       </div>
     </div>`;
   }
@@ -385,8 +405,15 @@
     el.className = "fit ok"; el.textContent = "✓ Tes disponibilités couvrent les quarts requis.";
   }
   $("#a_avail").addEventListener("click", () => setTimeout(majFit, 0));
+  const estExterne = (o) => !!(o && o.candidature_externe && PJ.lienEtiquete(o.lien));
+  function modeDialogue(externe){
+    document.querySelectorAll("#apply .seul-interne").forEach(el => { el.hidden = externe; });
+    document.querySelectorAll("#apply .seul-externe").forEach(el => { el.hidden = !externe; });
+  }
   function ouvrirPostuler(id){
     offreCible = OFFRES.find(o => o.id === id); if (!offreCible) return;
+    const ext = estExterne(offreCible);
+    modeDialogue(ext);
     const f = $("#applyForm"); f.reset();
     const m = memo.get(); if (m.prenom) f.prenom.value = m.prenom; if (m.courriel) f.courriel.value = m.courriel; if (m.telephone) f.telephone.value = m.telephone;
     if (m.nom) f.nom.value = m.nom; if (m.ville) f.ville.value = m.ville;
@@ -397,7 +424,13 @@
     majFit();
     $("#applyT").textContent = offreCible.titre;
     $("#applyEmp").textContent = offreCible.employeur + " · " + offreCible.ville;
-    $("#applyEmp2").textContent = offreCible.employeur;
+    document.querySelectorAll("#apply .applyEmp2").forEach(el => { el.textContent = offreCible.employeur; });
+    $("#applyBtn").textContent = ext ? "Continuer vers l'étape 2" : "Envoyer ma candidature";
+    if (ext) {
+      $("#a_explique").textContent = `${offreCible.employeur} reçoit les candidatures sur son propre formulaire. Laisse ton nom ici : on signale ta candidature au gérant, puis tu remplis leur formulaire.`;
+      $("#a_direct").href = PJ.lienEtiquete(offreCible.lien); $("#a_direct").dataset.track = "direct/" + offreCible.id;
+    }
+    $("#applyEtape2").hidden = true;
     $("#a_cvNom").textContent = "Ajouter mon CV"; $("#a_cvNom").closest(".drop").classList.remove("ok","bad");
     $("#applyFields").hidden = false; $("#applyDone").hidden = true; $("#applyMsg").className = ""; $("#applyMsg").textContent = "";
     $("#apply").showModal();
@@ -416,6 +449,7 @@
     const fini = (t) => { say("ok", t); $("#applyFields").hidden = true; $("#applyDone").hidden = false; };
     if (f.site_web.value) return fini("Candidature envoyée.");
     const v = (n) => f[n].value.trim();
+    if (estExterne(offreCible)) return envoyerExterne(f, v, say, btn);
     if (!v("prenom") || !v("nom")) return say("err", "Entre ton prénom et ton nom.");
     if (!/^\S+@\S+\.\S+$/.test(v("courriel"))) return say("err", "Entre un courriel valide : c'est là que tu recevras la confirmation.");
     if (v("telephone").replace(/\D/g, "").length < 10) return say("err", "Entre un numéro de téléphone à 10 chiffres : l'employeur va t'appeler.");
@@ -438,6 +472,7 @@
         throw error;
       }
       memo.set({ prenom: row.prenom, nom: row.nom, courriel: row.courriel, telephone: row.telephone, ville: row.ville, transport: row.transport, dispos: row.dispos });
+      mes.ajouter({ id: ref, courriel: row.courriel, offre_id: offreCible.id, titre: offreCible.titre, employeur: offreCible.employeur, canal: "interne" });
       PJ.track("candidature/" + offreCible.id);
       if ($("#a_alertes").checked) {
         try { await PJ.client().from("candidats").insert({ prenom: row.prenom, nom: row.nom, courriel: row.courriel, telephone: row.telephone,
@@ -450,6 +485,96 @@
       say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)
         : (err.statusCode || err.status) ? "Ton CV n'a pas pu être envoyé. Essaie en PDF, ou postule sans CV." : PJ.messageErreur(err, "L'envoi n'a pas fonctionné. Vérifie ta connexion et réessaie : tes réponses sont toujours là."));
     } finally { btn.disabled = false; btn.textContent = "Envoyer ma candidature"; }
+  });
+
+  // ----- Candidature sur le formulaire de l'employeur (2 étapes) -----
+  let cibleE2 = null;
+  async function envoyerExterne(f, v, say, btn){
+    if (!v("prenom") || !v("nom")) return say("err", "Entre ton prénom et ton nom : c'est ce qu'on signale au gérant.");
+    if (!/^\S+@\S+\.\S+$/.test(v("courriel"))) return say("err", "Entre un courriel valide.");
+    if (v("telephone").replace(/\D/g, "").length < 10) return say("err", "Entre un numéro de téléphone à 10 chiffres : le gérant pourra t'appeler.");
+    if (!$("#a_consent").checked) return say("err", "Coche la case pour qu'on signale ta candidature. Sinon, utilise le lien « Aller directement au formulaire ».");
+    const ref = PJ.uuid(), o = offreCible;
+    const row = { id: ref, offre_id: o.id, prenom: v("prenom"), nom: v("nom"), courriel: v("courriel"), telephone: v("telephone"), ville: f.ville.value,
+      consentement: true, consentement_texte: ("v1-externe · signaler ma candidature à " + o.employeur + " pour « " + o.titre + " » (nom et téléphone)").slice(0, 400) };
+    btn.disabled = true;
+    try {
+      const { error } = await PJ.client().from("candidatures").insert(row);
+      if (error && error.code !== "23505") {
+        if (error.code === "42501") return say("err", "Cette offre n'est plus disponible. Regarde les autres offres.");
+        if (/PJ_/.test(error.message || "")) return say("err", PJ.messageErreur(error));
+        throw error;
+      }
+      memo.set({ ...memo.get(), prenom: row.prenom, nom: row.nom, courriel: row.courriel, telephone: row.telephone, ville: row.ville });
+      if (!error) mes.ajouter({ id: ref, courriel: row.courriel, offre_id: o.id, titre: o.titre, employeur: o.employeur, canal: "externe", lien: o.lien });
+      PJ.track("intention/" + o.id);
+      cibleE2 = error ? (mes.liste().find(x => x.offre_id === o.id) || null) : mes.liste().find(x => x.id === ref);
+      $("#applyMsg").className = ""; $("#applyMsg").textContent = "";
+      $("#applyFields").hidden = true; $("#applyEtape2").hidden = false;
+      $("#e2Titre").textContent = error ? "Tu t'étais déjà identifié(e) pour ce poste. Il reste l'étape 2." : `Étape 1 faite, ${row.prenom}. Référence : ${ref.slice(0, 8).toUpperCase()}.`;
+      $("#e2Lien").href = PJ.lienEtiquete(o.lien); $("#e2Lien").textContent = `Ouvrir le formulaire de ${o.employeur} ↗`; $("#e2Lien").dataset.track = "formulaire/" + o.id;
+      rendreMes();
+    } catch (err) {
+      say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err) : PJ.messageErreur(err, "L'envoi n'a pas fonctionné. Vérifie ta connexion et réessaie."));
+    } finally { btn.disabled = false; }
+  }
+
+  // ----- Mes candidatures (sur cet appareil) -----
+  const mes = {
+    liste(){ try { return JSON.parse(localStorage.getItem("pj_candidatures") || "[]"); } catch (e) { return []; } },
+    garder(l){ try { localStorage.setItem("pj_candidatures", JSON.stringify(l.slice(0, 50))); } catch (e) {} },
+    ajouter(c){ const l = mes.liste().filter(x => x.id !== c.id); l.unshift({ ...c, date: new Date().toISOString(), reponses: {} }); mes.garder(l); },
+    noter(id, rep){ const l = mes.liste(); const c = l.find(x => x.id === id); if (!c) return; c.reponses = c.reponses || {}; c.reponses[rep] = new Date().toISOString(); c.derniere = rep; mes.garder(l); }
+  };
+  const TEXTES_REPONSE = { envoyee: "Merci! On le note : ta candidature est déclarée envoyée.", pas_encore: "D'accord. On te le redemandera ici à ta prochaine visite.",
+    appele: "Bravo pour l'appel! Bonne chance pour l'entrevue.", embauche: "Félicitations! On le confirmera avec l'employeur.", sans_nouvelles: "Merci. Regarde les offres qui fittent avec ton horaire : postuler à plusieurs endroits aide.",
+    retirer: "Ta candidature est retirée." };
+  async function repondre(id, rep, el){
+    const c = mes.liste().find(x => x.id === id); if (!c) return;
+    if (rep === "pas_encore" && el && el.closest("#applyEtape2")) { mes.noter(id, rep); $("#apply").close(); fermer(); rendreMes(); $("#mesCands").scrollIntoView({ block: "start", behavior: "smooth" }); return; }
+    try {
+      const { error } = await PJ.client().rpc("pj_candidat_repondre", { p_id: id, p_courriel: c.courriel, p_reponse: rep });
+      if (error && !/PJ_INTROUVABLE/.test(error.message || "")) throw error;
+      mes.noter(id, rep);
+      PJ.track("reponse-" + rep + "/" + c.offre_id);
+      const depuisDialogue = el && el.closest("#applyEtape2");
+      if (depuisDialogue) { $("#apply").close(); fermer(); }
+      rendreMes(TEXTES_REPONSE[rep]);
+      if (depuisDialogue) $("#mesCands").scrollIntoView({ block: "start", behavior: "smooth" });
+    } catch (err) { rendreMes("La réponse n'a pas été enregistrée. Vérifie ta connexion et réessaie.", true); }
+  }
+  function rendreMes(avisMes, erreurMes){
+    const l = mes.liste();
+    $("#mesCands").hidden = !l.length; if (!l.length) return;
+    const jours = (d) => Math.floor((Date.now() - new Date(d).getTime()) / JOUR);
+    $("#mesList").innerHTML = (avisMes ? `<div class="msg ${erreurMes ? "err" : "ok"}" style="margin-bottom:10px">${esc(avisMes)}</div>` : "") + l.slice(0, 10).map(c => {
+      const r = c.reponses || {}, age = jours(c.date), ext = c.canal === "externe";
+      const fini = r.retirer || r.embauche;
+      let etat, actions = "";
+      if (r.retirer) etat = "Retirée";
+      else if (r.embauche) etat = "Embauché(e) 🎉";
+      else if (ext && !r.envoyee && !r.appele) {
+        etat = "Étape 2 à terminer : le formulaire de l'employeur";
+        const lien = PJ.lienEtiquete(c.lien);
+        actions = `${lien ? `<a class="btn sm" href="${esc(lien)}" target="_blank" rel="noopener" data-track="formulaire/${esc(c.offre_id)}">Ouvrir le formulaire ↗</a>` : ""}<button class="btn ghost sm" data-repondre="envoyee" data-cid="${esc(c.id)}">C'est fait</button>`;
+      } else if (age >= 7 && !r.appele && !r.sans_nouvelles) {
+        etat = ext ? "Envoyée, signalée au gérant" : "Envoyée";
+        actions = `<span class="small" style="width:100%">Des nouvelles de ${esc(c.employeur)}?</span><button class="btn ghost sm" data-repondre="appele" data-cid="${esc(c.id)}">Appelé(e)</button><button class="btn ghost sm" data-repondre="embauche" data-cid="${esc(c.id)}">Embauché(e)</button><button class="btn ghost sm" data-repondre="sans_nouvelles" data-cid="${esc(c.id)}">Pas de nouvelles</button>`;
+      } else if (r.sans_nouvelles && age >= 14 && !r.appele) {
+        etat = "Toujours sans nouvelles?";
+        actions = `<button class="btn ghost sm" data-repondre="appele" data-cid="${esc(c.id)}">J'ai été appelé(e)</button><button class="btn ghost sm" data-repondre="embauche" data-cid="${esc(c.id)}">Embauché(e)</button><a class="btn ghost sm" href="#offres" data-voir-fit>Voir d'autres offres</a>`;
+      } else etat = r.appele ? "Appelé(e) pour une entrevue" : (ext ? "Envoyée, signalée au gérant" : "Envoyée à PremierJob");
+      return `<div class="mes-item"><div><b>${esc(c.titre)}</b> <span class="small">· ${esc(c.employeur)} · il y a ${age} j</span><div class="small">${esc(etat)}</div></div>
+        <div class="actions">${actions}${!fini ? `<button class="btn ghost sm lien-discret" data-repondre="retirer" data-cid="${esc(c.id)}">Retirer</button>` : ""}</div></div>`;
+    }).join("");
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-repondre]"); if (b) {
+      const id = b.dataset.cid || (cibleE2 && cibleE2.id); if (!id) return;
+      if (b.dataset.repondre === "retirer" && b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Confirmer le retrait"; return; }
+      return repondre(id, b.dataset.repondre, b);
+    }
+    if (e.target.closest("[data-voir-fit]") && fitBtn && !state.fit) fitBtn.click();
   });
 
   async function charger(){
@@ -529,6 +654,7 @@
 
   large.addEventListener("change", () => { fermer(); render(); });
   ajouterFiltreFit();
+  rendreMes();
   charger();
 })();
 </script>
