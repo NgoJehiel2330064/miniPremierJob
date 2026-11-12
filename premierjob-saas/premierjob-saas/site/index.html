@@ -91,7 +91,7 @@
   </div>
   <p class="small" style="text-align:center;margin-top:12px">Exemple d'alerte</p>
   <div class="three">
-    <div><b>Chaque offre est vérifiée</b><span>J'appelle l'employeur pour confirmer que l'expérience n'est pas exigée.</span></div>
+    <div><b>Chaque offre est vérifiée</b><span>Nous appelons l'employeur pour confirmer que l'expérience n'est pas exigée.</span></div>
     <div><b>Les vrais horaires</b><span>Soir, jour, fin de semaine : tu sais avant de postuler si ça marche avec tes cours.</span></div>
     <div><b>Ça prend 30 secondes</b><span>Prénom, courriel, tes cases cochées. C'est tout.</span></div>
   </div>
@@ -118,7 +118,7 @@
         <div class="field">
           <span>Ton CV <span class="opt">(PDF ou Word, 5 Mo max)</span></span>
           <label class="drop" for="cv"><input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-            <span class="drop-t" id="cvNom">Ajouter mon CV</span><span class="drop-s">Les employeurs d'ici le demandent presque toujours. Pas de CV? Inscris-toi quand même, je t'aide à en faire un.</span></label>
+            <span class="drop-t" id="cvNom">Ajouter mon CV</span><span class="drop-s">Les employeurs d'ici le demandent presque toujours. Pas de CV? Inscris-toi quand même, on t'aide à en faire un.</span></label>
         </div>
         <fieldset><legend>Tes disponibilités</legend><div class="avail"><table id="avail" aria-label="Grille de disponibilités"></table></div></fieldset>
         <fieldset><legend>Comment tu te déplaces?</legend><div class="chips" id="transportF"></div></fieldset>
@@ -139,7 +139,7 @@
   <div class="sec-head"><h2 id="t-faq">Questions</h2></div>
   <div class="faq" style="max-width:720px;margin:0 auto">
     <details><summary>C'est vraiment gratuit?</summary><p>Oui. Pour les étudiants et les chercheurs d'emploi, PremierJob est gratuit et le restera.</p></details>
-    <details><summary>Qui vérifie les offres?</summary><p>Moi, Jehiel, étudiant en informatique au Cégep de Jonquière. J'appelle ou je rencontre chaque employeur avant de mettre son offre en ligne.</p></details>
+    <details><summary>Qui vérifie les offres?</summary><p>L'équipe PremierJob, ici au Saguenay. Nous appelons ou rencontrons chaque employeur avant de mettre son offre en ligne.</p></details>
     <details><summary>Je suis nouvel arrivant. Est-ce pour moi?</summary><p>Oui. Si tu as le droit de travailler au Canada, toutes les offres te sont ouvertes.</p></details>
     <details><summary>Qu'est-ce que vous faites avec mes infos?</summary><p>On s'en sert pour t'envoyer des offres, rien d'autre. Rien n'est vendu. Un courriel suffit pour tout supprimer.</p></details>
   </div>
@@ -149,9 +149,9 @@
   <div class="wrap">
     <div id="confidentialite">
       <strong style="color:var(--muted)">Confidentialité (Loi 25).</strong>
-      Renseignements recueillis : prénom, courriel, téléphone facultatif, école, programme, disponibilités, moyen de transport, type d'emploi recherché et CV facultatif. Les CV sont dans un stockage privé que seul l'administrateur peut ouvrir. Ils servent à t'envoyer des offres et, seulement avec ton accord à chaque fois, à présenter ton profil à un employeur. Hébergement : Supabase. Pour consulter, corriger ou supprimer tes données, écris au responsable : <span id="respTxt"></span>. <a href="confidentialite.html">Politique complète</a>.
+      Tes renseignements sont protégés conformément à la Loi 25 et transmis à un employeur seulement avec ton accord. <a href="confidentialite.html">En savoir plus</a>.
     </div>
-    <div>PremierJob · projet étudiant lancé au Saguenay · <a href="employeur.html">Afficher une offre</a></div>
+    <div>PremierJob · projet étudiant lancé au Saguenay · <a href="employeur.html">Afficher une offre</a> · <a id="contactLien" href="#">Nous joindre</a></div>
   </div>
 </footer>
 </div>
@@ -204,7 +204,7 @@
   const state = { q:"", ville:"", horaires:new Set(), type:"", sel:0 };
   let OFFRES = [], VUE = [];
 
-  $("#respTxt").textContent = (window.PJ_CONFIG || {}).responsable || "";
+  $("#contactLien").href = "mailto:" + ((window.PJ_CONFIG || {}).contactEmail || "");
   if (!window.matchMedia("(hover: hover)").matches) $("#kbdHint").hidden = true;
   VILLES.forEach(v => $("#ville").add(new Option(v, v)));
   ETABLISSEMENTS.forEach(e => $("#etablissement").add(new Option(e, e)));
@@ -293,7 +293,7 @@
 
     if (OFFRES.length === 0) {
       $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + `<div class="pal-empty"><span class="big">Les premières offres arrivent bientôt.</span>
-        <span>Je vérifie chaque offre avec l'employeur avant de la publier. Laisse ton courriel et je te préviens dès qu'une offre fit avec ton horaire.</span>
+        <span>Chaque offre est vérifiée avec l'employeur avant d'être publiée. Laisse ton courriel et on te prévient dès qu'une offre fit avec ton horaire.</span>
         <a class="btn" href="#alerte">M'avertir</a></div>`;
       $("#detail").innerHTML = detail(null); return;
     }
@@ -444,7 +444,7 @@
           ville: row.ville, transport: row.transport, dispos: row.dispos, cv_path: row.cv_path || null, types: [], consentement: true }); } catch (e) { /* déjà inscrit : sans effet */ }
       }
       ajouterFiltreFit();
-      fini(`C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. Je vérifie ta candidature puis je la transmets à ${offreCible.employeur}. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds!`);
+      fini(`C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. Nous vérifions ta candidature puis la transmettons à ${offreCible.employeur}. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds!`);
       render();
     } catch (err) {
       say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)

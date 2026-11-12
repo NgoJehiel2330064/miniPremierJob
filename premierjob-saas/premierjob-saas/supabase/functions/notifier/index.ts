@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
     const pourCandidat = [
       `Bonjour ${c.prenom},`, "",
       `Ta candidature pour « ${o.titre ?? "le poste"} » chez ${o.employeur ?? "l'employeur"} est bien reçue (référence ${ref}).`, "",
-      "Je la vérifie, puis je la transmets à l'employeur. S'il veut te rencontrer, il t'appellera directement : réponds même si le numéro est inconnu.", "",
+      "Nous la vérifions, puis la transmettons à l'employeur. S'il veut te rencontrer, il t'appellera directement : réponds même si le numéro est inconnu.", "",
       "Pour retirer ta candidature ou faire supprimer tes données, réponds simplement à ce courriel.", "",
       "PremierJob Saguenay", SITE,
     ].join("\n");

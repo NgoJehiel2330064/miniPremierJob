@@ -39,10 +39,10 @@
     <div class="sticky">
       <span class="place">Gratuit pendant le lancement</span>
       <h1 style="font-size:clamp(2.6rem,7vw,4.4rem)">Des étudiants libres <em>pendant vos quarts.</em></h1>
-      <p class="lead">PremierJob publie seulement des postes <b style="color:#fff">sans expérience exigée</b>. Vous décrivez le poste, je le valide avec vous, puis je vous envoie des candidats dont l'horaire concorde déjà avec le vôtre.</p>
+      <p class="lead">PremierJob publie seulement des postes <b style="color:#fff">sans expérience exigée</b>. Vous décrivez le poste, nous le validons avec vous, puis nous vous envoyons des candidats dont l'horaire concorde déjà avec le vôtre.</p>
       <div class="steps" style="grid-template-columns:1fr;margin-top:26px">
         <div class="card"><span class="num">2 minutes</span><h3>Vous décrivez le poste</h3><p>Le poste, les quarts et le salaire. Pas besoin d'une annonce parfaite.</p></div>
-        <div class="card"><span class="num">Moins de 48 h</span><h3>Je valide avant de publier</h3><p>Rien n'est publié sans mon appel : on confirme ensemble qu'aucune expérience n'est exigée et que les horaires sont justes.</p></div>
+        <div class="card"><span class="num">Moins de 48 h</span><h3>Validé avant publication</h3><p>Rien n'est publié sans notre appel : on confirme ensemble qu'aucune expérience n'est exigée et que les horaires sont justes.</p></div>
         <div class="card"><span class="num">Ensuite</span><h3>Vous recevez des candidats par courriel</h3><p>Seulement des personnes disponibles pendant vos quarts, avec leur CV, et qui ont accepté que leur candidature vous soit transmise. Vous menez l'entrevue et décidez seul.</p></div>
       </div>
     </div>
@@ -92,7 +92,7 @@
 
 <footer>
   <div class="wrap">
-    <div>Une question avant d'afficher? Écrivez à <span id="contactTxt" style="color:var(--muted)"></span>.</div>
+    <div>Une question avant d'afficher? Écrivez-nous : <a id="contactTxt" href="#"></a>.</div>
     <div>PremierJob · projet étudiant lancé au Saguenay · <a href="index.html">Offres</a> · <a href="confidentialite.html">Confidentialité</a></div>
   </div>
 </footer>
@@ -100,7 +100,7 @@
 <script>
 (function(){
   const $ = (s) => document.querySelector(s);
-  $("#contactTxt").textContent = (window.PJ_CONFIG || {}).contactEmail || "";
+  { const m = (window.PJ_CONFIG || {}).contactEmail || ""; $("#contactTxt").textContent = m; $("#contactTxt").href = "mailto:" + m; }
   PJ.VILLES.concat(["Autre"]).forEach(v => $("#ville").add(new Option(v, v)));
   PJ.TYPES.forEach(t => $("#type").add(new Option(t, t)));
   let grille = PJ.grilleOffre($("#grille"));
@@ -149,7 +149,7 @@
     try {
       const { error } = await PJ.client().from("offres").insert(row);
       if (error) throw error;
-      say("ok", "Merci, c'est reçu. Le poste n'est pas encore public : je vous contacte d'ici 48 heures pour le valider avec vous.");
+      say("ok", "Merci, c'est reçu. Le poste n'est pas encore public : nous vous contactons d'ici 48 heures pour le valider avec vous.");
       PJ.track("offre-employeur");
       f.reset(); grille = PJ.grilleOffre($("#grille")); $("#expMsg").textContent = ""; $("#expMsg").className = "";
     } catch (err) {
