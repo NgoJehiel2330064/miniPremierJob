@@ -42,7 +42,7 @@
 <header class="wrap hero center">
   <span class="place">Jonquière · Chicoutimi · La Baie</span>
   <h1>Ton premier emploi,<br><em>sans expérience exigée.</em></h1>
-  <p class="lead">Des jobs ouverts aux débutants, vérifiés un par un, avec les vrais horaires pour voir tout de suite si ça marche avec tes cours.</p>
+  <p class="lead">Des jobs ouverts aux débutants, vérifiés un par un, avec les vrais horaires pour voir tout de suite si ça marche avec ton horaire.</p>
   <div class="cta">
     <a class="btn" href="#alerte" id="ctaPrincipal">M'avertir des premières offres</a>
     <a class="btn ghost" href="#offres" id="ctaOffres" hidden>Voir les offres</a>
@@ -101,7 +101,7 @@
   <p class="small" style="text-align:center;margin-top:12px">Exemple d'alerte</p>
   <div class="three">
     <div><b>Chaque offre est vérifiée</b><span>Nous appelons l'employeur pour confirmer que l'expérience n'est pas exigée.</span></div>
-    <div><b>Les vrais horaires</b><span>Soir, jour, fin de semaine : tu sais avant de postuler si ça marche avec tes cours.</span></div>
+    <div><b>Les vrais horaires</b><span>Soir, jour, fin de semaine : tu sais avant de postuler si ça marche avec ton horaire.</span></div>
     <div><b>Ça prend 30 secondes</b><span>Prénom, courriel, tes cases cochées. C'est tout.</span></div>
   </div>
 </section>
@@ -127,7 +127,7 @@
           <details class="plus"><summary>Préciser jour par jour</summary><div class="avail"><table id="avail" aria-label="Grille de disponibilités"></table></div></details>
         </fieldset>
         <label for="villeI">Ville où tu habites<select id="villeI" name="ville"><option>Jonquière</option><option>Chicoutimi</option><option>La Baie</option><option>Autre</option></select></label>
-        <details class="plus" id="plusDetails"><summary>Ajouter des détails <span class="opt">(facultatif : CV, école, téléphone…)</span></summary>
+        <details class="plus" id="plusDetails"><summary>Ajouter des détails <span class="opt">(facultatif : CV, téléphone, études…)</span></summary>
           <div class="plus-corps">
             <div class="field">
               <span>Ton CV <span class="opt">(PDF ou Word, 5 Mo max)</span></span>
@@ -135,8 +135,8 @@
                 <span class="drop-t" id="cvNom">Ajouter mon CV</span><span class="drop-s">Pas de CV? Inscris-toi quand même, on t'aide à en faire un.</span></label>
             </div>
             <div class="grid2">
-              <label for="etablissement">École<select id="etablissement" name="etablissement"></select></label>
-              <label for="domaine">Programme<input type="text" id="domaine" name="domaine" maxlength="120" placeholder="Ex. : Techniques de l'informatique"></label>
+              <label for="etablissement">Aux études? <span class="opt">(facultatif)</span><select id="etablissement" name="etablissement"><option value="">Je préfère ne pas le dire</option></select></label>
+              <label for="domaine">Programme ou domaine<input type="text" id="domaine" name="domaine" maxlength="120" placeholder="Ex. : Techniques de l'informatique"></label>
             </div>
             <label for="telephone">Téléphone <span class="opt">(pour un appel d'entrevue plus rapide)</span><input type="tel" id="telephone" name="telephone" maxlength="30" autocomplete="tel" inputmode="tel"></label>
             <fieldset><legend>Comment tu te déplaces?</legend><div class="chips" id="transportF"></div></fieldset>
@@ -163,7 +163,8 @@
 <section class="wrap sec" aria-labelledby="t-faq">
   <div class="sec-head"><h2 id="t-faq">Questions</h2></div>
   <div class="faq" style="max-width:720px;margin:0 auto">
-    <details><summary>C'est vraiment gratuit?</summary><p>Oui. Pour les étudiants et les chercheurs d'emploi, PremierJob est gratuit et le restera.</p></details>
+    <details><summary>C'est vraiment gratuit?</summary><p>Oui. Pour toutes les personnes qui cherchent un emploi, PremierJob est gratuit et le restera.</p></details>
+    <details><summary>Je ne vais pas à l'école. Est-ce pour moi?</summary><p>Oui. PremierJob s'adresse à tous les débutants : étudiants, premier emploi, retour au travail, changement de domaine ou nouvel arrivant. Aucune école n'est demandée.</p></details>
     <details><summary>Qui vérifie les offres?</summary><p>L'équipe PremierJob, ici au Saguenay. Nous appelons ou rencontrons chaque employeur avant de mettre son offre en ligne.</p></details>
     <details><summary>Je suis nouvel arrivant. Est-ce pour moi?</summary><p>Oui. Si tu as le droit de travailler au Canada, toutes les offres te sont ouvertes.</p></details>
     <details><summary>Qu'est-ce que vous faites avec mes infos?</summary><p>On s'en sert pour t'envoyer des offres, rien d'autre. Rien n'est vendu. Un courriel suffit pour tout supprimer.</p></details>
@@ -176,7 +177,7 @@
       <strong style="color:var(--muted)">Confidentialité (Loi 25).</strong>
       Tes renseignements sont hébergés au Québec, protégés conformément à la Loi 25 et transmis à un employeur seulement avec ton accord. <a href="confidentialite.html">En savoir plus</a>.
     </div>
-    <div>PremierJob · projet étudiant lancé au Saguenay · <a href="employeur.html">Afficher une offre</a> · <a id="contactLien" href="#">Nous joindre</a></div>
+    <div>PremierJob · lancé au Saguenay · <a href="employeur.html">Afficher une offre</a> · <a id="contactLien" href="#">Nous joindre</a></div>
   </div>
 </footer>
 </div>
@@ -670,7 +671,7 @@
     if (errCV) return say("err", errCV);
     const row = {
       prenom: f.prenom.value.trim(), nom: f.nom.value.trim(), courriel: f.courriel.value.trim(), telephone: f.telephone.value.trim() || null,
-      etablissement: f.etablissement.value, domaine: f.domaine.value.trim() || null, ville: f.ville.value,
+      etablissement: f.etablissement.value || null, domaine: f.domaine.value.trim() || null, ville: f.ville.value,
       types: [...typesChoisis], dispos: [...dispo], consentement: true
     };
     if (transport) row.transport = transport;

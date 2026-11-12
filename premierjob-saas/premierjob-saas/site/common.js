@@ -5,7 +5,7 @@
   const VILLES = ["Jonquière", "Chicoutimi", "La Baie"];
   const JOURS = [["lun", "Lun"], ["mar", "Mar"], ["mer", "Mer"], ["jeu", "Jeu"], ["ven", "Ven"], ["sam", "Sam"], ["dim", "Dim"]];
   const PERIODES = [["jour", "Jour"], ["soir", "Soir"], ["nuit", "Nuit"]];
-  const ETABLISSEMENTS = ["Cégep de Jonquière", "Cégep de Chicoutimi", "UQAC", "École secondaire", "Nouvel arrivant", "Autre"];
+  const ETABLISSEMENTS = ["Pas aux études", "Cégep de Jonquière", "Cégep de Chicoutimi", "UQAC", "École secondaire", "Formation professionnelle (DEP)", "Francisation", "Autre"];
   const HORAIRES_COURTS = { jour: "Jour", soirs: "Soir", nuit: "Nuit", fds: "FDS", flexible: "Flex" };
   const TRANSPORTS = { auto: "J'ai une auto", autobus: "Autobus", "pied-velo": "À pied ou à vélo" };
 

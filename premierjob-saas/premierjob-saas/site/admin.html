@@ -588,7 +588,7 @@
   function rInscrits(){
     const q = $("#cq").value.trim().toLowerCase();
     const list = CANDS.filter(c => !q || [c.prenom, c.nom, c.courriel, c.domaine, c.etablissement, c.ville].join(" ").toLowerCase().includes(q));
-    $("#inscTable").innerHTML = `<tr><th>Inscrit le</th><th>Nom</th><th>Courriel</th><th>Téléphone</th><th>École</th><th>Ville</th><th>Transport</th><th>Disponibilités</th><th>CV</th><th>Actif</th></tr>` +
+    $("#inscTable").innerHTML = `<tr><th>Inscrit le</th><th>Nom</th><th>Courriel</th><th>Téléphone</th><th>Études</th><th>Ville</th><th>Transport</th><th>Disponibilités</th><th>CV</th><th>Actif</th></tr>` +
       (list.length ? list.map(c => `<tr data-cid="${c.id}"><td class="mono">${new Date(c.created_at).toLocaleDateString("fr-CA")}</td><td>${esc(nomComplet(c))}</td><td>${esc(c.courriel)}</td><td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}${c.domaine ? `<div class="small">${esc(c.domaine)}</div>` : ""}</td><td>${esc(c.ville || "")}</td><td>${esc(PJ.TRANSPORTS[c.transport] || "")}</td><td class="small">${esc((c.dispos || []).map(PJ.nomCreneau).join(", "))}</td><td>${c.cv_path ? `<button class="btn ghost sm" data-cv="${esc(c.cv_path)}">Ouvrir</button>` : '<span class="small">—</span>'}</td><td><input type="checkbox" data-actif ${c.actif ? "checked" : ""} aria-label="Actif"></td></tr>`).join("")
       : `<tr><td colspan="10" class="small">Aucun inscrit.</td></tr>`);
   }
