@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
       "Nouvelle offre à valider sur PremierJob", "",
       `Poste : ${o.titre}`,
       `Entreprise : ${o.employeur} (${o.ville}${o.lieu ? ", " + o.lieu : ""})`,
-      `Contact : ${o.contact_nom} · ${o.contact_courriel} · ${o.contact_tel ?? "—"}`,
+      `Contact : ${o.contact_nom} · ${o.contact_courriel ?? "pas de courriel"} · ${o.contact_tel ?? "pas de téléphone"}`,
       `Salaire : ${o.salaire ?? "—"} · ${o.type}`,
       o.alerte_experience ? `\nATTENTION : ${o.alerte_experience}` : "",
       "", `Vérifier et publier : ${SITE}/admin.html`,

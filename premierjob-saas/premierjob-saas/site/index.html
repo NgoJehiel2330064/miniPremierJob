@@ -33,7 +33,7 @@
   <div class="wrap">
     <a class="logo" href="index.html"><span class="mark">P</span>PremierJob <small>Saguenay</small></a>
     <div class="navlinks">
-      <a class="link" href="employeur.html">Employeurs</a>
+      <a class="btn ghost sm" href="employeur.html">Employeurs</a>
       <a class="btn sm" href="#alerte">Alerte job</a>
     </div>
   </div>
@@ -42,13 +42,14 @@
 <header class="wrap hero center">
   <span class="place">Jonquière · Chicoutimi · La Baie</span>
   <h1>Ton premier emploi,<br><em>sans expérience exigée.</em></h1>
-  <p class="lead">Seulement des offres ouvertes aux débutants. On les vérifie une par une et on affiche les vrais horaires, pour que tu voies tout de suite si ça marche avec tes cours.</p>
+  <p class="lead">Des jobs ouverts aux débutants, vérifiés un par un, avec les vrais horaires pour voir tout de suite si ça marche avec tes cours.</p>
   <div class="cta">
-    <a class="btn" href="#offres">Voir les offres</a>
-    <a class="btn ghost" href="#alerte">M'avertir des nouvelles</a>
+    <a class="btn" href="#alerte" id="ctaPrincipal">M'avertir des premières offres</a>
+    <a class="btn ghost" href="#offres" id="ctaOffres" hidden>Voir les offres</a>
   </div>
+  <a class="employeur-lien" href="employeur.html">Vous êtes employeur? <b>Affichez un poste gratuitement →</b></a>
   <div class="meta-row">
-    <span><b id="nbOffres">–</b> offres en ligne</span>
+    <span id="nbWrap" hidden><b id="nbOffres"></b> offres en ligne</span>
     <span>Chaque offre vérifiée avant publication</span>
     <span id="nouvTxt" hidden></span>
     <span id="majTxt"></span>
@@ -76,11 +77,11 @@
       <span class="sep" aria-hidden="true"></span>
     </div>
     <div class="pal-body">
-      <div class="pal-list" id="list" role="listbox" aria-label="Résultats"></div>
+      <div class="pal-list" id="list" role="listbox" aria-label="Résultats"><div class="pal-empty"><span class="big">Lancement en cours au Saguenay!</span><span>Les offres vérifiées s'affichent ici. Inscris-toi aux alertes pour être averti(e) en premier.</span></div></div>
       <aside class="pal-detail" id="detail" aria-live="polite"></aside>
     </div>
     <div class="pal-foot">
-      <span id="count">Chargement…</span>
+      <span id="count"></span>
       <span class="keys"><span><kbd>↑</kbd><kbd>↓</kbd> naviguer</span><span><kbd>↵</kbd> postuler</span><span><kbd>/</kbd> chercher</span></span>
     </div>
   </div>
@@ -110,34 +111,50 @@
   <div class="split">
     <div class="sticky">
       <h2 id="t-alerte">Dis-nous <em>quand</em> tu peux travailler.</h2>
-      <p class="lead">Gratuit pour les étudiants. Tes infos servent seulement à t'envoyer des offres, et un employeur voit ton profil uniquement si tu dis oui.</p>
+      <p class="lead">30 secondes, gratuit. On t'écrit seulement quand une offre tombe dans tes heures.</p>
     </div>
     <div class="formcard">
       <form id="form" novalidate>
         <div class="hp" aria-hidden="true"><label for="site_web">Ne pas remplir<input type="text" id="site_web" name="site_web" tabindex="-1" autocomplete="off"></label></div>
-        <div class="grid2">
+        <div class="grid2 serre">
           <label for="prenom">Prénom<input type="text" id="prenom" name="prenom" required maxlength="60" autocomplete="given-name"></label>
           <label for="nom">Nom<input type="text" id="nom" name="nom" required maxlength="80" autocomplete="family-name"></label>
-          <label for="courriel">Courriel<input type="email" id="courriel" name="courriel" required maxlength="160" autocomplete="email" inputmode="email"></label>
-          <label for="etablissement">École<select id="etablissement" name="etablissement"></select></label>
-          <label for="villeI">Ville où tu habites<select id="villeI" name="ville"><option>Jonquière</option><option>Chicoutimi</option><option>La Baie</option><option>Autre</option></select></label>
-          <label for="domaine">Programme <span class="opt">(facultatif)</span><input type="text" id="domaine" name="domaine" maxlength="120" placeholder="Ex. : Techniques de l'informatique"></label>
         </div>
-        <div class="field">
-          <span>Ton CV <span class="opt">(PDF ou Word, 5 Mo max)</span></span>
-          <label class="drop" for="cv"><input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-            <span class="drop-t" id="cvNom">Ajouter mon CV</span><span class="drop-s">Les employeurs d'ici le demandent presque toujours. Pas de CV? Inscris-toi quand même, on t'aide à en faire un.</span></label>
-        </div>
-        <fieldset><legend>Tes disponibilités</legend><div class="avail"><table id="avail" aria-label="Grille de disponibilités"></table></div></fieldset>
-        <fieldset><legend>Comment tu te déplaces?</legend><div class="chips" id="transportF"></div></fieldset>
-        <fieldset><legend>Ce que tu cherches <span class="opt">(facultatif)</span></legend><div class="chips" id="typeF"></div></fieldset>
-        <label for="telephone">Téléphone <span class="opt">(facultatif, pour un appel d'entrevue plus rapide)</span><input type="tel" id="telephone" name="telephone" maxlength="30" autocomplete="tel" inputmode="tel"></label>
+        <label for="courriel">Courriel<input type="email" id="courriel" name="courriel" required maxlength="160" autocomplete="email" inputmode="email"></label>
+        <fieldset><legend>Quand peux-tu travailler? <span class="opt">Touche tout ce qui marche.</span></legend>
+          <div class="chips rapides" id="dispoRapide"></div>
+          <div class="small" id="dispoResume" role="status"></div>
+          <details class="plus"><summary>Préciser jour par jour</summary><div class="avail"><table id="avail" aria-label="Grille de disponibilités"></table></div></details>
+        </fieldset>
+        <label for="villeI">Ville où tu habites<select id="villeI" name="ville"><option>Jonquière</option><option>Chicoutimi</option><option>La Baie</option><option>Autre</option></select></label>
+        <details class="plus" id="plusDetails"><summary>Ajouter des détails <span class="opt">(facultatif : CV, école, téléphone…)</span></summary>
+          <div class="plus-corps">
+            <div class="field">
+              <span>Ton CV <span class="opt">(PDF ou Word, 5 Mo max)</span></span>
+              <label class="drop" for="cv"><input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                <span class="drop-t" id="cvNom">Ajouter mon CV</span><span class="drop-s">Pas de CV? Inscris-toi quand même, on t'aide à en faire un.</span></label>
+            </div>
+            <div class="grid2">
+              <label for="etablissement">École<select id="etablissement" name="etablissement"></select></label>
+              <label for="domaine">Programme<input type="text" id="domaine" name="domaine" maxlength="120" placeholder="Ex. : Techniques de l'informatique"></label>
+            </div>
+            <label for="telephone">Téléphone <span class="opt">(pour un appel d'entrevue plus rapide)</span><input type="tel" id="telephone" name="telephone" maxlength="30" autocomplete="tel" inputmode="tel"></label>
+            <fieldset><legend>Comment tu te déplaces?</legend><div class="chips" id="transportF"></div></fieldset>
+            <fieldset><legend>Ce que tu cherches</legend><div class="chips" id="typeF"></div></fieldset>
+          </div>
+        </details>
         <label class="consent" for="consent"><input type="checkbox" id="consent" required>
-          <span>J'accepte que PremierJob garde ces infos (et mon CV) pour m'envoyer des offres. Mon CV est envoyé à un employeur seulement si je dis oui pour son offre. Je peux tout faire supprimer en tout temps. <a href="confidentialite.html">Confidentialité</a></span>
+          <span>J'accepte que PremierJob garde ces infos pour m'envoyer des offres. Un employeur voit mon profil seulement si je dis oui. Je peux tout supprimer en tout temps. <a href="confidentialite.html">Confidentialité</a></span>
         </label>
-        <button class="btn" type="submit" id="submitBtn">M'inscrire</button>
+        <button class="btn" type="submit" id="submitBtn">M'inscrire aux alertes</button>
         <div id="formMsg" role="status"></div>
       </form>
+      <div id="inscrOk" class="merci" hidden role="status">
+        <span class="merci-ico" aria-hidden="true">✓</span>
+        <h3 id="merciT">C'est noté!</h3>
+        <p>Tu recevras un courriel dès qu'une offre vérifiée tombe dans tes heures. Pas d'infolettre, seulement des offres qui fittent.</p>
+        <div class="cta"><a class="btn" href="#offres">Voir les offres</a><button class="btn ghost" type="button" id="partagerSite">Partager à un ami</button></div>
+      </div>
     </div>
   </div>
 </section>
@@ -165,7 +182,17 @@
 </div>
 
 <!-- Postuler à une offre -->
-<dialog id="apply" aria-labelledby="applyT">
+<dialog id="apply" aria-labelledby="applyT"></dialog>
+
+<!-- Détail sur mobile -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Détail de l'offre"><div class="grab"></div><button class="sheet-x" type="button" id="sheetX" aria-label="Fermer">✕</button><div id="sheetBody"></div></div>
+
+<script>
+(function(){
+  // Le formulaire de candidature n'existe dans la page qu'une fois le site chargé : il n'apparaît
+  // jamais dans les aperçus de lien, les robots ni la lecture sans JavaScript.
+  document.getElementById("apply").innerHTML = `
   <form id="applyForm" novalidate>
     <div class="hp" aria-hidden="true"><label for="site_web2">Ne pas remplir<input type="text" id="site_web2" name="site_web" tabindex="-1" autocomplete="off"></label></div>
     <div><span class="small" id="applyEmp"></span><h3 id="applyT" style="font-size:20px;margin-top:2px"></h3></div>
@@ -208,15 +235,7 @@
     </div>
     <div id="applyMsg" role="status"></div>
     <div id="applyDone" class="actions" hidden><a class="btn" href="#alerte" data-apply-close>Recevoir les prochaines offres</a><button class="btn ghost" type="button" data-apply-close>Fermer</button></div>
-  </form>
-</dialog>
-
-<!-- Détail sur mobile -->
-<div class="scrim" id="scrim"></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Détail de l'offre"><div class="grab"></div><button class="sheet-x" type="button" id="sheetX" aria-label="Fermer">✕</button><div id="sheetBody"></div></div>
-
-<script>
-(function(){
+  </form>`;
   const { HORAIRES, HORAIRES_COURTS, TYPES, VILLES, ETABLISSEMENTS, TRANSPORTS, esc, fmtDate, safeUrl, teinte, initiale } = PJ;
   const $ = (s) => document.querySelector(s);
   const large = window.matchMedia("(min-width: 900px)");
@@ -311,10 +330,11 @@
     if (state.sel >= VUE.length) state.sel = Math.max(0, VUE.length - 1);
     $("#count").textContent = OFFRES.length === 0 ? "Aucune offre pour l'instant" : VUE.length + (VUE.length > 1 ? " résultats" : " résultat");
 
+    document.querySelector(".palette").classList.toggle("vide", OFFRES.length === 0);
     if (OFFRES.length === 0) {
-      $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + `<div class="pal-empty"><span class="big">Les premières offres arrivent bientôt.</span>
-        <span>Chaque offre est vérifiée avec l'employeur avant d'être publiée. Laisse ton courriel et on te prévient dès qu'une offre fit avec ton horaire.</span>
-        <a class="btn" href="#alerte">M'avertir</a></div>`;
+      $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + `<div class="pal-empty lancement"><span class="big">Lancement en cours au Saguenay!</span>
+        <span>Nos premières offres vérifiées arrivent très bientôt. Inscris-toi aux alertes juste en dessous pour être le premier averti.</span>
+        <div class="cta"><a class="btn" href="#alerte">M'inscrire aux alertes</a><a class="btn ghost" href="employeur.html">Je suis employeur</a></div></div>`;
       $("#detail").innerHTML = detail(null); return;
     }
     if (VUE.length === 0) {
@@ -584,6 +604,11 @@
       if (error) throw error;
       OFFRES = data || [];
       $("#nbOffres").textContent = OFFRES.length;
+      $("#nbWrap").hidden = OFFRES.length === 0;
+      if (OFFRES.length) {
+        $("#ctaPrincipal").textContent = "Voir les offres"; $("#ctaPrincipal").href = "#offres";
+        $("#ctaOffres").textContent = "M'avertir des nouvelles"; $("#ctaOffres").href = "#alerte"; $("#ctaOffres").hidden = false;
+      }
       const d = OFFRES.map(o => o.verifie_le).filter(Boolean).sort().pop();
       $("#majTxt").innerHTML = d ? `mis à jour le <b>${fmtDate(d)}</b>` : "";
       const nb = OFFRES.filter(estNouvelle).length;
@@ -607,6 +632,25 @@
     transport = transport === k ? "" : k; trBtns.forEach(x => x.setAttribute("aria-pressed", x.dataset.k === transport)); }); b.dataset.k = k; return b; });
   trBtns.forEach(b => $("#transportF").appendChild(b));
   let dispo = PJ.grilleDispos($("#avail"));
+  // Disponibilités en un toucher : groupes qui remplissent la grille (précisable jour par jour)
+  const SEM = ["lun","mar","mer","jeu","ven"], TOUS = ["lun","mar","mer","jeu","ven","sam","dim"];
+  const GROUPES = [
+    ["Jours de semaine", SEM.map(j => j + "-jour")],
+    ["Soirs de semaine", SEM.map(j => j + "-soir")],
+    ["Fins de semaine", ["sam-jour","sam-soir","dim-jour","dim-soir"]],
+    ["Nuits", TOUS.map(j => j + "-nuit")]
+  ];
+  const rapides = GROUPES.map(([l, ks]) => { const b = PJ.chip(l, false, () => {
+    const tout = ks.every(k => dispo.has(k));
+    const v = new Set(dispo); ks.forEach(k => tout ? v.delete(k) : v.add(k));
+    dispo = PJ.grilleDispos($("#avail"), [...v]); majRapides(); }); b.dataset.ks = ks.join(","); return b; });
+  rapides.forEach(b => $("#dispoRapide").appendChild(b));
+  function majRapides(){
+    rapides.forEach(b => b.setAttribute("aria-pressed", b.dataset.ks.split(",").every(k => dispo.has(k))));
+    const n = dispo.size;
+    $("#dispoResume").textContent = n ? `${n} moment${n > 1 ? "s" : ""} coché${n > 1 ? "s" : ""}. Tu peux préciser jour par jour.` : "";
+  }
+  $("#avail").addEventListener("click", () => setTimeout(majRapides, 0));
   $("#cv").addEventListener("change", e => {
     const f = e.target.files[0], err = PJ.verifierCV(f);
     $("#cvNom").textContent = f ? (err ? err : "✓ " + f.name) : "Ajouter mon CV";
@@ -620,7 +664,7 @@
     const say = (cls, t) => { msg.className = "msg " + cls; msg.textContent = t; };
     if (f.site_web.value) return say("ok", "Merci! Ton inscription est enregistrée.");
     if (!f.prenom.value.trim() || !f.nom.value.trim() || !/^\S+@\S+\.\S+$/.test(f.courriel.value.trim())) return say("err", "Entre ton prénom, ton nom et un courriel valide.");
-    if (dispo.size === 0) return say("err", "Coche au moins une case dans tes disponibilités.");
+    if (dispo.size === 0) return say("err", "Touche au moins un moment où tu peux travailler (ex. : Soirs de semaine).");
     if (!$("#consent").checked) return say("err", "Coche la case de consentement pour t'inscrire.");
     const fichier = f.cv.files[0], errCV = PJ.verifierCV(fichier);
     if (errCV) return say("err", errCV);
@@ -638,20 +682,28 @@
         if (error.code === "23505") return say("info", "Ce courriel est déjà inscrit. Pour changer tes disponibilités, écris-nous.");
         throw error;
       }
-      say("ok", `C'est noté, ${row.prenom}. Tu recevras les offres qui tombent dans ton horaire.`);
+      msg.className = ""; msg.textContent = "";
+      $("#merciT").textContent = `C'est noté, ${row.prenom}!`;
+      $("#form").hidden = true; $("#inscrOk").hidden = false; $("#inscrOk").scrollIntoView({ block: "nearest" });
       memo.set({ ...memo.get(), prenom: row.prenom, nom: row.nom, courriel: row.courriel, telephone: row.telephone, ville: row.ville, transport: row.transport || "", dispos: row.dispos });
       ajouterFiltreFit(); render();
       PJ.track("inscription");
       f.reset(); typesChoisis.clear(); transport = "";
       $("#cvNom").textContent = "Ajouter mon CV"; $("#cvNom").closest(".drop").classList.remove("ok","bad");
       document.querySelectorAll("#typeF .chip, #transportF .chip").forEach(b => b.setAttribute("aria-pressed","false"));
-      dispo = PJ.grilleDispos($("#avail"));
+      dispo = PJ.grilleDispos($("#avail")); majRapides();
     } catch (err) {
       say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)
         : (err.statusCode || err.status) ? "Ton CV n'a pas pu être envoyé. Essaie en PDF, ou inscris-toi sans CV." : PJ.messageErreur(err, "L'inscription n'a pas fonctionné. Vérifie ta connexion et réessaie : tes réponses sont toujours là."));
-    } finally { btn.disabled = false; btn.textContent = "M'inscrire"; }
+    } finally { btn.disabled = false; btn.textContent = "M'inscrire aux alertes"; }
   });
 
+  $("#partagerSite").addEventListener("click", async e => {
+    const url = location.origin + "/", t = "PremierJob Saguenay : des jobs sans expérience exigée, vérifiés, avec les vrais horaires.";
+    PJ.track("partage-site");
+    if (navigator.share) { try { await navigator.share({ title: "PremierJob Saguenay", text: t, url }); return; } catch (x) { if (x.name === "AbortError") return; } }
+    try { await navigator.clipboard.writeText(url); e.target.textContent = "Lien copié ✓"; } catch (x) { e.target.textContent = url; }
+  });
   large.addEventListener("change", () => { fermer(); render(); });
   ajouterFiltreFit();
   rendreMes();
