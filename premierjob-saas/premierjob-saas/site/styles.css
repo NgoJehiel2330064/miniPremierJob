@@ -277,6 +277,9 @@ footer a{color:var(--muted)}
 table.data{border-collapse:collapse;width:100%;font-size:13.5px}
 table.data th,table.data td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 table.data th{font-size:12px;font-weight:500;color:var(--dim);white-space:nowrap}
-.mono{font-family:var(--mono)}
+.mono{font-family:var(--mono);white-space:nowrap}
+table.data select{min-width:130px;padding:8px 10px}
+.btn{white-space:nowrap}
 dialog{border:1px solid var(--line-2);border-radius:18px;background:var(--panel-solid);color:var(--ink);padding:22px;width:min(720px,94vw);max-height:90vh}
+@media (max-width:640px){dialog{width:100%;max-width:100%;margin:auto 0 0;border-radius:20px 20px 0 0;max-height:92vh;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}}
 dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(4px)}

@@ -42,6 +42,7 @@
       <span class="stat"><b id="sPub">0</b> publiées</span>
       <span class="stat"><b id="sCand">0</b> candidats actifs</span>
       <span class="stat"><b id="sSemaine">0</b> inscriptions cette semaine</span>
+      <span class="stat"><b id="sPost">0</b> candidatures à traiter</span>
     </div>
     <div class="tabs" role="tablist" id="tabs"></div>
 
@@ -51,6 +52,11 @@
         <button class="btn sm" id="newOffre">+ Nouvelle offre</button>
       </div>
       <div class="list" id="offList"></div>
+    </section>
+
+    <section id="vPost" hidden>
+      <p class="small" style="margin:0 0 12px">Postuler = accord du candidat pour que sa candidature et son CV soient transmis à cet employeur. Mets le statut à jour à chaque étape.</p>
+      <div class="tablewrap"><table class="data" id="postTable"></table></div>
     </section>
 
     <section id="vCand" hidden>
@@ -104,8 +110,9 @@
 (function(){
   const { HORAIRES, TYPES, VILLES, JOURS, esc, fmtDate } = PJ;
   const $ = (s) => document.querySelector(s);
-  let sb, OFFRES = [], CANDS = [], tab = "en_attente", editId = null, editHoraires = new Set();
-  const TABS = [["en_attente","À valider"],["publiee","Publiées"],["archivee","Archivées"],["candidats","Candidats"],["jumelage","Jumelage"]];
+  let sb, OFFRES = [], CANDS = [], POSTS = [], tab = "en_attente", editId = null, editHoraires = new Set();
+  const TABS = [["en_attente","À valider"],["publiee","Publiées"],["archivee","Archivées"],["candidatures","Candidatures"],["candidats","Inscrits"],["jumelage","Jumelage"]];
+  const STATUTS_POST = [["recue","Reçue"],["envoyee","Envoyée"],["entrevue","Entrevue"],["embauche","Embauché"],["refusee","Pas retenu"]];
   const STATUT = { en_attente:"À valider", publiee:"Publiée", archivee:"Archivée" };
 
   try { sb = PJ.client(); } catch (err) { $("#fatal").hidden = false; $("#fatal").textContent = PJ.configMessage(err); return; }
@@ -159,12 +166,14 @@
 
   // ---------- Données ----------
   async function charger(){
-    const [o, c] = await Promise.all([
+    const [o, c, a] = await Promise.all([
       sb.from("offres").select("*").order("created_at", { ascending:false }),
-      sb.from("candidats").select("*").order("created_at", { ascending:false })
+      sb.from("candidats").select("*").order("created_at", { ascending:false }),
+      sb.from("candidatures").select("*").order("created_at", { ascending:false })
     ]);
     if (o.error || c.error) { $("#fatal").hidden = false; $("#fatal").textContent = "Impossible de charger les données : " + (o.error || c.error).message; return; }
-    OFFRES = o.data; CANDS = c.data;
+    OFFRES = o.data; CANDS = c.data; POSTS = a.error ? [] : a.data;
+    $("#sPost").textContent = POSTS.filter(x => x.statut === "recue").length;
     const semaine = Date.now() - 7 * 864e5;
     $("#sAttente").textContent = OFFRES.filter(x => x.statut === "en_attente").length;
     $("#sPub").textContent = OFFRES.filter(x => x.statut === "publiee").length;
@@ -176,16 +185,17 @@
   function renderTabs(){
     const n = { en_attente:0, publiee:0, archivee:0 };
     OFFRES.forEach(o => n[o.statut]++);
-    n.candidats = CANDS.length; n.jumelage = "";
+    n.candidats = CANDS.length; n.jumelage = ""; n.candidatures = POSTS.length;
     $("#tabs").innerHTML = TABS.map(([k,l]) => `<button class="tab" role="tab" data-k="${k}" aria-selected="${k === tab}">${l}<span class="n">${n[k]}</span></button>`).join("");
   }
   $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (!b) return; tab = b.dataset.k; renderTabs(); renderVue(); });
 
   function renderVue(){
     const isOff = ["en_attente","publiee","archivee"].includes(tab);
-    $("#vOffres").hidden = !isOff; $("#vCand").hidden = tab !== "candidats"; $("#vMatch").hidden = tab !== "jumelage";
+    $("#vOffres").hidden = !isOff; $("#vCand").hidden = tab !== "candidats"; $("#vPost").hidden = tab !== "candidatures"; $("#vMatch").hidden = tab !== "jumelage";
     if (isOff) renderOffres();
     if (tab === "candidats") renderCands();
+    if (tab === "candidatures") renderPosts();
     if (tab === "jumelage") renderMatchSelect();
   }
 
@@ -204,6 +214,7 @@
           <span class="tag">${esc(o.type)}</span>
           ${(o.horaires || []).map(h => `<span class="tag">${esc(HORAIRES[h] || h)}</span>`).join("")}
           <span class="tag">${o.source === "employeur" ? "Soumise par l'employeur" : "Ajoutée par toi"}</span>
+          ${(() => { const k = POSTS.filter(p => p.offre_id === o.id).length; return k ? `<span class="tag ok">${k} candidature${k > 1 ? "s" : ""}</span>` : ""; })()}
         </div>
         ${o.description ? `<div class="small">${esc(o.description)}</div>` : ""}
         <div class="small">Contact : ${esc(o.contact_nom || "—")} · ${esc(o.contact_courriel || "—")} · ${esc(o.contact_tel || "—")}${o.verifie_le ? " · Vérifiée le " + fmtDate(o.verifie_le) : ""}</div>
@@ -265,6 +276,37 @@
     const r = editId ? await sb.from("offres").update(row).eq("id", editId) : await sb.from("offres").insert({ ...row, source:"admin" });
     if (r.error) { m.className = "msg err"; m.textContent = "Erreur : " + r.error.message; return; }
     $("#dlg").close(); tab = row.statut; charger();
+  });
+
+  // ---------- Candidatures ----------
+  function renderPosts(){
+    const titre = (id) => { const o = OFFRES.find(x => x.id === id); return o ? `${esc(o.titre)}<div class="small">${esc(o.employeur)} · ${esc(o.ville)}</div>` : '<span class="small">Offre supprimée</span>'; };
+    $("#postTable").innerHTML = `<tr><th>Reçue le</th><th>Offre</th><th>Candidat</th><th>Téléphone</th><th>CV</th><th>Message</th><th>Statut</th><th></th></tr>` +
+      (POSTS.length ? POSTS.map(p => `<tr data-id="${p.id}">
+        <td class="mono">${new Date(p.created_at).toLocaleDateString("fr-CA")}</td>
+        <td>${titre(p.offre_id)}</td>
+        <td>${esc(p.prenom)}<div class="small">${esc(p.courriel)}</div></td>
+        <td class="mono" style="white-space:nowrap">${esc(p.telephone)}</td>
+        <td>${celluleCV(p)}</td>
+        <td style="max-width:260px">${esc(p.message || "")}</td>
+        <td><select data-a="statut" aria-label="Statut">${STATUTS_POST.map(([k,l]) => `<option value="${k}" ${p.statut === k ? "selected" : ""}>${l}</option>`).join("")}</select></td>
+        <td><button class="btn danger sm" data-a="suppr-post">Supprimer</button></td></tr>`).join("")
+      : `<tr><td colspan="8" class="small">Aucune candidature pour l'instant.</td></tr>`);
+  }
+  $("#postTable").addEventListener("change", async e => {
+    const el = e.target.closest("[data-a=statut]"); if (!el) return;
+    const id = el.closest("[data-id]").dataset.id;
+    const r = await sb.from("candidatures").update({ statut: el.value }).eq("id", id);
+    if (r.error) { el.style.borderColor = "var(--danger)"; return; }
+    const p = POSTS.find(x => x.id === id); if (p) p.statut = el.value;
+    $("#sPost").textContent = POSTS.filter(x => x.statut === "recue").length;
+  });
+  $("#postTable").addEventListener("click", async e => {
+    const el = e.target.closest("[data-a=suppr-post]"); if (!el) return;
+    if (el.dataset.sure !== "1") { el.dataset.sure = "1"; el.textContent = "Confirmer"; return; }
+    const id = el.closest("[data-id]").dataset.id, p = POSTS.find(x => x.id === id);
+    if (p && p.cv_path) await sb.storage.from("cvs").remove([p.cv_path]);
+    const r = await sb.from("candidatures").delete().eq("id", id); if (!r.error) charger();
   });
 
   // ---------- Candidats ----------
