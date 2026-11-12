@@ -11,7 +11,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff6363'/%3E%3Cstop offset='1' stop-color='%23ffb347'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='17' text-anchor='middle' fill='%231a0b0b'%3EP%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
@@ -31,9 +31,9 @@
   </div>
 </nav>
 
-<header class="wrap hero">
-  <span class="pill"><span class="dot"></span>Jonquière · Chicoutimi · La Baie</span>
-  <h1>Ton premier job au Saguenay. Sans l'expérience exigée.</h1>
+<header class="wrap hero center">
+  <span class="place">Jonquière · Chicoutimi · La Baie</span>
+  <h1>Ton premier job,<br><em>sans expérience.</em></h1>
   <p class="lead">Seulement des offres ouvertes aux débutants. On les vérifie une par une et on affiche les vrais horaires, pour que tu voies tout de suite si ça marche avec tes cours.</p>
   <div class="cta">
     <a class="btn" href="#offres">Voir les offres</a>
@@ -71,12 +71,20 @@
 
 <!-- Fonctionnement -->
 <section class="wrap sec" aria-labelledby="t-comment">
-  <div class="kicker">Comment ça marche</div>
-  <h2 id="t-comment">Moins de scroll, plus d'entrevues.</h2>
-  <div class="steps">
-    <div class="card"><span class="num">01</span><h3>On appelle l'employeur</h3><p>Avant d'être en ligne, chaque offre est vérifiée : pas d'expérience exigée et horaire confirmé.</p></div>
-    <div class="card"><span class="num">02</span><h3>Tu donnes tes dispos une fois</h3><p>Lundi soir, samedi jour… Tu coches tes cases. Ça prend 30 secondes.</p></div>
-    <div class="card"><span class="num">03</span><h3>On t'écrit quand ça fit</h3><p>Pas d'infolettre. Seulement les offres qui tombent dans ton horaire.</p></div>
+  <div class="sec-head">
+    <h2 id="t-comment">On t'écrit <em>seulement</em> quand ça fit.</h2>
+    <p class="lead">Tu coches tes disponibilités une fois. Quand une offre tombe dans ton horaire, tu reçois un courriel. Pas d'infolettre.</p>
+  </div>
+  <div class="notifs" aria-label="Exemple d'alerte">
+    <div class="notif"><span class="ico" style="--h:20">R</span><span><span class="t" style="display:block">Commis de cuisine · Jonquière</span><span class="s" style="display:block">Ven soir, sam jour · fit avec ton horaire</span></span><time>maintenant</time></div>
+    <div class="notif"><span class="ico" style="--h:200">G</span><span><span class="t" style="display:block">Stage soutien informatique</span><span class="s" style="display:block">Lun au ven, jour · Chicoutimi</span></span><time>hier</time></div>
+    <div class="notif"><span class="ico" style="--h:120">M</span><span><span class="t" style="display:block">Caissier · La Baie</span><span class="s" style="display:block">Soirs et fins de semaine</span></span><time>lun.</time></div>
+  </div>
+  <p class="small" style="text-align:center;margin-top:12px">Exemple d'alerte</p>
+  <div class="three">
+    <div><b>Chaque offre est vérifiée</b><span>J'appelle l'employeur pour confirmer que l'expérience n'est pas exigée.</span></div>
+    <div><b>Les vrais horaires</b><span>Soir, jour, fin de semaine : tu sais avant de postuler si ça marche avec tes cours.</span></div>
+    <div><b>Ça prend 30 secondes</b><span>Prénom, courriel, tes cases cochées. C'est tout.</span></div>
   </div>
 </section>
 
@@ -84,8 +92,7 @@
 <section class="wrap sec" id="alerte" aria-labelledby="t-alerte">
   <div class="split">
     <div class="sticky">
-      <div class="kicker">Alerte job</div>
-      <h2 id="t-alerte">Reçois les offres qui fittent avec ton horaire.</h2>
+      <h2 id="t-alerte">Dis-nous <em>quand</em> tu peux travailler.</h2>
       <p class="lead">Gratuit pour les étudiants. Tes infos servent seulement à t'envoyer des offres, et un employeur voit ton profil uniquement si tu dis oui.</p>
     </div>
     <div class="formcard">
@@ -113,9 +120,8 @@
 
 <!-- FAQ -->
 <section class="wrap sec" aria-labelledby="t-faq">
-  <div class="kicker">Questions</div>
-  <h2 id="t-faq">Ce qu'on nous demande.</h2>
-  <div class="faq">
+  <div class="sec-head"><h2 id="t-faq">Questions</h2></div>
+  <div class="faq" style="max-width:720px;margin:0 auto">
     <details><summary>C'est vraiment gratuit?</summary><p>Oui. Pour les étudiants et les chercheurs d'emploi, PremierJob est gratuit et le restera.</p></details>
     <details><summary>Qui vérifie les offres?</summary><p>Moi, Jehiel, étudiant en informatique au Cégep de Jonquière. J'appelle ou je rencontre chaque employeur avant de mettre son offre en ligne.</p></details>
     <details><summary>Je suis nouvel arrivant. Est-ce pour moi?</summary><p>Oui. Si tu as le droit de travailler au Canada, toutes les offres te sont ouvertes.</p></details>
