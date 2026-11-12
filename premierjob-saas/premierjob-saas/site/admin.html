@@ -115,6 +115,26 @@
     return p.length ? l + " " + p.join("+") : "";
   }).filter(Boolean).join(", ");
 
+  // ---------- CV (stockage privé : liens signés temporaires) ----------
+  const celluleCV = (c) => c.cv_path
+    ? `<span class="actions" style="gap:6px;flex-wrap:nowrap"><button class="btn ghost sm" data-cv="${esc(c.cv_path)}" data-a="cv-ouvrir">Ouvrir</button><button class="btn ghost sm" data-cv="${esc(c.cv_path)}" data-a="cv-lien" title="Lien valable 7 jours, à envoyer à l'employeur">Lien 7 j</button></span>`
+    : '<span class="small">Pas de CV</span>';
+  async function actionCV(el){
+    const chemin = el.dataset.cv;
+    if (el.dataset.a === "cv-ouvrir") {
+      const w = window.open("", "_blank");
+      const { data, error } = await sb.storage.from("cvs").createSignedUrl(chemin, 600);
+      if (error || !data) { if (w) w.close(); el.textContent = "Erreur"; return; }
+      if (w) w.location = data.signedUrl; else location.href = data.signedUrl;
+    } else {
+      const { data, error } = await sb.storage.from("cvs").createSignedUrl(chemin, 7 * 24 * 3600);
+      if (error || !data) { el.textContent = "Erreur"; return; }
+      try { await navigator.clipboard.writeText(data.signedUrl); el.textContent = "Copié ✓"; } catch (e) { prompt("Lien du CV (7 jours) :", data.signedUrl); }
+      setTimeout(() => { el.textContent = "Lien 7 j"; }, 2500);
+    }
+  }
+  document.addEventListener("click", e => { const el = e.target.closest("[data-cv]"); if (el) actionCV(el); });
+
   // ---------- Connexion ----------
   async function session(){
     const { data } = await sb.auth.getSession();
@@ -251,14 +271,14 @@
   function renderCands(){
     const q = $("#cq").value.trim().toLowerCase();
     const list = CANDS.filter(c => !q || [c.prenom,c.courriel,c.domaine,c.etablissement,c.transport].join(" ").toLowerCase().includes(q));
-    $("#candTable").innerHTML = `<tr><th>Inscrit le</th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Domaine</th><th>Transport</th><th>Types</th><th>Disponibilités</th><th>Actif</th><th></th></tr>` +
+    $("#candTable").innerHTML = `<tr><th>Inscrit le</th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Domaine</th><th>Transport</th><th>Types</th><th>Disponibilités</th><th>CV</th><th>Actif</th><th></th></tr>` +
       (list.length ? list.map(c => `<tr data-id="${c.id}">
         <td class="mono">${new Date(c.created_at).toLocaleDateString("fr-CA")}</td><td>${esc(c.prenom)}</td><td>${esc(c.courriel)}</td>
         <td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}</td><td>${esc(c.domaine || "")}</td><td>${esc(PJ.TRANSPORTS[c.transport] || "")}</td>
-        <td>${esc((c.types || []).join(", "))}</td><td>${esc(dispoTxt(c.dispos))}</td>
+        <td>${esc((c.types || []).join(", "))}</td><td>${esc(dispoTxt(c.dispos))}</td><td>${celluleCV(c)}</td>
         <td><input type="checkbox" data-a="actif" aria-label="Actif" ${c.actif ? "checked" : ""}></td>
         <td><button class="btn danger sm" data-a="suppr">Supprimer</button></td></tr>`).join("")
-      : `<tr><td colspan="11" class="small">Aucun candidat.</td></tr>`);
+      : `<tr><td colspan="12" class="small">Aucun candidat.</td></tr>`);
   }
   $("#cq").addEventListener("input", renderCands);
   $("#candTable").addEventListener("click", async e => {
@@ -267,11 +287,13 @@
     if (el.dataset.a === "actif") { const r = await sb.from("candidats").update({ actif: el.checked }).eq("id", id); if (r.error) el.checked = !el.checked; else charger(); }
     if (el.dataset.a === "suppr") {
       if (el.dataset.sure !== "1") { el.dataset.sure = "1"; el.textContent = "Confirmer"; return; }
+      const c = CANDS.find(x => x.id === id);
+      if (c && c.cv_path) await sb.storage.from("cvs").remove([c.cv_path]);
       const r = await sb.from("candidats").delete().eq("id", id); if (!r.error) charger();
     }
   });
   $("#csv").addEventListener("click", () => {
-    const cols = ["created_at","prenom","courriel","telephone","etablissement","domaine","transport","types","dispos","actif"];
+    const cols = ["created_at","prenom","courriel","telephone","etablissement","domaine","transport","types","dispos","cv_path","actif"];
     const cell = (x) => '"' + String(Array.isArray(x) ? x.join(" ") : (x ?? "")).replace(/"/g, '""') + '"';
     const csv = "﻿" + cols.join(";") + "\n" + CANDS.map(c => cols.map(k => cell(c[k])).join(";")).join("\n");
     const a = document.createElement("a");
@@ -293,13 +315,13 @@
     if (!o) { $("#matchTable").innerHTML = ""; $("#matchInfo").textContent = ""; return; }
     const res = CANDS.filter(c => c.actif).map(c => ({ c, m: PJ.jumeler(o, c) })).filter(x => x.m.communs.length > 0).sort((a,b) => b.m.score - a.m.score);
     $("#matchInfo").textContent = `${res.length} candidat${res.length > 1 ? "s" : ""} disponible${res.length > 1 ? "s" : ""} pendant les horaires de ce poste (${(o.horaires || []).map(h => HORAIRES[h]).join(", ") || "aucun horaire indiqué"}). Les mieux placés sont en haut.`;
-    $("#matchTable").innerHTML = `<tr><th></th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Transport</th><th>Créneaux communs</th><th>Compatibilité</th></tr>` +
+    $("#matchTable").innerHTML = `<tr><th></th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Transport</th><th>CV</th><th>Créneaux communs</th><th>Compatibilité</th></tr>` +
       (res.length ? res.map(({c,m}, i) => `<tr>
         <td><input type="checkbox" class="pick" value="${esc(c.courriel)}" aria-label="Sélectionner ${esc(c.prenom)}" ${i < 5 ? "checked" : ""}></td>
-        <td>${esc(c.prenom)}</td><td>${esc(c.courriel)}</td><td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}${c.domaine ? " · " + esc(c.domaine) : ""}</td><td>${esc(PJ.TRANSPORTS[c.transport] || "")}</td>
+        <td>${esc(c.prenom)}</td><td>${esc(c.courriel)}</td><td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}${c.domaine ? " · " + esc(c.domaine) : ""}</td><td>${esc(PJ.TRANSPORTS[c.transport] || "")}</td><td>${celluleCV(c)}</td>
         <td><span class="mono">${m.communs.length}</span> · ${esc(dispoTxt(m.communs))}</td>
         <td class="tags">${m.typeOk ? '<span class="tag ok">Type OK</span>' : '<span class="tag bad">Autre type</span>'}${m.villeOk ? '<span class="tag ok">Ville OK</span>' : '<span class="tag bad">Autre ville</span>'}</td></tr>`).join("")
-      : `<tr><td colspan="8" class="small">Aucun candidat actif n'est disponible pendant ces horaires.</td></tr>`);
+      : `<tr><td colspan="9" class="small">Aucun candidat actif n'est disponible pendant ces horaires.</td></tr>`);
   }
   $("#copyEmails").addEventListener("click", async () => {
     const emails = [...document.querySelectorAll(".pick:checked")].map(x => x.value);

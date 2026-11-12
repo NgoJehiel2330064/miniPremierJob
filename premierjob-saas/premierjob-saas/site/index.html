@@ -113,12 +113,17 @@
           <label for="etablissement">École<select id="etablissement" name="etablissement"></select></label>
           <label for="domaine">Programme <span class="opt">(facultatif)</span><input type="text" id="domaine" name="domaine" maxlength="120" placeholder="Ex. : Techniques de l'informatique"></label>
         </div>
+        <div class="field">
+          <span>Ton CV <span class="opt">(PDF ou Word, 5 Mo max)</span></span>
+          <label class="drop" for="cv"><input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+            <span class="drop-t" id="cvNom">Ajouter mon CV</span><span class="drop-s">Les employeurs d'ici le demandent presque toujours. Pas de CV? Inscris-toi quand même, je t'aide à en faire un.</span></label>
+        </div>
         <fieldset><legend>Tes disponibilités</legend><div class="avail"><table id="avail" aria-label="Grille de disponibilités"></table></div></fieldset>
         <fieldset><legend>Comment tu te déplaces?</legend><div class="chips" id="transportF"></div></fieldset>
         <fieldset><legend>Ce que tu cherches <span class="opt">(facultatif)</span></legend><div class="chips" id="typeF"></div></fieldset>
         <label for="telephone">Téléphone <span class="opt">(facultatif, pour un appel d'entrevue plus rapide)</span><input type="tel" id="telephone" name="telephone" maxlength="30" autocomplete="tel" inputmode="tel"></label>
         <label class="consent" for="consent"><input type="checkbox" id="consent" required>
-          <span>J'accepte que PremierJob garde ces infos pour m'envoyer des offres. Je peux les faire supprimer en tout temps. <a href="#confidentialite">Confidentialité</a></span>
+          <span>J'accepte que PremierJob garde ces infos (et mon CV) pour m'envoyer des offres. Mon CV est envoyé à un employeur seulement si je dis oui pour son offre. Je peux tout faire supprimer en tout temps. <a href="#confidentialite">Confidentialité</a></span>
         </label>
         <button class="btn" type="submit" id="submitBtn">M'inscrire</button>
         <div id="formMsg" role="status"></div>
@@ -142,7 +147,7 @@
   <div class="wrap">
     <div id="confidentialite">
       <strong style="color:var(--muted)">Confidentialité (Loi 25).</strong>
-      Renseignements recueillis : prénom, courriel, téléphone facultatif, école, programme, disponibilités, moyen de transport et type d'emploi recherché. Ils servent à t'envoyer des offres et, seulement avec ton accord à chaque fois, à présenter ton profil à un employeur. Hébergement : Supabase. Pour consulter, corriger ou supprimer tes données, écris au responsable : <span id="respTxt"></span>.
+      Renseignements recueillis : prénom, courriel, téléphone facultatif, école, programme, disponibilités, moyen de transport, type d'emploi recherché et CV facultatif. Les CV sont dans un stockage privé que seul l'administrateur peut ouvrir. Ils servent à t'envoyer des offres et, seulement avec ton accord à chaque fois, à présenter ton profil à un employeur. Hébergement : Supabase. Pour consulter, corriger ou supprimer tes données, écris au responsable : <span id="respTxt"></span>.
     </div>
     <div>PremierJob · projet étudiant lancé au Saguenay · <a href="employeur.html">Afficher une offre</a></div>
   </div>
@@ -341,6 +346,12 @@
     transport = transport === k ? "" : k; trBtns.forEach(x => x.setAttribute("aria-pressed", x.dataset.k === transport)); }); b.dataset.k = k; return b; });
   trBtns.forEach(b => $("#transportF").appendChild(b));
   let dispo = PJ.grilleDispos($("#avail"));
+  $("#cv").addEventListener("change", e => {
+    const f = e.target.files[0], err = PJ.verifierCV(f);
+    $("#cvNom").textContent = f ? (err ? err : "✓ " + f.name) : "Ajouter mon CV";
+    $("#cvNom").closest(".drop").classList.toggle("ok", !!f && !err);
+    $("#cvNom").closest(".drop").classList.toggle("bad", !!err);
+  });
 
   $("#form").addEventListener("submit", async e => {
     e.preventDefault();
@@ -350,6 +361,8 @@
     if (!f.prenom.value.trim() || !/^\S+@\S+\.\S+$/.test(f.courriel.value.trim())) return say("err", "Entre ton prénom et un courriel valide.");
     if (dispo.size === 0) return say("err", "Coche au moins une case dans tes disponibilités.");
     if (!$("#consent").checked) return say("err", "Coche la case de consentement pour t'inscrire.");
+    const fichier = f.cv.files[0], errCV = PJ.verifierCV(fichier);
+    if (errCV) return say("err", errCV);
     const row = {
       prenom: f.prenom.value.trim(), courriel: f.courriel.value.trim(), telephone: f.telephone.value.trim() || null,
       etablissement: f.etablissement.value, domaine: f.domaine.value.trim() || null,
@@ -358,7 +371,8 @@
     if (transport) row.transport = transport;
     btn.disabled = true;
     try {
-      const { error } = await PJ.insererAvecRepli("candidats", row, ["transport"]);
+      if (fichier) { btn.textContent = "Envoi du CV…"; row.cv_path = await PJ.deposerCV(fichier); }
+      const { error } = await PJ.insererAvecRepli("candidats", row, ["transport", "cv_path"]);
       if (error) {
         if (error.code === "23505") return say("info", "Ce courriel est déjà inscrit. Pour changer tes disponibilités, écris-nous.");
         throw error;
@@ -366,11 +380,13 @@
       say("ok", `C'est noté, ${row.prenom}. Tu recevras les offres qui tombent dans ton horaire.`);
       PJ.track("inscription");
       f.reset(); typesChoisis.clear(); transport = "";
+      $("#cvNom").textContent = "Ajouter mon CV"; $("#cvNom").closest(".drop").classList.remove("ok","bad");
       document.querySelectorAll("#typeF .chip, #transportF .chip").forEach(b => b.setAttribute("aria-pressed","false"));
       dispo = PJ.grilleDispos($("#avail"));
     } catch (err) {
-      say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err) : "L'inscription n'a pas fonctionné. Vérifie tes réponses et réessaie.");
-    } finally { btn.disabled = false; }
+      say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)
+        : (err.statusCode || err.status) ? "Ton CV n'a pas pu être envoyé. Essaie en PDF, ou inscris-toi sans CV." : "L'inscription n'a pas fonctionné. Vérifie tes réponses et réessaie.");
+    } finally { btn.disabled = false; btn.textContent = "M'inscrire"; }
   });
 
   large.addEventListener("change", () => { fermer(); render(); });
