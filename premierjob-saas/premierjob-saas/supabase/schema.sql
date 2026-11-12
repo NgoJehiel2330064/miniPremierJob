@@ -19,7 +19,7 @@ create table if not exists public.offres (
   secteur          text check (char_length(secteur) <= 80),
   type             text not null check (type in ('Temps partiel','Temps plein','Stage','Été')),
   horaires         text[] not null default '{}'
-                   check (horaires <@ array['jour','soirs','fds','flexible']::text[]),
+                   check (horaires <@ array['jour','soirs','nuit','fds','flexible']::text[]),
   salaire          text check (char_length(salaire) <= 40),
   description      text check (char_length(description) <= 1500),
   lien             text check (char_length(lien) <= 500),
@@ -52,9 +52,10 @@ create table if not exists public.candidats (
                  check (types <@ array['Temps partiel','Temps plein','Stage','Été']::text[]),
   dispos         text[] not null
                  check (cardinality(dispos) >= 1 and dispos <@ array[
-                   'lun-jour','lun-soir','mar-jour','mar-soir','mer-jour','mer-soir',
-                   'jeu-jour','jeu-soir','ven-jour','ven-soir','sam-jour','sam-soir',
-                   'dim-jour','dim-soir']::text[]),
+                   'lun-jour','lun-soir','lun-nuit','mar-jour','mar-soir','mar-nuit',
+                   'mer-jour','mer-soir','mer-nuit','jeu-jour','jeu-soir','jeu-nuit',
+                   'ven-jour','ven-soir','ven-nuit','sam-jour','sam-soir','sam-nuit',
+                   'dim-jour','dim-soir','dim-nuit']::text[]),
   consentement   boolean not null check (consentement = true),
   consenti_le    timestamptz not null default now(),
   actif          boolean not null default true,

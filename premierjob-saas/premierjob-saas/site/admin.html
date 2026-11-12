@@ -111,7 +111,7 @@
   try { sb = PJ.client(); } catch (err) { $("#fatal").hidden = false; $("#fatal").textContent = PJ.configMessage(err); return; }
 
   const dispoTxt = (d) => JOURS.map(([j,l]) => {
-    const p = ["jour","soir"].filter(x => (d || []).includes(j + "-" + x));
+    const p = PJ.PERIODES.map(([x]) => x).filter(x => (d || []).includes(j + "-" + x));
     return p.length ? l + " " + p.join("+") : "";
   }).filter(Boolean).join(", ");
 
