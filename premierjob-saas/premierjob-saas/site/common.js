@@ -3,11 +3,7 @@
   const HORAIRES = { jour: "Jour", soirs: "Soirs", nuit: "Nuit", fds: "Fins de semaine", flexible: "Flexible" };
   const TYPES = ["Temps partiel", "Temps plein", "Stage", "Été"];
   // Villes et secteurs : même liste que la base (pj_villes). « Autre » reste possible.
-  const REGIONS = [
-    ["Ville de Saguenay", ["Chicoutimi", "Jonquière", "La Baie", "Laterrière", "Shipshaw", "Canton-Tremblay", "Lac-Kénogami"]],
-    ["Fjord-du-Saguenay", ["Saint-Honoré", "Saint-Fulgence", "Saint-Ambroise", "Saint-David-de-Falardeau", "Larouche", "Bégin", "Saint-Charles-de-Bourget", "Sainte-Rose-du-Nord", "Saint-Félix-d'Otis", "Rivière-Éternité", "L'Anse-Saint-Jean", "Petit-Saguenay", "Ferland-et-Boilleau"]],
-    ["Lac-Saint-Jean", ["Alma"]]
-  ];
+  const REGIONS = [["Saguenay", ["Chicoutimi", "Jonquière", "La Baie", "Laterrière", "Alma"]]];
   const VILLES = REGIONS.flatMap(([, v]) => v);
   // Remplit une liste déroulante, villes groupées par secteur (+ « Autre » au besoin)
   function remplirVilles(select, opts = {}) {
@@ -15,8 +11,8 @@
     const seules = opts.seulement ? new Set(opts.seulement) : null;
     REGIONS.forEach(([r, vs]) => {
       const liste = vs.filter(v => !seules || seules.has(v)); if (!liste.length) return;
-      const g = document.createElement("optgroup"); g.label = r;
-      liste.forEach(v => { const o = new Option(v, v); o.dataset.ville = "1"; g.appendChild(o); }); select.appendChild(g);
+      const g = REGIONS.length > 1 ? document.createElement("optgroup") : select; if (g !== select) { g.label = r; select.appendChild(g); }
+      liste.forEach(v => { const o = new Option(v, v); o.dataset.ville = "1"; g.appendChild(o); });
     });
     if (opts.autre && (!seules || seules.has("Autre"))) { const o = new Option("Autre", "Autre"); o.dataset.ville = "1"; select.appendChild(o); }
     if (garde && [...select.options].some(o => o.value === garde)) select.value = garde;

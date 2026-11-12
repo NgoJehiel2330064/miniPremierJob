@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#07080a">
 <title>PremierJob Saguenay</title>
-<meta name="description" content="Des jobs au Saguenay qui n'exigent pas d'expérience. Chaque offre est vérifiée, avec les vrais horaires. Chicoutimi, Jonquière, La Baie et partout autour du fjord.">
+<meta name="description" content="Des jobs au Saguenay qui n'exigent pas d'expérience. Chaque offre est vérifiée, avec les vrais horaires. Chicoutimi, Jonquière, La Baie, Laterrière et Alma.">
 <meta property="og:title" content="PremierJob Saguenay">
 <meta property="og:description" content="Des jobs sans expérience exigée, vérifiés un par un, avec les vrais horaires.">
 <meta property="og:type" content="website">
@@ -40,7 +40,7 @@
 </nav>
 
 <header class="wrap hero center">
-  <span class="place">Chicoutimi · Jonquière · La Baie · et tout le Saguenay</span>
+  <span class="place">Chicoutimi · Jonquière · La Baie · Laterrière · Alma</span>
   <h1>Ton premier emploi,<br><em>sans expérience exigée.</em></h1>
   <p class="lead">Des jobs ouverts aux débutants, vérifiés un par un, avec les vrais horaires pour voir tout de suite si ça marche avec ton horaire.</p>
   <div class="cta">
@@ -606,7 +606,7 @@
       OFFRES = data || [];
       $("#nbOffres").textContent = OFFRES.length;
       $("#nbWrap").hidden = OFFRES.length === 0;
-      PJ.remplirVilles($("#ville"), { autre: true, seulement: OFFRES.map(o => o.ville) }); // seulement les villes où il y a des offres
+      PJ.remplirVilles($("#ville"), { seulement: OFFRES.map(o => o.ville) }); // seulement les villes où il y a des offres
       if (OFFRES.length) {
         $("#ctaPrincipal").textContent = "Voir les offres"; $("#ctaPrincipal").href = "#offres";
         $("#ctaOffres").textContent = "M'avertir des nouvelles"; $("#ctaOffres").href = "#alerte"; $("#ctaOffres").hidden = false;

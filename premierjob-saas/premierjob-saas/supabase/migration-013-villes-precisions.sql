@@ -1,12 +1,10 @@
 -- PremierJob — migration 013
--- 1. Toutes les villes et secteurs du Saguenay et des environs (même liste que common.js).
--- 2. Une offre soumise par un employeur doit préciser le lieu, le salaire et les tâches.
+-- 1. Villes des offres : Chicoutimi, Jonquière, La Baie, Laterrière, Alma (même liste que common.js).
+--    Les offres existantes (Jonquière) restent valides.
+-- 2. Une offre soumise par un employeur doit préciser le lieu, le salaire et la description du poste.
 create or replace function public.pj_villes() returns text[]
 language sql immutable set search_path = public as $$
-  select array['Chicoutimi','Jonquière','La Baie','Laterrière','Shipshaw','Canton-Tremblay','Lac-Kénogami',
-    'Saint-Honoré','Saint-Fulgence','Saint-Ambroise','Saint-David-de-Falardeau','Larouche','Bégin',
-    'Saint-Charles-de-Bourget','Sainte-Rose-du-Nord','Saint-Félix-d''Otis','Rivière-Éternité',
-    'L''Anse-Saint-Jean','Petit-Saguenay','Ferland-et-Boilleau','Alma','Autre']::text[];
+  select array['Chicoutimi','Jonquière','La Baie','Laterrière','Alma']::text[];
 $$;
 
 alter table public.offres drop constraint if exists offres_ville_check;

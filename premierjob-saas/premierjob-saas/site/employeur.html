@@ -37,7 +37,7 @@
 <main class="wrap hero emp">
   <div class="split">
     <div class="sticky">
-      <span class="place">Chicoutimi · Jonquière · La Baie · et tout le Saguenay</span>
+      <span class="place">Chicoutimi · Jonquière · La Baie · Laterrière · Alma</span>
       <h1 style="font-size:clamp(2.5rem,7vw,4.4rem)">Affichez un poste, <em>c'est gratuit.</em></h1>
       <p class="lead">Affichage 100 % gratuit. Laissez-nous vos coordonnées : on vous appelle, puis on rédige et publie votre annonce en 24 h.</p>
       <ul class="points">
@@ -60,9 +60,14 @@
           <div class="chips rapides" id="horRapide"></div>
         </fieldset>
         <label for="lieu">Lieu de travail <span class="opt">(adresse ou secteur)</span><input type="text" id="lieu" name="lieu" required maxlength="160" placeholder="Ex. : 1234, boul. Talbot, Chicoutimi"></label>
-        <label for="salaire">Salaire<input type="text" id="salaire" name="salaire" required maxlength="40" placeholder="Ex. : 17,50 $/h ou 17 à 19 $/h"></label>
-        <label for="description">Tâches principales et formation offerte<textarea id="description" name="description" required maxlength="1500" placeholder="Ex. : Accueil des clients, caisse, préparation. Formation sur place."></textarea></label>
-        <p class="small" style="margin:-6px 0 0">Ce sont les infos que les candidats regardent en premier : lieu, salaire et tâches.</p>
+        <fieldset><legend>Salaire <span class="opt">($ de l'heure : un montant ou une fourchette)</span></legend>
+          <div class="grid2 salaire">
+            <label for="sal_min">De<input type="text" id="sal_min" required maxlength="8" inputmode="decimal" placeholder="Ex. : 16,10"></label>
+            <label for="sal_max">À <span class="opt">(facultatif)</span><input type="text" id="sal_max" maxlength="8" inputmode="decimal" placeholder="Ex. : 18,50"></label>
+          </div>
+        </fieldset>
+        <label for="description">Description du poste<textarea id="description" name="description" required maxlength="1500" placeholder="Ex. : Accueil des clients, caisse et préparation des commandes. Formation sur place."></textarea></label>
+        <p class="small" style="margin:-6px 0 0">Ce sont les infos que les candidats regardent en premier : lieu, salaire et description.</p>
         <div id="expMsg" role="status"></div>
         <div class="grid2">
           <label for="contact_nom">Votre nom<input type="text" id="contact_nom" name="contact_nom" required maxlength="120" autocomplete="name"></label>
@@ -113,7 +118,7 @@
 (function(){
   const $ = (s) => document.querySelector(s);
   { const m = (window.PJ_CONFIG || {}).contactEmail || ""; $("#contactTxt").textContent = m; $("#contactTxt").href = "mailto:" + m; }
-  PJ.remplirVilles($("#ville"), { autre: true });
+  PJ.remplirVilles($("#ville"));
   PJ.TYPES.forEach(t => $("#type").add(new Option(t, t)));
   $("#type").value = "Temps partiel";
   let grille = PJ.grilleOffre($("#grille"));
@@ -156,8 +161,13 @@
     const exacts = grille.O.size + grille.S.size > 0;
     if (!exacts && !choisis.size) return say("err", "Touchez au moins un horaire recherché (ex. : Soirs de semaine).");
     if (v("lieu").length < 3) { f.lieu.focus(); return say("err", "Indiquez le lieu de travail (adresse ou secteur) : c'est ce que les candidats regardent en premier."); }
-    if (!v("salaire")) { f.salaire.focus(); return say("err", "Indiquez le salaire, même approximatif (ex. : 17 à 19 $/h)."); }
-    if (v("description").length < 15) { f.description.focus(); return say("err", "Décrivez en une ou deux phrases les tâches et la formation offerte."); }
+    const montant = (x) => { const n = parseFloat(String(x).replace(/\s|\$/g, "").replace(",", ".")); return isFinite(n) && n > 0 && n < 1000 ? n : null; };
+    const smin = montant(v("sal_min")), smax = v("sal_max") ? montant(v("sal_max")) : null;
+    if (!smin) { f.sal_min.focus(); return say("err", "Indiquez le salaire de l'heure (ex. : 16,10). Pour une fourchette, remplissez aussi « À »."); }
+    if (v("sal_max") && (!smax || smax < smin)) { f.sal_max.focus(); return say("err", "Le haut de la fourchette doit être plus grand que le bas (ex. : de 16,10 à 18,50)."); }
+    const fmt = (n) => n.toFixed(2).replace(".", ",").replace(",00", "");
+    const salaire = smax && smax > smin ? `${fmt(smin)} à ${fmt(smax)} $/h` : `${fmt(smin)} $/h`;
+    if (v("description").length < 15) { f.description.focus(); return say("err", "Décrivez le poste en une ou deux phrases (ex. : accueil des clients, caisse, formation sur place)."); }
     if (v("lien") && !/^https?:\/\//i.test(v("lien"))) return say("err", "Le lien doit commencer par https://");
     if (PJ.lienConcurrent(v("lien"))) return say("err", "Indiquez le lien de votre propre site ou formulaire, pas celui d'une plateforme d'emploi.");
     if (!verifierTexte()) { return say("err", "Retirez l'exigence d'expérience du texte pour envoyer le poste."); }
@@ -165,7 +175,7 @@
     const nb = parseInt(f.nb_postes.value, 10);
     const row = {
       titre:v("titre"), employeur:v("employeur"), ville:f.ville.value, lieu:v("lieu") || null, secteur:null, type:f.type.value || "Temps partiel",
-      salaire:v("salaire") || null, description:v("description") || null, qualification:v("qualification") || null, lien:v("lien") || null,
+      salaire, description:v("description") || null, qualification:v("qualification") || null, lien:v("lien") || null,
       nb_postes: nb >= 1 && nb <= 50 ? nb : 1, date_debut: f.date_debut.value || null,
       creneaux_obligatoires: exacts ? [...grille.O] : [], creneaux_souhaites: exacts ? [...grille.S] : creneauxRapides(), horaires:[],
       contact_nom:v("contact_nom"), contact_courriel:courriel || null, contact_tel:tel || null,
