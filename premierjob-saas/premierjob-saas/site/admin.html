@@ -7,19 +7,21 @@
 <title>Admin · PremierJob</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="common.js"></script>
 </head>
 <body>
-<div class="wrap topnav">
-  <a class="brand" href="index.html">PremierJob · Admin</a>
-  <nav class="navlinks"><a href="index.html">Site public</a><button class="btn ghost sm" id="logout" hidden>Se déconnecter</button></nav>
-</div>
+<nav class="nav">
+  <div class="wrap">
+    <a class="logo" href="index.html"><span class="mark">P</span>PremierJob <small>Admin</small></a>
+    <div class="navlinks"><a class="link" href="index.html">Site public</a><button class="btn ghost sm" id="logout" hidden>Se déconnecter</button></div>
+  </div>
+</nav>
 
-<main class="wrap">
+<main class="wrap" style="padding-top:24px">
   <!-- Connexion -->
   <section class="block" id="loginBox" hidden>
     <h2>Connexion administrateur</h2>
@@ -248,11 +250,11 @@
   // ---------- Candidats ----------
   function renderCands(){
     const q = $("#cq").value.trim().toLowerCase();
-    const list = CANDS.filter(c => !q || [c.prenom,c.courriel,c.domaine,c.etablissement,c.ville].join(" ").toLowerCase().includes(q));
-    $("#candTable").innerHTML = `<tr><th>Inscrit le</th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Domaine</th><th>Ville</th><th>Types</th><th>Disponibilités</th><th>Actif</th><th></th></tr>` +
+    const list = CANDS.filter(c => !q || [c.prenom,c.courriel,c.domaine,c.etablissement,c.transport].join(" ").toLowerCase().includes(q));
+    $("#candTable").innerHTML = `<tr><th>Inscrit le</th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Domaine</th><th>Transport</th><th>Types</th><th>Disponibilités</th><th>Actif</th><th></th></tr>` +
       (list.length ? list.map(c => `<tr data-id="${c.id}">
         <td class="mono">${new Date(c.created_at).toLocaleDateString("fr-CA")}</td><td>${esc(c.prenom)}</td><td>${esc(c.courriel)}</td>
-        <td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}</td><td>${esc(c.domaine || "")}</td><td>${esc(c.ville || "")}</td>
+        <td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}</td><td>${esc(c.domaine || "")}</td><td>${esc(PJ.TRANSPORTS[c.transport] || "")}</td>
         <td>${esc((c.types || []).join(", "))}</td><td>${esc(dispoTxt(c.dispos))}</td>
         <td><input type="checkbox" data-a="actif" aria-label="Actif" ${c.actif ? "checked" : ""}></td>
         <td><button class="btn danger sm" data-a="suppr">Supprimer</button></td></tr>`).join("")
@@ -269,7 +271,7 @@
     }
   });
   $("#csv").addEventListener("click", () => {
-    const cols = ["created_at","prenom","courriel","telephone","etablissement","domaine","ville","types","dispos","actif"];
+    const cols = ["created_at","prenom","courriel","telephone","etablissement","domaine","transport","types","dispos","actif"];
     const cell = (x) => '"' + String(Array.isArray(x) ? x.join(" ") : (x ?? "")).replace(/"/g, '""') + '"';
     const csv = "﻿" + cols.join(";") + "\n" + CANDS.map(c => cols.map(k => cell(c[k])).join(";")).join("\n");
     const a = document.createElement("a");
@@ -291,13 +293,13 @@
     if (!o) { $("#matchTable").innerHTML = ""; $("#matchInfo").textContent = ""; return; }
     const res = CANDS.filter(c => c.actif).map(c => ({ c, m: PJ.jumeler(o, c) })).filter(x => x.m.communs.length > 0).sort((a,b) => b.m.score - a.m.score);
     $("#matchInfo").textContent = `${res.length} candidat${res.length > 1 ? "s" : ""} disponible${res.length > 1 ? "s" : ""} pendant les horaires de ce poste (${(o.horaires || []).map(h => HORAIRES[h]).join(", ") || "aucun horaire indiqué"}). Les mieux placés sont en haut.`;
-    $("#matchTable").innerHTML = `<tr><th></th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Créneaux communs</th><th>Compatibilité</th></tr>` +
+    $("#matchTable").innerHTML = `<tr><th></th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Transport</th><th>Créneaux communs</th><th>Compatibilité</th></tr>` +
       (res.length ? res.map(({c,m}, i) => `<tr>
         <td><input type="checkbox" class="pick" value="${esc(c.courriel)}" aria-label="Sélectionner ${esc(c.prenom)}" ${i < 5 ? "checked" : ""}></td>
-        <td>${esc(c.prenom)}</td><td>${esc(c.courriel)}</td><td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}${c.domaine ? " · " + esc(c.domaine) : ""}</td>
+        <td>${esc(c.prenom)}</td><td>${esc(c.courriel)}</td><td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}${c.domaine ? " · " + esc(c.domaine) : ""}</td><td>${esc(PJ.TRANSPORTS[c.transport] || "")}</td>
         <td><span class="mono">${m.communs.length}</span> · ${esc(dispoTxt(m.communs))}</td>
         <td class="tags">${m.typeOk ? '<span class="tag ok">Type OK</span>' : '<span class="tag bad">Autre type</span>'}${m.villeOk ? '<span class="tag ok">Ville OK</span>' : '<span class="tag bad">Autre ville</span>'}</td></tr>`).join("")
-      : `<tr><td colspan="7" class="small">Aucun candidat actif n'est disponible pendant ces horaires.</td></tr>`);
+      : `<tr><td colspan="8" class="small">Aucun candidat actif n'est disponible pendant ces horaires.</td></tr>`);
   }
   $("#copyEmails").addEventListener("click", async () => {
     const emails = [...document.querySelectorAll(".pick:checked")].map(x => x.value);

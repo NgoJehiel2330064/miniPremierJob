@@ -36,6 +36,7 @@ create table if not exists public.offres (
   notes_admin      text check (char_length(notes_admin) <= 2000)
 );
 
+-- (transport ajouté par la migration 002 pour les bases déjà créées)
 create table if not exists public.candidats (
   id             uuid primary key default gen_random_uuid(),
   created_at     timestamptz not null default now(),
@@ -46,6 +47,7 @@ create table if not exists public.candidats (
   etablissement  text check (char_length(etablissement) <= 80),
   domaine        text check (char_length(domaine) <= 120),
   ville          text check (char_length(ville) <= 40),
+  transport      text check (transport in ('auto','autobus','pied-velo')),
   types          text[] not null default '{}'
                  check (types <@ array['Temps partiel','Temps plein','Stage','Été']::text[]),
   dispos         text[] not null
@@ -99,7 +101,7 @@ grant insert (titre, employeur, ville, secteur, type, horaires, salaire,
               description, lien, contact_nom, contact_courriel, contact_tel)
   on public.offres to anon;
 grant insert (prenom, courriel, telephone, etablissement, domaine, ville,
-              types, dispos, consentement)
+              transport, types, dispos, consentement)
   on public.candidats to anon;
 
 grant select, insert, update, delete on public.offres, public.candidats to authenticated;

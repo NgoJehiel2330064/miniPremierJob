@@ -2,62 +2,86 @@
 <html lang="fr-CA">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Afficher une offre · PremierJob Saguenay</title>
-<meta name="description" content="Employeurs du Saguenay : affichez gratuitement un poste ouvert aux débutants.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07080a">
+<title>Employeurs · PremierJob Saguenay</title>
+<meta name="description" content="Employeurs du Saguenay : affichez gratuitement un poste ouvert aux débutants et recevez des étudiants disponibles aux heures de vos quarts.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff6363'/%3E%3Cstop offset='1' stop-color='%23ffb347'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='17' text-anchor='middle' fill='%231a0b0b'%3EP%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="common.js"></script>
 </head>
 <body>
-<div class="wrap topnav">
-  <a class="brand" href="index.html">PremierJob · Saguenay</a>
-  <nav class="navlinks"><a href="index.html">Voir les offres</a></nav>
-</div>
-<header class="wrap hero">
-  <h1>Affichez gratuitement un poste ouvert aux débutants</h1>
-  <p class="lead">Les étudiants de Jonquière, Chicoutimi et La Baie inscrivent leurs disponibilités. Vous recevez des candidats qui peuvent réellement travailler aux heures de vos quarts.</p>
-</header>
-<main class="wrap">
-  <section class="block">
-    <form id="form" novalidate>
-      <div class="hp" aria-hidden="true"><label for="site_web">Ne pas remplir<input type="text" id="site_web" name="site_web" tabindex="-1" autocomplete="off"></label></div>
-      <h2>Le poste</h2>
-      <div class="grid2">
-        <label for="titre">Titre du poste<input type="text" id="titre" name="titre" required maxlength="120" placeholder="Ex. : Commis de cuisine"></label>
-        <label for="employeur">Nom de l'entreprise<input type="text" id="employeur" name="employeur" required maxlength="120"></label>
-        <label for="ville">Ville<select id="ville" name="ville"></select></label>
-        <label for="secteur">Secteur<input type="text" id="secteur" name="secteur" maxlength="80" placeholder="Ex. : Restauration"></label>
-        <label for="type">Type<select id="type" name="type"></select></label>
-        <label for="salaire">Salaire<input type="text" id="salaire" name="salaire" maxlength="40" placeholder="Ex. : 17,50 $/h"></label>
+<div class="glow" aria-hidden="true"></div>
+<div class="page">
+<nav class="nav">
+  <div class="wrap">
+    <a class="logo" href="index.html"><span class="mark">P</span>PremierJob <small>Employeurs</small></a>
+    <div class="navlinks"><a class="link" href="index.html">Voir les offres</a></div>
+  </div>
+</nav>
+
+<main class="wrap hero">
+  <div class="split">
+    <div class="sticky">
+      <span class="pill"><span class="dot"></span>Gratuit pendant le lancement</span>
+      <h1 style="font-size:clamp(2rem,6vw,3.4rem)">Des étudiants disponibles aux heures de vos quarts.</h1>
+      <p class="lead">Vous affichez un poste qui n'exige pas d'expérience. Je vous présente des étudiants de la région dont l'horaire concorde déjà avec le vôtre.</p>
+      <div class="steps" style="grid-template-columns:1fr;margin-top:26px">
+        <div class="card"><span class="num">01 · 2 minutes</span><h3>Vous décrivez le poste</h3><p>Le poste, les horaires et le salaire. Pas besoin d'une annonce parfaite.</p></div>
+        <div class="card"><span class="num">02 · moins de 48 h</span><h3>Je vous appelle pour valider</h3><p>On confirme ensemble l'horaire et qu'aucune expérience n'est exigée. L'offre est ensuite publiée.</p></div>
+        <div class="card"><span class="num">03 · dès que possible</span><h3>Vous recevez des candidats qui peuvent travailler</h3><p>Seulement des étudiants disponibles pendant vos quarts, qui ont accepté d'être présentés.</p></div>
       </div>
-      <fieldset><legend>Horaires du poste</legend><div class="frow" id="horaires"></div></fieldset>
-      <label for="description">Description courte (tâches, formation offerte, nombre d'heures)<textarea id="description" name="description" maxlength="1500"></textarea></label>
-      <label for="lien">Lien vers l'offre complète (facultatif)<input type="url" id="lien" name="lien" maxlength="500" placeholder="https://"></label>
-      <h2>Vos coordonnées</h2>
-      <p class="small">Elles ne sont jamais affichées publiquement. Elles servent à vérifier l'offre avec vous et à vous présenter des candidats.</p>
-      <div class="grid2">
-        <label for="contact_nom">Votre nom<input type="text" id="contact_nom" name="contact_nom" required maxlength="120" autocomplete="name"></label>
-        <label for="contact_courriel">Courriel<input type="email" id="contact_courriel" name="contact_courriel" required maxlength="160" autocomplete="email"></label>
-        <label for="contact_tel">Téléphone<input type="tel" id="contact_tel" name="contact_tel" maxlength="30" autocomplete="tel"></label>
-      </div>
-      <label class="consent" for="engagement"><input type="checkbox" id="engagement" required>
-        <span>Je confirme que ce poste n'exige aucune expérience préalable et que nous nous engageons à répondre aux candidats que PremierJob nous présente.</span>
-      </label>
-      <div><button class="btn" type="submit" id="submitBtn">Envoyer l'offre</button></div>
-      <div id="formMsg" role="status"></div>
-    </form>
-  </section>
-  <p class="small">Votre offre est vérifiée avant sa mise en ligne, généralement en moins de 48 heures.</p>
+    </div>
+
+    <div class="formcard">
+      <form id="form" novalidate>
+        <div class="hp" aria-hidden="true"><label for="site_web">Ne pas remplir<input type="text" id="site_web" name="site_web" tabindex="-1" autocomplete="off"></label></div>
+        <h2 style="font-size:1.35rem">Afficher un poste</h2>
+        <div class="grid2">
+          <label for="employeur">Entreprise<input type="text" id="employeur" name="employeur" required maxlength="120" autocomplete="organization"></label>
+          <label for="titre">Poste<input type="text" id="titre" name="titre" required maxlength="120" placeholder="Ex. : Commis de cuisine"></label>
+          <label for="ville">Ville<select id="ville" name="ville"></select></label>
+          <label for="type">Type<select id="type" name="type"></select></label>
+        </div>
+        <fieldset><legend>Quand faut-il travailler?</legend><div class="chips" id="horaires"></div></fieldset>
+        <div class="grid2">
+          <label for="salaire">Salaire <span class="opt">(facultatif)</span><input type="text" id="salaire" name="salaire" maxlength="40" placeholder="Ex. : 17,50 $/h"></label>
+          <label for="secteur">Secteur <span class="opt">(facultatif)</span><input type="text" id="secteur" name="secteur" maxlength="80" placeholder="Ex. : Restauration"></label>
+        </div>
+        <label for="description">Tâches et formation offerte <span class="opt">(facultatif)</span><textarea id="description" name="description" maxlength="1500" placeholder="Ex. : Préparation des entrées, plonge. Formation de 2 jours payée. 15 à 20 h par semaine."></textarea></label>
+        <label for="lien">Lien vers votre annonce <span class="opt">(facultatif)</span><input type="url" id="lien" name="lien" maxlength="500" placeholder="https://" inputmode="url"></label>
+        <div class="grid2">
+          <label for="contact_nom">Votre nom<input type="text" id="contact_nom" name="contact_nom" required maxlength="120" autocomplete="name"></label>
+          <label for="contact_tel">Téléphone<input type="tel" id="contact_tel" name="contact_tel" maxlength="30" autocomplete="tel" inputmode="tel"></label>
+        </div>
+        <label for="contact_courriel">Courriel<input type="email" id="contact_courriel" name="contact_courriel" required maxlength="160" autocomplete="email" inputmode="email"></label>
+        <p class="small" style="margin:0">Vos coordonnées ne sont jamais affichées sur le site.</p>
+        <label class="consent" for="engagement"><input type="checkbox" id="engagement" required>
+          <span>Ce poste n'exige pas d'expérience et nous répondrons aux candidats que PremierJob nous présente.</span>
+        </label>
+        <button class="btn" type="submit" id="submitBtn">Envoyer le poste</button>
+        <div id="formMsg" role="status"></div>
+      </form>
+    </div>
+  </div>
 </main>
-<footer class="wrap">PremierJob est un projet étudiant en phase de test au Saguenay.</footer>
+
+<footer>
+  <div class="wrap">
+    <div>Une question avant d'afficher? Écrivez à <span id="contactTxt" style="color:var(--muted)"></span>.</div>
+    <div>PremierJob · projet étudiant lancé au Saguenay · <a href="index.html">Offres</a></div>
+  </div>
+</footer>
+</div>
 <script>
 (function(){
   const $ = (s) => document.querySelector(s);
+  $("#contactTxt").textContent = (window.PJ_CONFIG || {}).contactEmail || "";
   PJ.VILLES.concat(["Autre"]).forEach(v => $("#ville").add(new Option(v, v)));
   PJ.TYPES.forEach(t => $("#type").add(new Option(t, t)));
   const horaires = new Set();
@@ -70,13 +94,13 @@
     e.preventDefault();
     const f = e.target, msg = $("#formMsg"), btn = $("#submitBtn");
     const say = (cls, t) => { msg.className = "msg " + cls; msg.textContent = t; };
-    if (f.site_web.value) return say("ok", "Merci! Votre offre a été reçue.");
+    if (f.site_web.value) return say("ok", "Merci! Votre poste a été reçu.");
     const v = (n) => f[n].value.trim();
-    if (v("titre").length < 3 || v("employeur").length < 2 || !v("contact_nom")) return say("err", "Remplissez le titre du poste, le nom de l'entreprise et votre nom.");
+    if (v("employeur").length < 2 || v("titre").length < 3 || !v("contact_nom")) return say("err", "Indiquez l'entreprise, le poste et votre nom.");
     if (!/^\S+@\S+\.\S+$/.test(v("contact_courriel"))) return say("err", "Entrez un courriel valide pour qu'on puisse vous joindre.");
-    if (horaires.size === 0) return say("err", "Choisissez au moins un horaire pour le poste.");
+    if (horaires.size === 0) return say("err", "Choisissez au moins un horaire.");
     if (v("lien") && !/^https?:\/\//i.test(v("lien"))) return say("err", "Le lien doit commencer par https://");
-    if (!$("#engagement").checked) return say("err", "Cochez la confirmation pour envoyer l'offre.");
+    if (!$("#engagement").checked) return say("err", "Cochez la confirmation pour envoyer le poste.");
     const row = {
       titre:v("titre"), employeur:v("employeur"), ville:f.ville.value, secteur:v("secteur") || null, type:f.type.value,
       horaires:[...horaires], salaire:v("salaire") || null, description:v("description") || null, lien:v("lien") || null,
@@ -86,7 +110,7 @@
     try {
       const { error } = await PJ.client().from("offres").insert(row);
       if (error) throw error;
-      say("ok", "Merci! Votre offre a été reçue. Nous vous contactons pour la vérifier avant sa mise en ligne.");
+      say("ok", "Merci, c'est reçu. Je vous contacte d'ici 48 heures pour valider le poste avant de le publier.");
       PJ.track("offre-employeur");
       f.reset(); horaires.clear();
       document.querySelectorAll("#horaires .chip").forEach(b => b.setAttribute("aria-pressed","false"));
