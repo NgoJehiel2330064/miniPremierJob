@@ -1,0 +1,18 @@
+# Réglages Netlify pour PremierJob (lus automatiquement quand le dépôt est relié).
+# Site statique : rien à construire, Netlify publie simplement le dossier « site ».
+[build]
+  base    = "premierjob-saas/premierjob-saas/site"
+  publish = "."
+  command = "echo 'Site statique : rien à construire'"
+
+# La page admin ne doit pas apparaître dans Google.
+[[headers]]
+  for = "/admin.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
