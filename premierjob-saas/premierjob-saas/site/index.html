@@ -41,7 +41,7 @@
 
 <header class="wrap hero center">
   <span class="place">Jonquière · Chicoutimi · La Baie</span>
-  <h1>Ton premier job,<br><em>sans expérience.</em></h1>
+  <h1>Ton premier emploi,<br><em>sans expérience exigée.</em></h1>
   <p class="lead">Seulement des offres ouvertes aux débutants. On les vérifie une par une et on affiche les vrais horaires, pour que tu voies tout de suite si ça marche avec tes cours.</p>
   <div class="cta">
     <a class="btn" href="#offres">Voir les offres</a>
@@ -49,7 +49,7 @@
   </div>
   <div class="meta-row">
     <span><b id="nbOffres">–</b> offres en ligne</span>
-    <span><b id="nbConf">–</b> confirmées par l'employeur</span>
+    <span>Chaque offre vérifiée avant publication</span>
     <span id="nouvTxt" hidden></span>
     <span id="majTxt"></span>
   </div>
@@ -109,8 +109,10 @@
         <div class="hp" aria-hidden="true"><label for="site_web">Ne pas remplir<input type="text" id="site_web" name="site_web" tabindex="-1" autocomplete="off"></label></div>
         <div class="grid2">
           <label for="prenom">Prénom<input type="text" id="prenom" name="prenom" required maxlength="60" autocomplete="given-name"></label>
+          <label for="nom">Nom<input type="text" id="nom" name="nom" required maxlength="80" autocomplete="family-name"></label>
           <label for="courriel">Courriel<input type="email" id="courriel" name="courriel" required maxlength="160" autocomplete="email" inputmode="email"></label>
           <label for="etablissement">École<select id="etablissement" name="etablissement"></select></label>
+          <label for="villeI">Ville où tu habites<select id="villeI" name="ville"><option>Jonquière</option><option>Chicoutimi</option><option>La Baie</option><option>Autre</option></select></label>
           <label for="domaine">Programme <span class="opt">(facultatif)</span><input type="text" id="domaine" name="domaine" maxlength="120" placeholder="Ex. : Techniques de l'informatique"></label>
         </div>
         <div class="field">
@@ -123,7 +125,7 @@
         <fieldset><legend>Ce que tu cherches <span class="opt">(facultatif)</span></legend><div class="chips" id="typeF"></div></fieldset>
         <label for="telephone">Téléphone <span class="opt">(facultatif, pour un appel d'entrevue plus rapide)</span><input type="tel" id="telephone" name="telephone" maxlength="30" autocomplete="tel" inputmode="tel"></label>
         <label class="consent" for="consent"><input type="checkbox" id="consent" required>
-          <span>J'accepte que PremierJob garde ces infos (et mon CV) pour m'envoyer des offres. Mon CV est envoyé à un employeur seulement si je dis oui pour son offre. Je peux tout faire supprimer en tout temps. <a href="#confidentialite">Confidentialité</a></span>
+          <span>J'accepte que PremierJob garde ces infos (et mon CV) pour m'envoyer des offres. Mon CV est envoyé à un employeur seulement si je dis oui pour son offre. Je peux tout faire supprimer en tout temps. <a href="confidentialite.html">Confidentialité</a></span>
         </label>
         <button class="btn" type="submit" id="submitBtn">M'inscrire</button>
         <div id="formMsg" role="status"></div>
@@ -147,7 +149,7 @@
   <div class="wrap">
     <div id="confidentialite">
       <strong style="color:var(--muted)">Confidentialité (Loi 25).</strong>
-      Renseignements recueillis : prénom, courriel, téléphone facultatif, école, programme, disponibilités, moyen de transport, type d'emploi recherché et CV facultatif. Les CV sont dans un stockage privé que seul l'administrateur peut ouvrir. Ils servent à t'envoyer des offres et, seulement avec ton accord à chaque fois, à présenter ton profil à un employeur. Hébergement : Supabase. Pour consulter, corriger ou supprimer tes données, écris au responsable : <span id="respTxt"></span>.
+      Renseignements recueillis : prénom, courriel, téléphone facultatif, école, programme, disponibilités, moyen de transport, type d'emploi recherché et CV facultatif. Les CV sont dans un stockage privé que seul l'administrateur peut ouvrir. Ils servent à t'envoyer des offres et, seulement avec ton accord à chaque fois, à présenter ton profil à un employeur. Hébergement : Supabase. Pour consulter, corriger ou supprimer tes données, écris au responsable : <span id="respTxt"></span>. <a href="confidentialite.html">Politique complète</a>.
     </div>
     <div>PremierJob · projet étudiant lancé au Saguenay · <a href="employeur.html">Afficher une offre</a></div>
   </div>
@@ -162,9 +164,15 @@
     <div id="applyFields" style="display:grid;gap:14px">
       <div class="grid2">
         <label for="a_prenom">Prénom<input type="text" id="a_prenom" name="prenom" required maxlength="60" autocomplete="given-name"></label>
+        <label for="a_nom">Nom<input type="text" id="a_nom" name="nom" required maxlength="80" autocomplete="family-name"></label>
         <label for="a_tel">Téléphone<input type="tel" id="a_tel" name="telephone" required maxlength="30" autocomplete="tel" inputmode="tel" placeholder="418 555-0123"></label>
+        <label for="a_ville">Ville où tu habites<select id="a_ville" name="ville"><option>Jonquière</option><option>Chicoutimi</option><option>La Baie</option><option>Autre</option></select></label>
       </div>
       <label for="a_courriel">Courriel<input type="email" id="a_courriel" name="courriel" required maxlength="160" autocomplete="email" inputmode="email"></label>
+      <fieldset><legend>Tes disponibilités <span class="opt">Les cases encadrées sont requises pour ce poste.</span></legend>
+        <div class="avail"><table id="a_avail" aria-label="Tes disponibilités"></table></div>
+        <div id="a_fit" role="status"></div></fieldset>
+      <fieldset><legend>Comment tu te déplaces?</legend><div class="chips" id="a_transport"></div></fieldset>
       <div class="field">
         <span>Ton CV <span class="opt">(PDF ou Word, 5 Mo max)</span></span>
         <label class="drop" for="a_cv"><input type="file" id="a_cv" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
@@ -172,7 +180,10 @@
       </div>
       <label for="a_msg">Un mot pour l'employeur <span class="opt">(facultatif)</span><textarea id="a_msg" name="message" maxlength="500" placeholder="Ex. : Je peux commencer lundi, j'habite à 5 minutes."></textarea></label>
       <label class="consent" for="a_consent"><input type="checkbox" id="a_consent" required>
-        <span>J'accepte que PremierJob transmette ma candidature et mon CV à <b id="applyEmp2"></b> pour ce poste.</span>
+        <span>J'accepte que PremierJob transmette ma candidature et mon CV à <b id="applyEmp2"></b> pour ce poste. <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></span>
+      </label>
+      <label class="consent" for="a_alertes"><input type="checkbox" id="a_alertes">
+        <span>Envoie-moi aussi les prochaines offres qui fittent avec mon horaire (facultatif).</span>
       </label>
       <div class="actions"><button class="btn" type="submit" id="applyBtn">Envoyer ma candidature</button><button class="btn ghost" type="button" data-apply-close>Annuler</button></div>
     </div>
@@ -209,20 +220,29 @@
     typeBtns.forEach(x => x.setAttribute("aria-pressed", x.textContent === state.type)); state.sel = 0; render();
   }));
   typeBtns.forEach(b => $("#filters").appendChild(b));
+  let fitBtn = null;
+  function ajouterFiltreFit(){
+    if (fitBtn || !mesDispos().length) return;
+    fitBtn = PJ.chip("Fit avec mes dispos", false, b => { state.fit = !state.fit; b.setAttribute("aria-pressed", state.fit); state.sel = 0; render(); });
+    $("#filters").insertBefore(fitBtn, $("#filters").children[1]);
+  }
   $("#q").addEventListener("input", e => { state.q = e.target.value; state.sel = 0; render(); });
   $("#ville").addEventListener("change", e => { state.ville = e.target.value; state.sel = 0; render(); });
 
   // ----- Rendu -----
   const JOUR = 864e5;
   const estNouvelle = (o) => o.verifie_le && (Date.now() - new Date(o.verifie_le + "T12:00:00").getTime()) < 7 * JOUR;
-  const lienOffre = (o) => location.origin + location.pathname + "#offre-" + o.id;
+  const lienOffre = (o) => location.origin + "/o/" + o.id;
+  const mesDispos = () => (memo.get().dispos || []);
+  const fitDe = (o) => { const d = mesDispos(); return d.length ? PJ.jumelerV2(o, { dispos: d }) : null; };
+  let avis = "";
   const icone = (o, lg) => `<span class="ico${lg ? " lg" : ""}" style="--h:${teinte(o.secteur || o.employeur)}">${esc(initiale(o.employeur))}</span>`;
 
   function ligne(o, i){
     const h = (o.horaires || []).map((x, n) => `<span class="k${n > 0 ? " hide-sm" : ""}">${esc(HORAIRES_COURTS[x] || x)}</span>`).join("");
     return `<button class="row" role="option" data-i="${i}" aria-selected="${i === state.sel}">
       ${icone(o)}
-      <span style="min-width:0"><span class="t">${estNouvelle(o) ? '<span class="new">Nouveau</span>' : ""}${esc(o.titre)}</span><span class="s">${esc(o.employeur)} · ${esc(o.ville)}</span></span>
+      <span style="min-width:0"><span class="t">${estNouvelle(o) ? '<span class="new">Nouveau</span>' : ""}${esc(o.titre)}</span><span class="s">${esc(o.employeur)} · ${esc(o.ville)}${(() => { const f = fitDe(o); return f ? (f.compatible ? ' · <span style="color:var(--go)">✓ fit avec tes dispos</span>' : '') : ""; })()}</span></span>
       <span class="acc">${h}${o.salaire ? `<span class="money hide-sm">${esc(o.salaire)}</span>` : ""}</span>
     </button>`;
   }
@@ -230,22 +250,26 @@
   function detail(o){
     if (!o) return `<div class="legend">
         <h3 style="color:var(--ink)">Comment lire une offre</h3>
-        <span class="badge ok">✓ Confirmée</span><span>L'employeur m'a confirmé au téléphone ou en personne qu'aucune expérience n'est exigée.</span>
-        <span class="badge wait">À confirmer</span><span>L'annonce dit « sans expérience », mais je n'ai pas encore parlé à l'employeur.</span>
-        <span>Les horaires indiqués sont ceux du poste, pas une estimation.</span>
+        <span class="badge ok">✓ Sans expérience exigée</span><span>Chaque offre est vérifiée avec l'employeur avant d'être publiée. Aucune n'exige d'expérience professionnelle.</span>
+        <span><span class="g req">R</span> quart requis : tu dois être libre. <span class="g ideal">I</span> quart idéal : un plus.</span>
+        <span>Postule directement ici : ta candidature est transmise à l'employeur seulement avec ton accord.</span>
       </div>`;
     const lien = safeUrl(o.lien);
     return `<div class="detail">
       <div class="head">${icone(o, true)}<div><h3 style="font-size:18px">${esc(o.titre)}</h3><div class="emp">${esc(o.employeur)}</div></div></div>
-      <div class="tags">${o.confirme ? '<span class="badge ok">✓ Sans expérience · confirmé par l\'employeur</span>' : '<span class="badge wait">Sans expérience selon l\'annonce · à confirmer</span>'}${estNouvelle(o) ? '<span class="badge new-b">Nouveau</span>' : ""}</div>
+      <div class="tags"><span class="badge ok">✓ Sans expérience exigée · vérifiée</span>${estNouvelle(o) ? '<span class="badge new-b">Nouveau</span>' : ""}${(() => { const f = fitDe(o); return f ? (f.compatible ? '<span class="fit ok">✓ Fit avec tes dispos</span>' : f.manquants.length ? '<span class="fit no">Demande : ' + esc(f.manquants.map(PJ.nomCreneau).join(", ")) + '</span>' : "") : ""; })()}</div>
       <dl class="kv">
-        <dt>Lieu</dt><dd>${esc(o.ville)}</dd>
+        <dt>Ville</dt><dd>${esc(o.ville)}</dd>
+        ${o.lieu ? `<dt>Lieu</dt><dd>${esc(o.lieu)}</dd>` : ""}
         <dt>Type</dt><dd>${esc(o.type)}</dd>
-        <dt>Horaire</dt><dd>${esc((o.horaires || []).map(x => HORAIRES[x] || x).join(", ") || "—")}</dd>
         ${o.salaire ? `<dt>Salaire</dt><dd>${esc(o.salaire)}</dd>` : ""}
-        ${o.secteur ? `<dt>Secteur</dt><dd>${esc(o.secteur)}</dd>` : ""}
+        ${o.nb_postes > 1 ? `<dt>Postes</dt><dd>${o.nb_postes}</dd>` : ""}
+        ${o.date_debut ? `<dt>Début</dt><dd>${fmtDate(o.date_debut)}</dd>` : ""}
+        ${o.qualification ? `<dt>Exigé</dt><dd>${esc(o.qualification)}</dd>` : ""}
+        ${(o.creneaux_obligatoires || []).length + (o.creneaux_souhaites || []).length === 0 ? `<dt>Horaire</dt><dd>${esc((o.horaires || []).map(x => HORAIRES[x] || x).join(", ") || "—")}</dd>` : ""}
         ${o.verifie_le ? `<dt>Vérifiée le</dt><dd>${fmtDate(o.verifie_le)}</dd>` : ""}
       </dl>
+      ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites) ? `<div><div class="small" style="margin-bottom:6px">Quarts : <span class="g req">R</span> requis · <span class="g ideal">I</span> idéal</div>${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}</div>` : ""}
       ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
       <div class="cta" style="margin-top:4px">
         <button class="btn" type="button" data-apply="${esc(o.id)}">Postuler via PremierJob</button>
@@ -261,25 +285,23 @@
       (!state.ville || o.ville === state.ville) &&
       (!state.type || o.type === state.type) &&
       (state.horaires.size === 0 || (o.horaires || []).some(h => state.horaires.has(h))) &&
+      (!state.fit || (fitDe(o) || {}).compatible) &&
       (!q || [o.titre,o.employeur,o.secteur,o.description,o.ville].join(" ").toLowerCase().includes(q)));
-    VUE.sort((a,b) => (b.confirme - a.confirme));
+    VUE.sort((a,b) => String(b.publiee_le || b.verifie_le || "").localeCompare(String(a.publiee_le || a.verifie_le || "")));
     if (state.sel >= VUE.length) state.sel = Math.max(0, VUE.length - 1);
     $("#count").textContent = OFFRES.length === 0 ? "Aucune offre pour l'instant" : VUE.length + (VUE.length > 1 ? " résultats" : " résultat");
 
     if (OFFRES.length === 0) {
-      $("#list").innerHTML = `<div class="pal-empty"><span class="big">Les premières offres arrivent bientôt.</span>
+      $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + `<div class="pal-empty"><span class="big">Les premières offres arrivent bientôt.</span>
         <span>Je vérifie chaque offre avec l'employeur avant de la publier. Laisse ton courriel et je te préviens dès qu'une offre fit avec ton horaire.</span>
         <a class="btn" href="#alerte">M'avertir</a></div>`;
       $("#detail").innerHTML = detail(null); return;
     }
     if (VUE.length === 0) {
-      $("#list").innerHTML = `<div class="pal-empty"><span class="big">Rien pour ces filtres.</span><span>Essaie un autre horaire ou une autre ville.</span></div>`;
+      $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + `<div class="pal-empty"><span class="big">Rien pour ces filtres.</span><span>Essaie un autre horaire ou une autre ville.</span></div>`;
       $("#detail").innerHTML = detail(null); return;
     }
-    const conf = VUE.map((o,i) => [o,i]).filter(([o]) => o.confirme), autres = VUE.map((o,i) => [o,i]).filter(([o]) => !o.confirme);
-    $("#list").innerHTML =
-      (conf.length ? `<div class="sec-label">Confirmées par l'employeur</div>` + conf.map(([o,i]) => ligne(o,i)).join("") : "") +
-      (autres.length ? `<div class="sec-label">À confirmer</div>` + autres.map(([o,i]) => ligne(o,i)).join("") : "");
+    $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + VUE.map((o,i) => ligne(o,i)).join("");
     $("#detail").innerHTML = detail(VUE[state.sel]);
   }
 
@@ -316,7 +338,11 @@
       document.querySelectorAll("#filters .chip").forEach(b => b.setAttribute("aria-pressed","false"));
       render(); i = VUE.findIndex(o => o.id === m[1]);
     }
-    if (i < 0) return;
+    if (i < 0) {
+      avis = "Cette offre n'est plus disponible : elle est pourvue ou fermée. Voici les offres actuelles.";
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}
+      render(); $("#offres").scrollIntoView({ block: "start" }); return;
+    }
     $("#offres").scrollIntoView({ block: "start" });
     select(i, true);
   }
@@ -348,10 +374,27 @@
   let offreCible = null;
   const memo = { get(){ try { return JSON.parse(localStorage.getItem("pj_moi") || "{}"); } catch (e) { return {}; } },
                  set(v){ try { localStorage.setItem("pj_moi", JSON.stringify(v)); } catch (e) {} } };
+  let aDispo = new Set(), aTransport = "";
+  const aTrBtns = Object.entries(TRANSPORTS).map(([k,l]) => { const b = PJ.chip(l, false, () => {
+    aTransport = aTransport === k ? "" : k; aTrBtns.forEach(x => x.setAttribute("aria-pressed", x.dataset.k === aTransport)); }); b.dataset.k = k; return b; });
+  aTrBtns.forEach(b => $("#a_transport").appendChild(b));
+  function majFit(){
+    const f = PJ.jumelerV2(offreCible, { dispos: [...aDispo] }), el = $("#a_fit");
+    if (!aDispo.size) { el.className = "small"; el.textContent = "Coche les moments où tu peux travailler."; return; }
+    if (f.manquants.length) { el.className = "msg info"; el.textContent = "Ce poste demande aussi : " + f.manquants.map(PJ.nomCreneau).join(", ") + ". Tu peux quand même postuler, l'employeur verra tes disponibilités."; return; }
+    el.className = "fit ok"; el.textContent = "✓ Tes disponibilités couvrent les quarts requis.";
+  }
+  $("#a_avail").addEventListener("click", () => setTimeout(majFit, 0));
   function ouvrirPostuler(id){
     offreCible = OFFRES.find(o => o.id === id); if (!offreCible) return;
     const f = $("#applyForm"); f.reset();
     const m = memo.get(); if (m.prenom) f.prenom.value = m.prenom; if (m.courriel) f.courriel.value = m.courriel; if (m.telephone) f.telephone.value = m.telephone;
+    if (m.nom) f.nom.value = m.nom; if (m.ville) f.ville.value = m.ville;
+    aTransport = m.transport || ""; aTrBtns.forEach(x => x.setAttribute("aria-pressed", x.dataset.k === aTransport));
+    aDispo = PJ.grilleDispos($("#a_avail"), m.dispos || []);
+    const req = new Set(offreCible.creneaux_obligatoires || []);
+    document.querySelectorAll("#a_avail .slot").forEach(b => b.classList.toggle("requis-offre", req.has(b.dataset.k)));
+    majFit();
     $("#applyT").textContent = offreCible.titre;
     $("#applyEmp").textContent = offreCible.employeur + " · " + offreCible.ville;
     $("#applyEmp2").textContent = offreCible.employeur;
@@ -373,12 +416,17 @@
     const fini = (t) => { say("ok", t); $("#applyFields").hidden = true; $("#applyDone").hidden = false; };
     if (f.site_web.value) return fini("Candidature envoyée.");
     const v = (n) => f[n].value.trim();
-    if (!v("prenom") || !/^\S+@\S+\.\S+$/.test(v("courriel"))) return say("err", "Entre ton prénom et un courriel valide.");
+    if (!v("prenom") || !v("nom")) return say("err", "Entre ton prénom et ton nom.");
+    if (!/^\S+@\S+\.\S+$/.test(v("courriel"))) return say("err", "Entre un courriel valide : c'est là que tu recevras la confirmation.");
     if (v("telephone").replace(/\D/g, "").length < 10) return say("err", "Entre un numéro de téléphone à 10 chiffres : l'employeur va t'appeler.");
+    if (!aDispo.size) return say("err", "Coche au moins une case dans tes disponibilités.");
     const fichier = f.cv.files[0], errCV = PJ.verifierCV(fichier);
     if (errCV) return say("err", errCV);
     if (!$("#a_consent").checked) return say("err", "Coche la case pour accepter que ta candidature soit transmise.");
-    const row = { offre_id: offreCible.id, prenom: v("prenom"), courriel: v("courriel"), telephone: v("telephone"), message: v("message") || null, consentement: true };
+    const ref = PJ.uuid();
+    const row = { id: ref, offre_id: offreCible.id, prenom: v("prenom"), nom: v("nom"), courriel: v("courriel"), telephone: v("telephone"),
+      ville: f.ville.value, transport: aTransport || null, dispos: [...aDispo], message: v("message") || null, consentement: true,
+      consentement_texte: ("v1 · transmission de ma candidature et de mon CV à " + offreCible.employeur + " pour « " + offreCible.titre + " »").slice(0, 400) };
     btn.disabled = true;
     try {
       if (fichier) { btn.textContent = "Envoi du CV…"; row.cv_path = await PJ.deposerCV(fichier); }
@@ -386,25 +434,31 @@
       if (error) {
         if (error.code === "23505") return say("info", "Tu as déjà postulé à cette offre avec ce courriel.");
         if (error.code === "42501") return say("err", "Cette offre n'est plus disponible. Regarde les autres offres.");
+        if (/PJ_/.test(error.message || "")) return say("err", PJ.messageErreur(error));
         throw error;
       }
-      memo.set({ prenom: row.prenom, courriel: row.courriel, telephone: row.telephone });
+      memo.set({ prenom: row.prenom, nom: row.nom, courriel: row.courriel, telephone: row.telephone, ville: row.ville, transport: row.transport, dispos: row.dispos });
       PJ.track("candidature/" + offreCible.id);
-      fini(`C'est envoyé, ${row.prenom}. Je transmets ta candidature à ${offreCible.employeur}. S'ils te rappellent, ce sera peut-être d'un numéro inconnu : réponds!`);
+      if ($("#a_alertes").checked) {
+        try { await PJ.client().from("candidats").insert({ prenom: row.prenom, nom: row.nom, courriel: row.courriel, telephone: row.telephone,
+          ville: row.ville, transport: row.transport, dispos: row.dispos, cv_path: row.cv_path || null, types: [], consentement: true }); } catch (e) { /* déjà inscrit : sans effet */ }
+      }
+      ajouterFiltreFit();
+      fini(`C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. Je vérifie ta candidature puis je la transmets à ${offreCible.employeur}. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds!`);
+      render();
     } catch (err) {
       say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)
-        : (err.statusCode || err.status) ? "Ton CV n'a pas pu être envoyé. Essaie en PDF, ou postule sans CV." : "L'envoi n'a pas fonctionné. Vérifie ta connexion et réessaie.");
+        : (err.statusCode || err.status) ? "Ton CV n'a pas pu être envoyé. Essaie en PDF, ou postule sans CV." : PJ.messageErreur(err, "L'envoi n'a pas fonctionné. Vérifie ta connexion et réessaie : tes réponses sont toujours là."));
     } finally { btn.disabled = false; btn.textContent = "Envoyer ma candidature"; }
   });
 
   async function charger(){
     try {
       const { data, error } = await PJ.client().from("offres").select(PJ.OFFRE_PUBLIQUE)
-        .eq("statut","publiee").order("verifie_le", { ascending:false, nullsFirst:false });
+        .eq("statut","published").order("publiee_le", { ascending:false, nullsFirst:false });
       if (error) throw error;
       OFFRES = data || [];
       $("#nbOffres").textContent = OFFRES.length;
-      $("#nbConf").textContent = OFFRES.filter(o => o.confirme).length;
       const d = OFFRES.map(o => o.verifie_le).filter(Boolean).sort().pop();
       $("#majTxt").innerHTML = d ? `mis à jour le <b>${fmtDate(d)}</b>` : "";
       const nb = OFFRES.filter(estNouvelle).length;
@@ -440,14 +494,14 @@
     const f = e.target, msg = $("#formMsg"), btn = $("#submitBtn");
     const say = (cls, t) => { msg.className = "msg " + cls; msg.textContent = t; };
     if (f.site_web.value) return say("ok", "Merci! Ton inscription est enregistrée.");
-    if (!f.prenom.value.trim() || !/^\S+@\S+\.\S+$/.test(f.courriel.value.trim())) return say("err", "Entre ton prénom et un courriel valide.");
+    if (!f.prenom.value.trim() || !f.nom.value.trim() || !/^\S+@\S+\.\S+$/.test(f.courriel.value.trim())) return say("err", "Entre ton prénom, ton nom et un courriel valide.");
     if (dispo.size === 0) return say("err", "Coche au moins une case dans tes disponibilités.");
     if (!$("#consent").checked) return say("err", "Coche la case de consentement pour t'inscrire.");
     const fichier = f.cv.files[0], errCV = PJ.verifierCV(fichier);
     if (errCV) return say("err", errCV);
     const row = {
-      prenom: f.prenom.value.trim(), courriel: f.courriel.value.trim(), telephone: f.telephone.value.trim() || null,
-      etablissement: f.etablissement.value, domaine: f.domaine.value.trim() || null,
+      prenom: f.prenom.value.trim(), nom: f.nom.value.trim(), courriel: f.courriel.value.trim(), telephone: f.telephone.value.trim() || null,
+      etablissement: f.etablissement.value, domaine: f.domaine.value.trim() || null, ville: f.ville.value,
       types: [...typesChoisis], dispos: [...dispo], consentement: true
     };
     if (transport) row.transport = transport;
@@ -460,6 +514,8 @@
         throw error;
       }
       say("ok", `C'est noté, ${row.prenom}. Tu recevras les offres qui tombent dans ton horaire.`);
+      memo.set({ ...memo.get(), prenom: row.prenom, nom: row.nom, courriel: row.courriel, telephone: row.telephone, ville: row.ville, transport: row.transport || "", dispos: row.dispos });
+      ajouterFiltreFit(); render();
       PJ.track("inscription");
       f.reset(); typesChoisis.clear(); transport = "";
       $("#cvNom").textContent = "Ajouter mon CV"; $("#cvNom").closest(".drop").classList.remove("ok","bad");
@@ -467,11 +523,12 @@
       dispo = PJ.grilleDispos($("#avail"));
     } catch (err) {
       say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)
-        : (err.statusCode || err.status) ? "Ton CV n'a pas pu être envoyé. Essaie en PDF, ou inscris-toi sans CV." : "L'inscription n'a pas fonctionné. Vérifie tes réponses et réessaie.");
+        : (err.statusCode || err.status) ? "Ton CV n'a pas pu être envoyé. Essaie en PDF, ou inscris-toi sans CV." : PJ.messageErreur(err, "L'inscription n'a pas fonctionné. Vérifie ta connexion et réessaie : tes réponses sont toujours là."));
     } finally { btn.disabled = false; btn.textContent = "M'inscrire"; }
   });
 
   large.addEventListener("change", () => { fermer(); render(); });
+  ajouterFiltreFit();
   charger();
 })();
 </script>

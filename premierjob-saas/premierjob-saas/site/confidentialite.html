@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07080a">
+<title>Confidentialité · PremierJob Saguenay</title>
+<meta name="description" content="Comment PremierJob recueille, utilise, protège et supprime tes renseignements personnels.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>.doc{max-width:720px}.doc h2{font-size:clamp(1.6rem,5vw,2.1rem);margin-top:40px}.doc p,.doc li{color:var(--muted);font-size:15px}.doc ul{padding-left:20px;display:grid;gap:6px}.doc b{color:var(--ink)}</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="page">
+<nav class="nav"><div class="wrap">
+  <a class="logo" href="index.html"><span class="mark">P</span>PremierJob <small>Saguenay</small></a>
+  <div class="navlinks"><a class="link" href="index.html">Offres</a></div>
+</div></nav>
+<main class="wrap hero doc">
+  <span class="place">Mise à jour : 12 novembre 2026</span>
+  <h1 style="font-size:clamp(2.4rem,8vw,3.6rem)">Tes renseignements, <em>en clair.</em></h1>
+  <p class="lead">PremierJob est un projet étudiant qui met en relation des personnes sans expérience avec des employeurs du Saguenay. Voici ce qu'on recueille, pourquoi, et comment tout faire supprimer.</p>
+
+  <h2>Responsable</h2>
+  <p>Le responsable de la protection des renseignements personnels est <b id="resp"></b>. C'est à cette personne que tu écris pour toute question ou demande.</p>
+
+  <h2>Ce qu'on recueille</h2>
+  <ul>
+    <li><b>Quand tu postules :</b> prénom, nom, courriel, téléphone, ville, moyen de transport, disponibilités, CV (facultatif) et ton message à l'employeur.</li>
+    <li><b>Quand tu t'inscris aux alertes :</b> les mêmes renseignements, plus ton école, ton programme et le type d'emploi recherché.</li>
+    <li><b>Employeurs :</b> nom de l'entreprise, personne responsable, courriel et téléphone. Ces coordonnées ne sont jamais publiées.</li>
+    <li><b>Statistiques de visite :</b> pages vues et clics, mesurés avec GoatCounter, sans témoin publicitaire et sans profil personnel.</li>
+  </ul>
+
+  <h2>Pourquoi</h2>
+  <ul>
+    <li>Transmettre ta candidature à l'employeur de l'offre à laquelle tu as postulé, <b>et seulement à lui</b>.</li>
+    <li>Si tu l'as demandé, t'envoyer les offres qui correspondent à tes disponibilités.</li>
+    <li>Te confirmer la réception de ta candidature et faire un suivi après une embauche.</li>
+  </ul>
+  <p>Tes renseignements ne sont jamais vendus ni utilisés pour de la publicité.</p>
+
+  <h2>Ton consentement</h2>
+  <p>Ton profil et ton CV sont transmis à un employeur seulement si tu as coché ton accord <b>pour cette offre précise</b>. La date de ton accord est conservée. Tu peux le retirer en tout temps : ta candidature est alors retirée.</p>
+
+  <h2>Où sont tes données et qui y a accès</h2>
+  <ul>
+    <li>Les données sont hébergées par Supabase et le site par Netlify. Ces fournisseurs peuvent stocker les données à l'extérieur du Québec, notamment aux États-Unis.</li>
+    <li>Les CV sont dans un stockage privé. Seul l'administrateur peut les ouvrir. L'employeur reçoit un lien qui expire après 7 jours.</li>
+    <li>Le public ne peut voir que les offres publiées. Personne ne peut consulter les candidatures des autres.</li>
+  </ul>
+
+  <h2>Combien de temps</h2>
+  <p>Les candidatures et les inscriptions sont conservées au plus 12 mois après ta dernière activité, puis supprimées. Tu peux demander leur suppression avant.</p>
+
+  <h2>Tes droits</h2>
+  <p>Tu peux demander à consulter, corriger ou supprimer tes renseignements, ou retirer ton consentement. Écris au responsable indiqué plus haut, avec le courriel utilisé sur PremierJob et, si tu l'as, ta référence de candidature. La demande est traitée dans un délai de 30 jours. Tu peux aussi porter plainte à la Commission d'accès à l'information du Québec.</p>
+
+  <h2>Incident</h2>
+  <p>En cas d'incident de confidentialité qui présente un risque de préjudice sérieux, les personnes touchées et la Commission d'accès à l'information sont avisées.</p>
+</main>
+<footer><div class="wrap"><div>PremierJob · projet étudiant lancé au Saguenay · <a href="index.html">Offres</a> · <a href="employeur.html">Employeurs</a></div></div></footer>
+</div>
+<script>document.getElementById("resp").textContent = (window.PJ_CONFIG || {}).responsable || "l'administrateur de PremierJob";</script>
+</body>
+</html>

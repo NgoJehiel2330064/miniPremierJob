@@ -1,0 +1,4 @@
+-- PremierJob — migration 010 (appliquée le 12 nov. 2026)
+-- La détection d'exigence d'expérience reconnaît aussi les fautes de frappe et abréviations :
+-- « 2 ans d expérience » (apostrophe oubliée), « 2 ans exp. », « 1 an expérience ».
+-- Le texte complet de la fonction est dans migration-007 (déjà à jour).

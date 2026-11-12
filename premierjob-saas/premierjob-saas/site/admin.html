@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#07080a">
 <title>Admin · PremierJob</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,10 +22,9 @@
   </div>
 </nav>
 
-<main class="wrap" style="padding-top:24px">
-  <!-- Connexion -->
+<main class="wrap" style="padding:20px 18px 60px">
   <section class="block" id="loginBox" hidden>
-    <h2>Connexion administrateur</h2>
+    <h2 style="font-size:1.8rem">Connexion</h2>
     <form id="loginForm" novalidate>
       <div class="grid2">
         <label for="lemail">Courriel<input type="email" id="lemail" required autocomplete="username"></label>
@@ -35,112 +35,158 @@
     </form>
   </section>
 
-  <!-- Tableau de bord -->
   <div id="app" hidden>
-    <div class="stats" style="margin:8px 0 18px">
-      <span class="stat"><b id="sAttente">0</b> offres à valider</span>
-      <span class="stat"><b id="sPub">0</b> publiées</span>
-      <span class="stat"><b id="sCand">0</b> candidats actifs</span>
-      <span class="stat"><b id="sSemaine">0</b> inscriptions cette semaine</span>
-      <span class="stat"><b id="sPost">0</b> candidatures à traiter</span>
-    </div>
+    <div class="tiles" id="tiles"></div>
     <div class="tabs" role="tablist" id="tabs"></div>
+    <div id="flash" role="status"></div>
 
-    <section id="vOffres">
+    <!-- Aperçu -->
+    <section id="v-apercu">
+      <div class="sec-t">À faire maintenant</div>
+      <div class="todo" id="todo"></div>
+    </section>
+
+    <!-- Offres -->
+    <section id="v-offres" hidden>
       <div class="frow" style="justify-content:space-between;margin-bottom:12px">
-        <p class="count" id="offCount" style="margin:0"></p>
-        <button class="btn sm" id="newOffre">+ Nouvelle offre</button>
+        <div class="chips" id="offFiltres"></div>
+        <button class="btn sm" id="newOffre">+ Créer une offre</button>
       </div>
       <div class="list" id="offList"></div>
     </section>
 
-    <section id="vPost" hidden>
-      <p class="small" style="margin:0 0 12px">Postuler = accord du candidat pour que sa candidature et son CV soient transmis à cet employeur. Mets le statut à jour à chaque étape.</p>
-      <div class="tablewrap"><table class="data" id="postTable"></table></div>
+    <!-- Dossier d'une offre -->
+    <section id="v-dossier" hidden>
+      <button class="btn ghost sm" data-go="offres">← Toutes les offres</button>
+      <div id="dosEntete" style="margin-top:14px"></div>
+      <div class="sec-t">Candidatures</div>
+      <div class="actions" style="margin-bottom:10px"><button class="btn sm" id="btnTransmettre">Transmettre la sélection à l'employeur</button><span class="small" id="selInfo"></span></div>
+      <div class="list" id="dosCands"></div>
+      <div class="sec-t">Inscrits aux alertes compatibles (n'ont pas encore postulé)</div>
+      <div id="dosInscrits"></div>
     </section>
 
-    <section id="vCand" hidden>
+    <!-- Candidatures -->
+    <section id="v-candidatures" hidden>
+      <div class="chips" id="candFiltres" style="margin-bottom:12px"></div>
+      <div class="list" id="candList"></div>
+    </section>
+
+    <!-- Suivis -->
+    <section id="v-suivis" hidden>
+      <p class="small">Après une embauche, prends des nouvelles des deux côtés à 14 jours, puis à 30 jours. Coche quand c'est fait.</p>
+      <div class="list" id="suiviList"></div>
+    </section>
+
+    <!-- Inscrits -->
+    <section id="v-inscrits" hidden>
       <div class="frow" style="margin-bottom:12px">
-        <input type="search" id="cq" placeholder="Chercher un nom, un courriel, un domaine…" aria-label="Chercher un candidat">
-        <button class="btn ghost sm" id="csv">Exporter en CSV</button>
+        <input type="search" id="cq" placeholder="Chercher un nom, un courriel, une école…" aria-label="Chercher un inscrit">
+        <button class="btn ghost sm" id="csvInscrits">Exporter en CSV</button>
       </div>
-      <div class="tablewrap"><table class="data" id="candTable"></table></div>
+      <div class="tablewrap"><table class="data" id="inscTable"></table></div>
     </section>
 
-    <section id="vMatch" hidden>
-      <label for="matchOffre" style="max-width:520px">Offre à pourvoir<select id="matchOffre"></select></label>
-      <p class="small" id="matchInfo"></p>
-      <div class="actions" style="margin:10px 0"><button class="btn sm" id="copyEmails">Copier les courriels sélectionnés</button><span class="small" id="copyMsg" role="status"></span></div>
-      <div class="tablewrap"><table class="data" id="matchTable"></table></div>
+    <!-- Données (Loi 25, ménage) -->
+    <section id="v-donnees" hidden>
+      <div class="block">
+        <h3>Supprimer les données d'une personne</h3>
+        <p class="small">Sur demande (Loi 25) : supprime ses inscriptions, ses candidatures et ses CV. Une empreinte anonyme garde la preuve de la suppression.</p>
+        <form id="supForm" class="frow" novalidate><input type="email" id="supCourriel" placeholder="courriel@exemple.com" aria-label="Courriel de la personne" style="flex:1 1 240px;width:auto"><button class="btn danger sm" type="submit" id="supBtn">Supprimer</button></form>
+        <div id="supMsg" role="status" style="margin-top:10px"></div>
+      </div>
+      <div class="block">
+        <h3>Conservation (12 mois)</h3>
+        <p class="small" id="retInfo"></p>
+        <button class="btn ghost sm" id="retBtn">Supprimer les données de plus de 12 mois</button>
+        <div id="retMsg" role="status" style="margin-top:10px"></div>
+      </div>
+      <div class="block">
+        <h3>CV orphelins</h3>
+        <p class="small" id="orphInfo">Fichiers de CV qui ne sont plus liés à personne (offre supprimée, test…).</p>
+        <button class="btn ghost sm" id="orphScan">Chercher</button> <button class="btn danger sm" id="orphDel" hidden>Supprimer ces fichiers</button>
+        <div id="orphMsg" role="status" style="margin-top:10px"></div>
+      </div>
+      <div class="block">
+        <h3>Exports et journaux</h3>
+        <div class="actions"><button class="btn ghost sm" id="csvCand">Exporter les candidatures (CSV)</button></div>
+        <div class="sec-t">Dernières notifications courriel</div>
+        <div id="notifList" class="small"></div>
+      </div>
     </section>
   </div>
   <div id="fatal" class="empty" hidden></div>
 </main>
 
-<!-- Édition d'offre -->
+<!-- Créer / modifier une offre -->
 <dialog id="dlg" aria-labelledby="dlgTitle">
   <form id="offForm" novalidate>
-    <h2 id="dlgTitle">Offre</h2>
+    <h3 id="dlgTitle" style="font-size:20px">Offre</h3>
     <div class="grid2">
-      <label for="o_titre">Titre<input id="o_titre" name="titre" required maxlength="120"></label>
+      <label for="o_titre">Poste<input id="o_titre" name="titre" required maxlength="120"></label>
       <label for="o_employeur">Entreprise<input id="o_employeur" name="employeur" required maxlength="120"></label>
       <label for="o_ville">Ville<select id="o_ville" name="ville"></select></label>
-      <label for="o_secteur">Secteur<input id="o_secteur" name="secteur" maxlength="80"></label>
+      <label for="o_lieu">Lieu de travail<input id="o_lieu" name="lieu" maxlength="160"></label>
       <label for="o_type">Type<select id="o_type" name="type"></select></label>
       <label for="o_salaire">Salaire<input id="o_salaire" name="salaire" maxlength="40"></label>
+      <label for="o_nb">Nombre de postes<input id="o_nb" name="nb_postes" type="number" min="1" max="50"></label>
+      <label for="o_debut">Date de début<input id="o_debut" name="date_debut" type="date"></label>
     </div>
-    <fieldset><legend>Horaires</legend><div class="frow" id="o_horaires"></div></fieldset>
-    <label for="o_description">Description<textarea id="o_description" name="description" maxlength="1500"></textarea></label>
-    <label for="o_lien">Lien vers l'offre originale<input id="o_lien" name="lien" type="url" maxlength="500" placeholder="https://"></label>
+    <fieldset><legend>Quarts <span class="opt"><span class="g req">R</span> requis · <span class="g ideal">I</span> idéal</span></legend><div class="avail"><table id="o_grille"></table></div></fieldset>
+    <label for="o_description">Tâches et formation<textarea id="o_description" name="description" maxlength="1500"></textarea></label>
+    <label for="o_qualification">Permis ou qualification obligatoire<input id="o_qualification" name="qualification" maxlength="160"></label>
+    <div id="o_alerte" role="status"></div>
+    <label for="o_lien">Lien vers l'annonce originale<input id="o_lien" name="lien" type="url" maxlength="500" placeholder="https://"></label>
     <div class="grid2">
-      <label for="o_contact_nom">Contact (privé)<input id="o_contact_nom" name="contact_nom" maxlength="120"></label>
-      <label for="o_contact_courriel">Courriel du contact<input id="o_contact_courriel" name="contact_courriel" maxlength="160"></label>
-      <label for="o_contact_tel">Téléphone du contact<input id="o_contact_tel" name="contact_tel" maxlength="30"></label>
-      <label for="o_statut">Statut<select id="o_statut" name="statut"><option value="en_attente">À valider</option><option value="publiee">Publiée</option><option value="archivee">Archivée</option></select></label>
-      <label for="o_verifie_le">Vérifiée le<input id="o_verifie_le" name="verifie_le" type="date"></label>
+      <label for="o_contact_nom">Personne responsable (privé)<input id="o_contact_nom" name="contact_nom" maxlength="120"></label>
+      <label for="o_contact_courriel">Courriel (privé)<input id="o_contact_courriel" name="contact_courriel" maxlength="160"></label>
+      <label for="o_contact_tel">Téléphone (privé)<input id="o_contact_tel" name="contact_tel" maxlength="30"></label>
+      <label for="o_reception">Reçoit les candidats<select id="o_reception" name="reception"><option value="courriel">Par courriel</option><option value="telephone">Par téléphone</option></select></label>
     </div>
-    <label class="consent" for="o_confirme"><input type="checkbox" id="o_confirme" name="confirme"><span>L'employeur m'a confirmé qu'aucune expérience n'est exigée</span></label>
-    <label for="o_notes">Notes internes<textarea id="o_notes" name="notes_admin" maxlength="2000"></textarea></label>
-    <div class="actions"><button class="btn" type="submit">Enregistrer</button><button class="btn ghost" type="button" id="dlgCancel">Annuler</button></div>
+    <label for="o_notes">Notes internes<textarea id="o_notes" name="notes_admin" maxlength="2000" style="min-height:70px"></textarea></label>
+    <fieldset id="o_verif"><legend>Vérification avant publication (obligatoire)</legend>
+      <label class="consent" for="v1"><input type="checkbox" id="v1"><span>L'employeur m'a confirmé qu'<b>aucune expérience professionnelle préalable</b> n'est exigée.</span></label>
+      <label class="consent" for="v2"><input type="checkbox" id="v2"><span>Un débutant peut réellement être embauché à ce poste.</span></label>
+      <label class="consent" for="v3"><input type="checkbox" id="v3"><span>Les critères (permis, qualification) ne contredisent pas cette règle.</span></label>
+    </fieldset>
+    <div class="actions">
+      <button class="btn" type="submit" data-mode="publier" id="btnPublier">Enregistrer et publier</button>
+      <button class="btn ghost" type="submit" data-mode="brouillon" id="btnBrouillon">Enregistrer sans publier</button>
+      <button class="btn ghost" type="button" data-close-dlg>Annuler</button>
+    </div>
     <div id="dlgMsg" role="status"></div>
   </form>
 </dialog>
 
+<!-- Texte de transmission à l'employeur -->
+<dialog id="dlgMail" aria-labelledby="mailTitle">
+  <h3 id="mailTitle" style="font-size:20px">Transmettre à l'employeur</h3>
+  <p class="small" id="mailInfo"></p>
+  <label for="mailTexte">Courriel prêt à envoyer (les liens vers les CV expirent dans 7 jours)<textarea id="mailTexte" class="mail" readonly></textarea></label>
+  <div class="actions" style="margin-top:12px">
+    <button class="btn ghost" type="button" id="mailCopier">Copier le texte</button>
+    <a class="btn ghost" id="mailOuvrir" href="#">Ouvrir dans mon courriel</a>
+    <button class="btn" type="button" id="mailMarquer">C'est envoyé : marquer comme transmises</button>
+    <button class="btn ghost" type="button" data-close-mail>Fermer</button>
+  </div>
+  <div id="mailMsg" role="status" style="margin-top:10px"></div>
+</dialog>
+
 <script>
 (function(){
-  const { HORAIRES, TYPES, VILLES, JOURS, esc, fmtDate } = PJ;
+  const { HORAIRES, TYPES, VILLES, esc, fmtDate, OFFRE_STATUTS, CAND_STATUTS } = PJ;
   const $ = (s) => document.querySelector(s);
-  let sb, OFFRES = [], CANDS = [], POSTS = [], tab = "en_attente", editId = null, editHoraires = new Set();
-  const TABS = [["en_attente","À valider"],["publiee","Publiées"],["archivee","Archivées"],["candidatures","Candidatures"],["candidats","Inscrits"],["jumelage","Jumelage"]];
-  const STATUTS_POST = [["recue","Reçue"],["envoyee","Envoyée"],["entrevue","Entrevue"],["embauche","Embauché"],["refusee","Pas retenu"]];
-  const STATUT = { en_attente:"À valider", publiee:"Publiée", archivee:"Archivée" };
+  let sb, OFFRES = [], CANDS = [], POSTS = [], NOTIFS = [];
+  let vue = "apercu", filtreOff = "pending", filtreCand = "received", dossierId = null, editId = null, grille = null, selection = new Set(), mailIds = [];
+  const JOUR = 864e5;
+  const flash = (cls, t) => { const f = $("#flash"); f.className = "msg " + cls; f.textContent = t; f.hidden = false; clearTimeout(flash.t); flash.t = setTimeout(() => { f.hidden = true; }, 6000); };
+  const erreur = (e, d) => flash("err", PJ.messageErreur(e, d));
+  const ancienJours = (d) => d ? Math.floor((Date.now() - new Date(d).getTime()) / JOUR) : 0;
+  const nomComplet = (c) => [c.prenom, c.nom].filter(Boolean).join(" ");
+  const offreDe = (id) => OFFRES.find(o => o.id === id);
+  const lienPublic = (o) => location.origin + "/o/" + o.id;
 
   try { sb = PJ.client(); } catch (err) { $("#fatal").hidden = false; $("#fatal").textContent = PJ.configMessage(err); return; }
-
-  const dispoTxt = (d) => JOURS.map(([j,l]) => {
-    const p = PJ.PERIODES.map(([x]) => x).filter(x => (d || []).includes(j + "-" + x));
-    return p.length ? l + " " + p.join("+") : "";
-  }).filter(Boolean).join(", ");
-
-  // ---------- CV (stockage privé : liens signés temporaires) ----------
-  const celluleCV = (c) => c.cv_path
-    ? `<span class="actions" style="gap:6px;flex-wrap:nowrap"><button class="btn ghost sm" data-cv="${esc(c.cv_path)}" data-a="cv-ouvrir">Ouvrir</button><button class="btn ghost sm" data-cv="${esc(c.cv_path)}" data-a="cv-lien" title="Lien valable 7 jours, à envoyer à l'employeur">Lien 7 j</button></span>`
-    : '<span class="small">Pas de CV</span>';
-  async function actionCV(el){
-    const chemin = el.dataset.cv;
-    if (el.dataset.a === "cv-ouvrir") {
-      const w = window.open("", "_blank");
-      const { data, error } = await sb.storage.from("cvs").createSignedUrl(chemin, 600);
-      if (error || !data) { if (w) w.close(); el.textContent = "Erreur"; return; }
-      if (w) w.location = data.signedUrl; else location.href = data.signedUrl;
-    } else {
-      const { data, error } = await sb.storage.from("cvs").createSignedUrl(chemin, 7 * 24 * 3600);
-      if (error || !data) { el.textContent = "Erreur"; return; }
-      try { await navigator.clipboard.writeText(data.signedUrl); el.textContent = "Copié ✓"; } catch (e) { prompt("Lien du CV (7 jours) :", data.signedUrl); }
-      setTimeout(() => { el.textContent = "Lien 7 j"; }, 2500);
-    }
-  }
-  document.addEventListener("click", e => { const el = e.target.closest("[data-cv]"); if (el) actionCV(el); });
 
   // ---------- Connexion ----------
   async function session(){
@@ -149,7 +195,7 @@
     const { data: ok, error } = await sb.rpc("is_admin");
     if (error || !ok) {
       $("#loginBox").hidden = false; $("#app").hidden = true;
-      const m = $("#loginMsg"); m.className = "msg err"; m.textContent = "Ce compte n'est pas administrateur. Ajoute son courriel dans la table admins.";
+      const m = $("#loginMsg"); m.className = "msg err"; m.textContent = "Ce compte n'est pas administrateur.";
       await sb.auth.signOut(); return;
     }
     $("#loginBox").hidden = true; $("#app").hidden = false; $("#logout").hidden = false;
@@ -159,219 +205,413 @@
     e.preventDefault();
     const m = $("#loginMsg");
     const { error } = await sb.auth.signInWithPassword({ email: $("#lemail").value.trim(), password: $("#lpass").value });
-    if (error) { m.className = "msg err"; m.textContent = "Courriel ou mot de passe incorrect."; return; }
+    if (error) { m.className = "msg err"; m.textContent = /fetch|network/i.test(error.message) ? "Pas de connexion Internet." : "Courriel ou mot de passe incorrect."; return; }
     m.className = ""; m.textContent = ""; session();
   });
   $("#logout").addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); });
 
   // ---------- Données ----------
   async function charger(){
-    const [o, c, a] = await Promise.all([
+    const [o, c, a, n] = await Promise.all([
       sb.from("offres").select("*").order("created_at", { ascending:false }),
       sb.from("candidats").select("*").order("created_at", { ascending:false }),
-      sb.from("candidatures").select("*").order("created_at", { ascending:false })
+      sb.from("candidatures").select("*").order("created_at", { ascending:false }),
+      sb.from("notifications").select("*").order("created_at", { ascending:false }).limit(20)
     ]);
-    if (o.error || c.error) { $("#fatal").hidden = false; $("#fatal").textContent = "Impossible de charger les données : " + (o.error || c.error).message; return; }
-    OFFRES = o.data; CANDS = c.data; POSTS = a.error ? [] : a.data;
-    $("#sPost").textContent = POSTS.filter(x => x.statut === "recue").length;
-    const semaine = Date.now() - 7 * 864e5;
-    $("#sAttente").textContent = OFFRES.filter(x => x.statut === "en_attente").length;
-    $("#sPub").textContent = OFFRES.filter(x => x.statut === "publiee").length;
-    $("#sCand").textContent = CANDS.filter(x => x.actif).length;
-    $("#sSemaine").textContent = CANDS.filter(x => new Date(x.created_at).getTime() > semaine).length;
-    renderTabs(); renderVue();
+    if (o.error || c.error || a.error) { $("#fatal").hidden = false; $("#fatal").textContent = "Impossible de charger les données : " + (o.error || c.error || a.error).message; return; }
+    OFFRES = o.data; CANDS = c.data; POSTS = a.data; NOTIFS = n.error ? [] : n.data;
+    rendre();
   }
+  const nb = (arr, f) => arr.filter(f).length;
 
-  function renderTabs(){
-    const n = { en_attente:0, publiee:0, archivee:0 };
-    OFFRES.forEach(o => n[o.statut]++);
-    n.candidats = CANDS.length; n.jumelage = ""; n.candidatures = POSTS.length;
-    $("#tabs").innerHTML = TABS.map(([k,l]) => `<button class="tab" role="tab" data-k="${k}" aria-selected="${k === tab}">${l}<span class="n">${n[k]}</span></button>`).join("");
-  }
-  $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (!b) return; tab = b.dataset.k; renderTabs(); renderVue(); });
-
-  function renderVue(){
-    const isOff = ["en_attente","publiee","archivee"].includes(tab);
-    $("#vOffres").hidden = !isOff; $("#vCand").hidden = tab !== "candidats"; $("#vPost").hidden = tab !== "candidatures"; $("#vMatch").hidden = tab !== "jumelage";
-    if (isOff) renderOffres();
-    if (tab === "candidats") renderCands();
-    if (tab === "candidatures") renderPosts();
-    if (tab === "jumelage") renderMatchSelect();
-  }
-
-  // ---------- Offres ----------
-  function renderOffres(){
-    const list = OFFRES.filter(o => o.statut === tab);
-    $("#offCount").textContent = list.length + " offre" + (list.length > 1 ? "s" : "") + " · " + STATUT[tab].toLowerCase();
-    $("#offList").innerHTML = list.length ? list.map(o => `
-      <article class="card" data-id="${o.id}">
-        <div class="ctop">
-          <div><h3>${esc(o.titre)}</h3><div class="emp">${esc(o.employeur)} · ${esc(o.ville)}${o.secteur ? " · " + esc(o.secteur) : ""}</div></div>
-          ${o.salaire ? `<div class="pay">${esc(o.salaire)}</div>` : ""}
-        </div>
-        <div class="tags">
-          ${o.confirme ? '<span class="tag ok">Confirmée sans expérience</span>' : '<span class="tag sx">À confirmer avec l\'employeur</span>'}
-          <span class="tag">${esc(o.type)}</span>
-          ${(o.horaires || []).map(h => `<span class="tag">${esc(HORAIRES[h] || h)}</span>`).join("")}
-          <span class="tag">${o.source === "employeur" ? "Soumise par l'employeur" : "Ajoutée par toi"}</span>
-          ${(() => { const k = POSTS.filter(p => p.offre_id === o.id).length; return k ? `<span class="tag ok">${k} candidature${k > 1 ? "s" : ""}</span>` : ""; })()}
-        </div>
-        ${o.description ? `<div class="small">${esc(o.description)}</div>` : ""}
-        <div class="small">Contact : ${esc(o.contact_nom || "—")} · ${esc(o.contact_courriel || "—")} · ${esc(o.contact_tel || "—")}${o.verifie_le ? " · Vérifiée le " + fmtDate(o.verifie_le) : ""}</div>
-        ${o.notes_admin ? `<div class="small"><b>Notes :</b> ${esc(o.notes_admin)}</div>` : ""}
-        <div class="actions">
-          ${o.statut !== "publiee" ? '<button class="btn sm" data-a="publier">Publier</button>' : ""}
-          <button class="btn ghost sm" data-a="modifier">Modifier</button>
-          <button class="btn ghost sm" data-a="jumeler">Voir les candidats compatibles</button>
-          ${o.statut !== "archivee" ? '<button class="btn ghost sm" data-a="archiver">Archiver</button>' : ""}
-          <button class="btn danger sm" data-a="supprimer">Supprimer</button>
-        </div>
-      </article>`).join("") : '<div class="empty">Rien ici pour le moment.</div>';
-  }
-
-  $("#offList").addEventListener("click", async e => {
-    const b = e.target.closest("[data-a]"); if (!b) return;
-    const id = b.closest("[data-id]").dataset.id, o = OFFRES.find(x => x.id === id), a = b.dataset.a;
-    if (a === "modifier") return ouvrir(o);
-    if (a === "jumeler") { tab = "jumelage"; renderTabs(); renderVue(); $("#matchOffre").value = id; renderMatch(); return; }
-    if (a === "supprimer") { if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Confirmer la suppression"; return; } }
-    b.disabled = true;
-    let r;
-    if (a === "publier") r = await sb.from("offres").update({ statut:"publiee", verifie_le: o.verifie_le || PJ.today() }).eq("id", id);
-    if (a === "archiver") r = await sb.from("offres").update({ statut:"archivee" }).eq("id", id);
-    if (a === "supprimer") r = await sb.from("offres").delete().eq("id", id);
-    if (r && r.error) { b.disabled = false; b.textContent = "Erreur : " + r.error.message; return; }
-    charger();
+  // ---------- Navigation ----------
+  const ONGLETS = [["apercu","Aperçu"],["offres","Offres"],["candidatures","Candidatures"],["suivis","Suivis"],["inscrits","Inscrits"],["donnees","Données"]];
+  function aller(v){ vue = v; rendre(); window.scrollTo(0, 0); }
+  document.addEventListener("click", e => {
+    const g = e.target.closest("[data-go]"); if (!g) return;
+    if (g.dataset.filtre) { if (g.dataset.go === "offres") filtreOff = g.dataset.filtre; else filtreCand = g.dataset.filtre; }
+    aller(g.dataset.go);
   });
 
-  // ---------- Dialogue d'édition ----------
+  function suivisDus(){
+    const t = Date.now(), out = [];
+    POSTS.filter(p => p.statut === "hired" && p.embauche_le).forEach(p => {
+      const age = (t - new Date(p.embauche_le + "T12:00:00").getTime()) / JOUR;
+      if (!p.suivi14_fait && age >= 14) out.push([p, 14]);
+      if (!p.suivi30_fait && age >= 30) out.push([p, 30]);
+    });
+    return out;
+  }
+
+  function rendre(){
+    // Tuiles (vraies données)
+    const T = [
+      ["offres","pending","Offres à valider", nb(OFFRES, x => x.statut === "pending")],
+      ["offres","published","Offres publiées", nb(OFFRES, x => x.statut === "published")],
+      ["candidatures","received","Candidatures à traiter", nb(POSTS, x => x.statut === "received")],
+      ["candidatures","forwarded","Transmises", nb(POSTS, x => x.statut === "forwarded")],
+      ["candidatures","interview","Entrevues", nb(POSTS, x => x.statut === "interview")],
+      ["candidatures","hired","Embauches", nb(POSTS, x => x.statut === "hired")]];
+    $("#tiles").innerHTML = T.map(([go, f, l, n], i) => `<button class="tile${(i === 0 || i === 2) && n ? " hot" : ""}" data-go="${go}" data-filtre="${f}"><b>${n}</b><span>${l}</span></button>`).join("");
+    const aFaire = nb(OFFRES, x => x.statut === "pending") + nb(POSTS, x => x.statut === "received") + suivisDus().length;
+    $("#tabs").innerHTML = ONGLETS.map(([k,l]) => `<button class="tab" role="tab" data-go="${k}" aria-selected="${k === vue || (vue === "dossier" && k === "offres")}">${l}${k === "apercu" && aFaire ? `<span class="n">${aFaire}</span>` : ""}${k === "suivis" && suivisDus().length ? `<span class="n">${suivisDus().length}</span>` : ""}</button>`).join("");
+    ["apercu","offres","dossier","candidatures","suivis","inscrits","donnees"].forEach(k => { $("#v-" + k).hidden = k !== vue; });
+    ({ apercu: rApercu, offres: rOffres, dossier: rDossier, candidatures: rCandidatures, suivis: rSuivis, inscrits: rInscrits, donnees: rDonnees })[vue]();
+  }
+
+  // ---------- Aperçu ----------
+  function rApercu(){
+    const items = [];
+    OFFRES.filter(o => o.statut === "pending").forEach(o => items.push(`<div class="todo-item"><div><div class="t">Valider l'offre « ${esc(o.titre)} »</div><div class="s">${esc(o.employeur)} · reçue il y a ${ancienJours(o.created_at)} j${o.alerte_experience ? ` · <span style="color:var(--danger)">${esc(o.alerte_experience)}</span>` : ""}</div></div><button class="btn sm" data-ouvrir-offre="${o.id}" data-edit="1">Vérifier</button></div>`));
+    POSTS.filter(p => p.statut === "received").slice().reverse().forEach(p => { const o = offreDe(p.offre_id); const f = o ? PJ.jumelerV2(o, p) : null;
+      items.push(`<div class="todo-item"><div><div class="t">Nouvelle candidature : ${esc(nomComplet(p))}</div><div class="s">${o ? esc(o.titre) + " · " + esc(o.employeur) : "Offre supprimée"} · il y a ${ancienJours(p.created_at)} j · ${f ? (f.compatible ? '<span style="color:var(--go)">horaire compatible</span>' : '<span style="color:var(--danger)">horaire incomplet</span>') : ""}</div></div><button class="btn sm" data-ouvrir-offre="${p.offre_id}">Ouvrir le dossier</button></div>`); });
+    POSTS.filter(p => p.statut === "forwarded" && ancienJours(p.statut_le) >= 5).forEach(p => { const o = offreDe(p.offre_id);
+      items.push(`<div class="todo-item"><div><div class="t">Relancer ${o ? esc(o.employeur) : "l'employeur"} pour ${esc(nomComplet(p))}</div><div class="s">Transmise il y a ${ancienJours(p.statut_le)} j, sans nouvelle</div></div><button class="btn ghost sm" data-ouvrir-offre="${p.offre_id}">Ouvrir</button></div>`); });
+    POSTS.filter(p => p.statut === "interview" && ancienJours(p.statut_le) >= 7).forEach(p => { const o = offreDe(p.offre_id);
+      items.push(`<div class="todo-item"><div><div class="t">Résultat de l'entrevue de ${esc(nomComplet(p))}?</div><div class="s">${o ? esc(o.employeur) : ""} · entrevue il y a ${ancienJours(p.statut_le)} j</div></div><button class="btn ghost sm" data-ouvrir-offre="${p.offre_id}">Ouvrir</button></div>`); });
+    suivisDus().forEach(([p, j]) => { const o = offreDe(p.offre_id);
+      items.push(`<div class="todo-item"><div><div class="t">Suivi à ${j} jours : ${esc(nomComplet(p))}</div><div class="s">Embauché(e) le ${fmtDate(p.embauche_le)} chez ${o ? esc(o.employeur) : "?"}</div></div><button class="btn ghost sm" data-go="suivis">Voir</button></div>`); });
+    NOTIFS.filter(n => n.statut === "echec").slice(0, 3).forEach(n => items.push(`<div class="todo-item"><div><div class="t">Un courriel n'est pas parti</div><div class="s">${esc(n.type)} · ${esc(n.erreur || "")}</div></div><button class="btn ghost sm" data-go="donnees">Voir</button></div>`));
+    $("#todo").innerHTML = items.length ? items.join("") : '<div class="empty">Rien à traiter pour le moment.</div>';
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-ouvrir-offre]"); if (!b) return;
+    const o = offreDe(b.dataset.ouvrirOffre); if (!o) return flash("err", "Cette offre n'existe plus.");
+    if (b.dataset.edit) return ouvrirEditeur(o);
+    dossierId = o.id; selection.clear(); aller("dossier");
+  });
+
+  // ---------- Offres ----------
+  function rOffres(){
+    $("#offFiltres").innerHTML = Object.entries(OFFRE_STATUTS).map(([k,l]) => `<button class="chip" data-foff="${k}" aria-pressed="${k === filtreOff}">${l} ${nb(OFFRES, o => o.statut === k)}</button>`).join("");
+    const list = OFFRES.filter(o => o.statut === filtreOff);
+    $("#offList").innerHTML = list.length ? list.map(carteOffre).join("") : '<div class="empty">Aucune offre dans cette catégorie.</div>';
+  }
+  $("#offFiltres").addEventListener("click", e => { const b = e.target.closest("[data-foff]"); if (b) { filtreOff = b.dataset.foff; rOffres(); } });
+  function compteurs(o){
+    const ps = POSTS.filter(p => p.offre_id === o.id);
+    if (!ps.length) return '<span class="small">Aucune candidature</span>';
+    return Object.keys(CAND_STATUTS).map(k => [k, ps.filter(p => p.statut === k).length]).filter(([, n]) => n).map(([k, n]) => `<span class="pill-st ${k}">${n} ${CAND_STATUTS[k].toLowerCase()}</span>`).join(" ");
+  }
+  function carteOffre(o){
+    const forte = o.alerte_experience && /détectée/.test(o.alerte_experience);
+    const act = {
+      pending: `<button class="btn sm" data-a="verifier">Vérifier et publier</button><button class="btn ghost sm" data-a="refuser">Refuser</button>`,
+      published: `<button class="btn sm" data-a="dossier">Candidatures et jumelage</button><button class="btn ghost sm" data-a="lien">Copier le lien</button><button class="btn ghost sm" data-a="suspendre">Suspendre</button><button class="btn ghost sm" data-a="fermer">Fermer (pourvue)</button>`,
+      paused: `<button class="btn sm" data-a="republier">Republier</button><button class="btn ghost sm" data-a="dossier">Candidatures</button><button class="btn ghost sm" data-a="fermer">Fermer</button>`,
+      closed: `<button class="btn ghost sm" data-a="dossier">Candidatures</button><button class="btn ghost sm" data-a="rouvrir">Rouvrir (à valider)</button>`,
+      rejected: `<button class="btn ghost sm" data-a="rouvrir">Remettre à valider</button>`
+    }[o.statut] || "";
+    return `<article class="card" data-id="${o.id}">
+      <div class="ctop"><div><h3>${esc(o.titre)}</h3><div class="emp">${esc(o.employeur)} · ${esc(o.ville)}${o.lieu ? " · " + esc(o.lieu) : ""}</div></div><span class="pill-st ${o.statut}">${OFFRE_STATUTS[o.statut]}</span></div>
+      ${o.alerte_experience ? `<div class="alerte ${forte ? "forte" : "douce"}">${esc(o.alerte_experience)}</div>` : ""}
+      <div class="small">${esc(o.type)} · ${esc(o.salaire || "salaire ?")} · ${o.nb_postes || 1} poste(s)${o.date_debut ? " · début " + fmtDate(o.date_debut) : ""}${o.qualification ? " · exige : " + esc(o.qualification) : ""}</div>
+      ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}
+      <div class="small">Contact : ${esc(o.contact_nom || "—")} · ${esc(o.contact_courriel || "—")} · ${esc(o.contact_tel || "—")} · reçoit par ${o.reception === "telephone" ? "téléphone" : "courriel"}${o.source === "employeur" ? " · soumise par l'employeur" : ""}</div>
+      ${o.motif_refus ? `<div class="small">Motif du refus : ${esc(o.motif_refus)}</div>` : ""}
+      ${o.notes_admin ? `<div class="small"><b>Notes :</b> ${esc(o.notes_admin)}</div>` : ""}
+      <div class="tags">${compteurs(o)}</div>
+      <div class="actions">${act}<button class="btn ghost sm" data-a="modifier">Modifier</button>${["closed","rejected"].includes(o.statut) ? '<button class="btn danger sm" data-a="supprimer">Supprimer</button>' : ""}</div>
+    </article>`;
+  }
+  async function majOffre(id, champs, ok){
+    const r = await sb.from("offres").update(champs).eq("id", id);
+    if (r.error) return erreur(r.error, "La mise à jour n'a pas fonctionné.");
+    flash("ok", ok); await charger();
+  }
+  $("#offList").addEventListener("click", async e => {
+    const b = e.target.closest("[data-a]"); if (!b) return;
+    const o = offreDe(b.closest("[data-id]").dataset.id), a = b.dataset.a;
+    if (a === "verifier" || a === "modifier") return ouvrirEditeur(o);
+    if (a === "dossier") { dossierId = o.id; selection.clear(); return aller("dossier"); }
+    if (a === "lien") { try { await navigator.clipboard.writeText(lienPublic(o)); b.textContent = "Copié ✓"; } catch (x) { prompt("Lien de l'offre :", lienPublic(o)); } return; }
+    if (a === "refuser") { const m = prompt("Motif du refus (gardé dans tes notes, non envoyé) :", o.alerte_experience ? "Exige de l'expérience" : ""); if (m === null) return; return majOffre(o.id, { statut: "rejected", motif_refus: m.slice(0, 500) || null }, "Offre refusée."); }
+    if (a === "suspendre") return majOffre(o.id, { statut: "paused" }, "Offre suspendue : elle n'est plus visible et n'accepte plus de candidatures.");
+    if (a === "republier") return majOffre(o.id, { statut: "published" }, "Offre republiée.");
+    if (a === "fermer") { if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Confirmer la fermeture"; return; } return majOffre(o.id, { statut: "closed" }, "Offre fermée : elle n'accepte plus de candidatures."); }
+    if (a === "rouvrir") return majOffre(o.id, { statut: "pending", confirme: false }, "Offre remise à valider.");
+    if (a === "supprimer") {
+      if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Confirmer : supprime aussi ses candidatures"; return; }
+      const cvs = POSTS.filter(p => p.offre_id === o.id && p.cv_path).map(p => p.cv_path);
+      const r = await sb.from("offres").delete().eq("id", o.id);
+      if (r.error) return erreur(r.error);
+      if (cvs.length) await sb.storage.from("cvs").remove(cvs);
+      flash("ok", "Offre supprimée."); return charger();
+    }
+  });
+
+  // ---------- Éditeur d'offre ----------
   VILLES.concat(["Autre"]).forEach(v => $("#o_ville").add(new Option(v, v)));
   TYPES.forEach(t => $("#o_type").add(new Option(t, t)));
-  function ouvrir(o){
+  const CHAMPS = ["titre","employeur","ville","lieu","type","salaire","description","qualification","lien","contact_nom","contact_courriel","contact_tel","reception","notes_admin"];
+  function verifAlerte(){
+    const f = $("#offForm"), t = [f.titre.value, f.description.value, f.qualification.value].join(" ");
+    const ex = PJ.experienceExigee(t), m = $("#o_alerte");
+    if (ex) { m.className = "alerte forte"; m.textContent = `« ${ex} » : exigence d'expérience. Cette offre ne peut pas être publiée tant que ce passage reste.`; }
+    else if (PJ.experienceMentionnee(t)) { m.className = "alerte douce"; m.textContent = "Le texte mentionne l'expérience : vérifie qu'elle n'est pas exigée."; }
+    else { m.className = ""; m.textContent = ""; }
+    $("#btnPublier").disabled = !!ex;
+  }
+  ["titre","description","qualification"].forEach(n => $("#offForm")[n].addEventListener("input", verifAlerte));
+  function ouvrirEditeur(o){
     editId = o ? o.id : null;
-    const f = $("#offForm"); f.reset(); $("#dlgMsg").textContent = ""; $("#dlgMsg").className = "";
-    $("#dlgTitle").textContent = o ? "Modifier l'offre" : "Nouvelle offre";
-    ["titre","employeur","ville","secteur","type","salaire","description","lien","contact_nom","contact_courriel","contact_tel","statut","verifie_le","notes_admin"]
-      .forEach(k => { if (f[k]) f[k].value = o ? (o[k] ?? "") : ""; });
-    if (!o) { f.ville.value = VILLES[0]; f.type.value = TYPES[0]; f.statut.value = "publiee"; f.verifie_le.value = PJ.today(); }
-    f.confirme.checked = o ? !!o.confirme : false;
-    editHoraires = new Set(o ? o.horaires : []);
-    $("#o_horaires").innerHTML = "";
-    Object.entries(HORAIRES).forEach(([k,l]) => $("#o_horaires").appendChild(PJ.chip(l, editHoraires.has(k), b => {
-      editHoraires.has(k) ? editHoraires.delete(k) : editHoraires.add(k); b.setAttribute("aria-pressed", editHoraires.has(k));
-    })));
+    const f = $("#offForm"); f.reset(); $("#dlgMsg").className = ""; $("#dlgMsg").textContent = "";
+    $("#dlgTitle").textContent = o ? (o.statut === "pending" ? "Vérifier l'offre" : "Modifier l'offre") : "Créer une offre (avec l'accord de l'employeur)";
+    CHAMPS.forEach(k => { f[k].value = o ? (o[k] ?? "") : ""; });
+    f.nb_postes.value = o ? (o.nb_postes || 1) : 1; f.date_debut.value = o ? (o.date_debut || "") : "";
+    if (!o) { f.ville.value = "Chicoutimi"; f.type.value = "Temps partiel"; f.reception.value = "courriel"; }
+    grille = PJ.grilleOffre($("#o_grille"), o ? o.creneaux_obligatoires : [], o ? o.creneaux_souhaites : []);
+    const deja = o && o.statut === "published";
+    ["v1","v2","v3"].forEach(id => { $("#" + id).checked = !!deja; });
+    $("#btnPublier").textContent = deja ? "Enregistrer (reste publiée)" : "Enregistrer et publier";
+    $("#btnBrouillon").hidden = !!deja;
+    verifAlerte();
     $("#dlg").showModal();
   }
-  $("#newOffre").addEventListener("click", () => ouvrir(null));
-  $("#dlgCancel").addEventListener("click", () => $("#dlg").close());
+  $("#newOffre").addEventListener("click", () => ouvrirEditeur(null));
+  document.addEventListener("click", e => { if (e.target.closest("[data-close-dlg]")) $("#dlg").close(); if (e.target.closest("[data-close-mail]")) $("#dlgMail").close(); });
   $("#offForm").addEventListener("submit", async e => {
     e.preventDefault();
+    const mode = (e.submitter && e.submitter.dataset.mode) || "brouillon";
     const f = e.target, m = $("#dlgMsg"), v = (k) => f[k].value.trim() || null;
-    if (!v("titre") || !v("employeur")) { m.className = "msg err"; m.textContent = "Le titre et l'entreprise sont obligatoires."; return; }
-    if (v("lien") && !/^https?:\/\//i.test(v("lien"))) { m.className = "msg err"; m.textContent = "Le lien doit commencer par https://"; return; }
-    const row = { titre:v("titre"), employeur:v("employeur"), ville:f.ville.value, secteur:v("secteur"), type:f.type.value,
-      horaires:[...editHoraires], salaire:v("salaire"), description:v("description"), lien:v("lien"),
-      contact_nom:v("contact_nom"), contact_courriel:v("contact_courriel"), contact_tel:v("contact_tel"),
-      statut:f.statut.value, verifie_le:v("verifie_le"), confirme:f.confirme.checked, notes_admin:v("notes_admin") };
-    const r = editId ? await sb.from("offres").update(row).eq("id", editId) : await sb.from("offres").insert({ ...row, source:"admin" });
-    if (r.error) { m.className = "msg err"; m.textContent = "Erreur : " + r.error.message; return; }
-    $("#dlg").close(); tab = row.statut; charger();
+    const dire = (cls, t) => { m.className = "msg " + cls; m.textContent = t; };
+    if (!v("titre") || !v("employeur")) return dire("err", "Le poste et l'entreprise sont obligatoires.");
+    if (grille.O.size + grille.S.size === 0) return dire("err", "Indique au moins un quart (touche une case de la grille).");
+    if (v("lien") && !/^https?:\/\//i.test(v("lien"))) return dire("err", "Le lien doit commencer par https://");
+    const publier = mode === "publier";
+    if (publier && !(["v1","v2","v3"].every(id => $("#" + id).checked))) return dire("err", "Coche les trois vérifications pour publier. Sinon, enregistre sans publier.");
+    const nbp = parseInt(f.nb_postes.value, 10);
+    const row = {}; CHAMPS.forEach(k => { row[k] = v(k); });
+    row.reception = f.reception.value; row.nb_postes = nbp >= 1 && nbp <= 50 ? nbp : 1; row.date_debut = f.date_debut.value || null;
+    row.creneaux_obligatoires = [...grille.O]; row.creneaux_souhaites = [...grille.S];
+    if (publier) { row.statut = "published"; row.confirme = true; row.aucune_experience_confirmee = true; }
+    const r = editId ? await sb.from("offres").update(row).eq("id", editId)
+                     : await sb.from("offres").insert({ ...row, source: "admin", statut: publier ? "published" : "pending" });
+    if (r.error) return dire("err", PJ.messageErreur(r.error, "L'enregistrement n'a pas fonctionné."));
+    $("#dlg").close(); filtreOff = publier ? "published" : "pending";
+    flash("ok", publier ? "Offre publiée. Elle est visible sur le site." : "Offre enregistrée, en attente de validation.");
+    vue = "offres"; await charger();
+  });
+
+  // ---------- Dossier d'une offre ----------
+  const libTransport = (t) => PJ.TRANSPORTS[t] || "transport ?";
+  function blocFit(o, c){
+    const f = PJ.jumelerV2(o, c);
+    const fit = f.aucuneDispo ? '<span class="fit mid">Disponibilités non indiquées</span>'
+      : f.compatible ? '<span class="fit ok">✓ Couvre tous les quarts requis</span>'
+      : `<span class="fit no">Manque : ${esc(f.manquants.map(PJ.nomCreneau).join(", "))}</span>`;
+    return `${fit}${f.deplacement ? ` <span class="fit mid">${esc(f.deplacement)}</span>` : ""}`;
+  }
+  function rDossier(){
+    const o = offreDe(dossierId); if (!o) { vue = "offres"; return rendre(); }
+    $("#dosEntete").innerHTML = `<article class="card"><div class="ctop"><div><h3 style="font-size:20px">${esc(o.titre)}</h3><div class="emp">${esc(o.employeur)} · ${esc(o.ville)}${o.lieu ? " · " + esc(o.lieu) : ""}</div></div><span class="pill-st ${o.statut}">${OFFRE_STATUTS[o.statut]}</span></div>
+      <div class="small">Contact : <b>${esc(o.contact_nom || "—")}</b> · ${esc(o.contact_courriel || "—")} · ${esc(o.contact_tel || "—")} · préfère ${o.reception === "telephone" ? "le téléphone" : "le courriel"}</div>
+      ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}
+      <div class="actions"><button class="btn ghost sm" data-ouvrir-offre="${o.id}" data-edit="1">Modifier l'offre</button>${o.statut === "published" ? `<button class="btn ghost sm" id="dosFermer">Fermer l'offre (pourvue)</button>` : ""}</div></article>`;
+    const ps = POSTS.filter(p => p.offre_id === o.id).sort((a, b) => PJ.jumelerV2(o, b).score - PJ.jumelerV2(o, a).score);
+    $("#dosCands").innerHTML = ps.length ? ps.map(p => carteCand(p, o, true)).join("") : '<div class="empty">Aucune candidature pour l\'instant. Partage le lien de l\'offre ou invite les inscrits compatibles ci-dessous.</div>';
+    majSelection();
+    // Inscrits compatibles qui n'ont pas postulé
+    const deja = new Set(ps.map(p => p.courriel.toLowerCase()));
+    const inscrits = CANDS.filter(c => c.actif && !deja.has(c.courriel.toLowerCase())).map(c => [c, PJ.jumelerV2(o, c)]).filter(([, f]) => f.compatible).sort((a, b) => b[1].score - a[1].score);
+    $("#dosInscrits").innerHTML = inscrits.length ? `<p class="small">Ils ont accepté de recevoir des offres, pas encore que leur profil soit transmis. Envoie-leur le lien pour qu'ils postulent.</p>
+      <div class="actions" style="margin-bottom:10px"><button class="btn ghost sm" id="invCourriels">Copier leurs courriels (Cci)</button><button class="btn ghost sm" id="invLien">Copier le lien de l'offre</button></div>
+      <div class="tablewrap"><table class="data"><tr><th>Nom</th><th>Ville</th><th>Transport</th><th>Jumelage</th></tr>${inscrits.map(([c]) => `<tr><td>${esc(nomComplet(c))}<div class="small">${esc(c.courriel)}</div></td><td>${esc(c.ville || "")}</td><td>${esc(libTransport(c.transport))}</td><td>${blocFit(o, c)}</td></tr>`).join("")}</table></div>`
+      : '<div class="small">Aucun inscrit compatible pour l\'instant.</div>';
+    const ic = $("#invCourriels"); if (ic) ic.onclick = async () => { const t = inscrits.map(([c]) => c.courriel).join(", "); try { await navigator.clipboard.writeText(t); ic.textContent = "Copiés ✓"; } catch (x) { prompt("Courriels :", t); } };
+    const il = $("#invLien"); if (il) il.onclick = async () => { try { await navigator.clipboard.writeText(lienPublic(o)); il.textContent = "Copié ✓"; } catch (x) { prompt("Lien :", lienPublic(o)); } };
+    const df = $("#dosFermer"); if (df) df.onclick = () => { if (df.dataset.sure !== "1") { df.dataset.sure = "1"; df.textContent = "Confirmer la fermeture"; return; } majOffre(o.id, { statut: "closed" }, "Offre fermée."); };
+  }
+  function carteCand(p, o, avecSelection){
+    const actions = {
+      received: `<button class="btn ghost sm" data-st="rejected">Non retenue</button>`,
+      forwarded: `<button class="btn sm" data-st="interview">Entrevue prévue</button><button class="btn ghost sm" data-st="hired">Embauché</button><button class="btn ghost sm" data-st="rejected">Non retenue</button><button class="btn ghost sm" data-st="withdrawn">Le candidat se retire</button>`,
+      interview: `<button class="btn sm" data-st="hired">Embauché</button><button class="btn ghost sm" data-st="rejected">Non retenue</button><button class="btn ghost sm" data-st="withdrawn">Le candidat se retire</button>`,
+      hired: `<button class="btn ghost sm" data-st="interview">Annuler l'embauche</button>`,
+      rejected: `<button class="btn ghost sm" data-st="received">Rouvrir</button>`,
+      withdrawn: `<button class="btn ghost sm" data-st="received">Rouvrir</button>`
+    }[p.statut] || "";
+    const coche = avecSelection && ["received","forwarded"].includes(p.statut) && o && ["published","paused"].includes(o.statut);
+    return `<div class="cand" data-pid="${p.id}">
+      <div class="cand-top"><label class="consent" style="font-size:15px;color:var(--ink)">${coche ? `<input type="checkbox" data-sel="${p.id}" ${selection.has(p.id) ? "checked" : ""} aria-label="Sélectionner ${esc(nomComplet(p))}">` : ""}<span><b>${esc(nomComplet(p))}</b> <span class="small">· réf. ${esc(p.id.slice(0, 8).toUpperCase())} · il y a ${ancienJours(p.created_at)} j</span></span></label><span class="pill-st ${p.statut}">${CAND_STATUTS[p.statut]}</span></div>
+      ${!avecSelection && o ? `<div class="small">Offre : <b>${esc(o.titre)}</b> · ${esc(o.employeur)}</div>` : ""}
+      <div class="small">${esc(p.telephone)} · ${esc(p.courriel)} · ${esc(p.ville || "ville ?")} · ${esc(libTransport(p.transport))}</div>
+      ${o ? `<div>${blocFit(o, p)}</div>${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites, p.dispos)}` : ""}
+      ${p.message ? `<div class="small">« ${esc(p.message)} »</div>` : ""}
+      <div class="small">Consentement donné le ${new Date(p.consentement_le || p.created_at).toLocaleString("fr-CA")}${p.transmise_le ? " · transmise le " + new Date(p.transmise_le).toLocaleDateString("fr-CA") : ""}${p.embauche_le ? " · embauche le " + fmtDate(p.embauche_le) : ""}</div>
+      <div class="actions">${p.cv_path ? `<button class="btn ghost sm" data-cv="${esc(p.cv_path)}">Ouvrir le CV</button>` : '<span class="small">Pas de CV</span>'}${actions}${!avecSelection ? `<button class="btn ghost sm" data-ouvrir-offre="${p.offre_id}">Dossier de l'offre</button>` : ""}</div>
+    </div>`;
+  }
+  function majSelection(){
+    const n = selection.size;
+    $("#btnTransmettre").disabled = n === 0;
+    $("#selInfo").textContent = n ? `${n} candidature(s) sélectionnée(s)` : "Coche les candidatures à transmettre.";
+  }
+  document.addEventListener("change", e => {
+    const c = e.target.closest("[data-sel]"); if (!c) return;
+    c.checked ? selection.add(c.dataset.sel) : selection.delete(c.dataset.sel); majSelection();
+  });
+
+  // Changement de statut (qui décide est déduit de l'étape)
+  async function changerStatut(p, nouveau){
+    const par = nouveau === "withdrawn" ? "candidat" : (["interview","hired"].includes(nouveau) || (nouveau === "rejected" && p.statut !== "received")) ? "employeur" : "admin";
+    const r = await sb.from("candidatures").update({ statut: nouveau, statut_par: par }).eq("id", p.id);
+    if (r.error) return erreur(r.error, "Le statut n'a pas pu être changé.");
+    flash("ok", `${nomComplet(p)} : ${CAND_STATUTS[nouveau]}.`); await charger();
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-st]"); if (!b) return;
+    const p = POSTS.find(x => x.id === b.closest("[data-pid]").dataset.pid); if (p) changerStatut(p, b.dataset.st);
+  });
+
+  // ---------- Transmission sécurisée ----------
+  $("#btnTransmettre").addEventListener("click", async () => {
+    const o = offreDe(dossierId); if (!o) return;
+    const ps = POSTS.filter(p => selection.has(p.id) && p.offre_id === o.id && p.consentement && ["received","forwarded"].includes(p.statut));
+    if (!ps.length) return flash("err", "Sélectionne au moins une candidature de cette offre.");
+    if (!["published","paused"].includes(o.statut)) return flash("err", "L'offre n'est pas active : rien ne peut être transmis.");
+    if (!o.contact_courriel) return flash("err", "Ajoute le courriel de l'employeur dans l'offre avant de transmettre.");
+    $("#mailMsg").textContent = ""; $("#mailMsg").className = "";
+    const blocs = [];
+    for (const [i, p] of ps.entries()) {
+      let lien = "pas de CV";
+      if (p.cv_path) {
+        const { data, error } = await sb.storage.from("cvs").createSignedUrl(p.cv_path, 7 * 24 * 3600);
+        lien = error || !data ? "(lien indisponible, je vous l'envoie à part)" : data.signedUrl;
+      }
+      const f = PJ.jumelerV2(o, p);
+      blocs.push(`${i + 1}. ${nomComplet(p)} · ${p.telephone} · ${p.courriel}\n   ${p.ville || ""}${p.transport ? " · " + libTransport(p.transport) : ""}\n   Disponible : ${(p.dispos || []).map(PJ.nomCreneau).join(", ") || "non indiqué"}${f.manquants.length ? "\n   Attention, pas libre : " + f.manquants.map(PJ.nomCreneau).join(", ") : ""}\n   CV (lien valable 7 jours) : ${lien}${p.message ? "\n   Son mot : « " + p.message + " »" : ""}`);
+    }
+    const sujet = `PremierJob · ${ps.length} candidat${ps.length > 1 ? "s" : ""} pour « ${o.titre} »`;
+    const corps = `Bonjour ${o.contact_nom || ""},\n\nVoici ${ps.length > 1 ? ps.length + " candidatures" : "une candidature"} pour le poste « ${o.titre} ». Chaque personne a accepté que sa candidature vous soit transmise.\n\n${blocs.join("\n\n")}\n\nVous pouvez les appeler directement pour fixer une entrevue. Merci de me dire qui vous rencontrez et qui est embauché : ça m'aide à vous envoyer les bons candidats.\n\nMerci!\n${(window.PJ_CONFIG || {}).responsable ? (window.PJ_CONFIG.responsable.split(",")[0]) : "PremierJob"}\nPremierJob Saguenay`;
+    mailIds = ps.map(p => p.id);
+    $("#mailInfo").textContent = `À : ${o.contact_nom || ""} <${o.contact_courriel}>${o.reception === "telephone" ? " · cet employeur préfère aussi un appel." : ""}`;
+    $("#mailTexte").value = `Objet : ${sujet}\n\n${corps}`;
+    $("#mailOuvrir").href = `mailto:${encodeURIComponent(o.contact_courriel)}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+    $("#dlgMail").showModal();
+  });
+  $("#mailCopier").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#mailTexte").value); $("#mailCopier").textContent = "Copié ✓"; } catch (e) { $("#mailTexte").select(); } });
+  $("#mailMarquer").addEventListener("click", async () => {
+    const aMarquer = POSTS.filter(p => mailIds.includes(p.id) && p.statut === "received");
+    for (const p of aMarquer) {
+      const r = await sb.from("candidatures").update({ statut: "forwarded", statut_par: "admin" }).eq("id", p.id);
+      if (r.error) { $("#mailMsg").className = "msg err"; $("#mailMsg").textContent = PJ.messageErreur(r.error); return; }
+    }
+    $("#dlgMail").close(); selection.clear();
+    flash("ok", `${mailIds.length} candidature(s) marquée(s) comme transmise(s), avec la date.`); await charger();
   });
 
   // ---------- Candidatures ----------
-  function renderPosts(){
-    const titre = (id) => { const o = OFFRES.find(x => x.id === id); return o ? `${esc(o.titre)}<div class="small">${esc(o.employeur)} · ${esc(o.ville)}</div>` : '<span class="small">Offre supprimée</span>'; };
-    $("#postTable").innerHTML = `<tr><th>Reçue le</th><th>Offre</th><th>Candidat</th><th>Téléphone</th><th>CV</th><th>Message</th><th>Statut</th><th></th></tr>` +
-      (POSTS.length ? POSTS.map(p => `<tr data-id="${p.id}">
-        <td class="mono">${new Date(p.created_at).toLocaleDateString("fr-CA")}</td>
-        <td>${titre(p.offre_id)}</td>
-        <td>${esc(p.prenom)}<div class="small">${esc(p.courriel)}</div></td>
-        <td class="mono" style="white-space:nowrap">${esc(p.telephone)}</td>
-        <td>${celluleCV(p)}</td>
-        <td style="max-width:260px">${esc(p.message || "")}</td>
-        <td><select data-a="statut" aria-label="Statut">${STATUTS_POST.map(([k,l]) => `<option value="${k}" ${p.statut === k ? "selected" : ""}>${l}</option>`).join("")}</select></td>
-        <td><button class="btn danger sm" data-a="suppr-post">Supprimer</button></td></tr>`).join("")
-      : `<tr><td colspan="8" class="small">Aucune candidature pour l'instant.</td></tr>`);
+  function rCandidatures(){
+    $("#candFiltres").innerHTML = Object.entries(CAND_STATUTS).map(([k,l]) => `<button class="chip" data-fc="${k}" aria-pressed="${k === filtreCand}">${l} ${nb(POSTS, p => p.statut === k)}</button>`).join("");
+    const list = POSTS.filter(p => p.statut === filtreCand);
+    $("#candList").innerHTML = list.length ? list.map(p => carteCand(p, offreDe(p.offre_id), false)).join("") : '<div class="empty">Aucune candidature dans cette catégorie.</div>';
   }
-  $("#postTable").addEventListener("change", async e => {
-    const el = e.target.closest("[data-a=statut]"); if (!el) return;
-    const id = el.closest("[data-id]").dataset.id;
-    const r = await sb.from("candidatures").update({ statut: el.value }).eq("id", id);
-    if (r.error) { el.style.borderColor = "var(--danger)"; return; }
-    const p = POSTS.find(x => x.id === id); if (p) p.statut = el.value;
-    $("#sPost").textContent = POSTS.filter(x => x.statut === "recue").length;
-  });
-  $("#postTable").addEventListener("click", async e => {
-    const el = e.target.closest("[data-a=suppr-post]"); if (!el) return;
-    if (el.dataset.sure !== "1") { el.dataset.sure = "1"; el.textContent = "Confirmer"; return; }
-    const id = el.closest("[data-id]").dataset.id, p = POSTS.find(x => x.id === id);
-    if (p && p.cv_path) await sb.storage.from("cvs").remove([p.cv_path]);
-    const r = await sb.from("candidatures").delete().eq("id", id); if (!r.error) charger();
+  $("#candFiltres").addEventListener("click", e => { const b = e.target.closest("[data-fc]"); if (b) { filtreCand = b.dataset.fc; rCandidatures(); } });
+
+  // ---------- Suivis ----------
+  function rSuivis(){
+    const hired = POSTS.filter(p => p.statut === "hired");
+    $("#suiviList").innerHTML = hired.length ? hired.map(p => { const o = offreDe(p.offre_id); const age = p.embauche_le ? Math.floor((Date.now() - new Date(p.embauche_le + "T12:00:00").getTime()) / JOUR) : 0;
+      const etat = (j, fait) => fait ? "fait" : age >= j ? '<b style="color:var(--accent)">à faire</b>' : `dans ${j - age} j`;
+      return `<div class="cand" data-pid="${p.id}"><div class="cand-top"><span><b>${esc(nomComplet(p))}</b> · ${esc(p.telephone)}</span><span class="small">embauche le ${fmtDate(p.embauche_le)}</span></div>
+        <div class="small">${o ? esc(o.titre) + " · " + esc(o.employeur) + " · " + esc(o.contact_nom || "") + " " + esc(o.contact_tel || o.contact_courriel || "") : ""}</div>
+        <div class="actions"><label class="consent"><input type="checkbox" data-suivi="14" ${p.suivi14_fait ? "checked" : ""}><span>Suivi 14 jours (${etat(14, p.suivi14_fait)})</span></label>
+        <label class="consent"><input type="checkbox" data-suivi="30" ${p.suivi30_fait ? "checked" : ""}><span>Suivi 30 jours (${etat(30, p.suivi30_fait)})</span></label></div></div>`; }).join("")
+      : '<div class="empty">Aucune embauche enregistrée pour l\'instant.</div>';
+  }
+  document.addEventListener("change", async e => {
+    const c = e.target.closest("[data-suivi]"); if (!c) return;
+    const id = c.closest("[data-pid]").dataset.pid;
+    const r = await sb.from("candidatures").update({ ["suivi" + c.dataset.suivi + "_fait"]: c.checked }).eq("id", id);
+    if (r.error) { c.checked = !c.checked; return erreur(r.error); }
+    const p = POSTS.find(x => x.id === id); if (p) p["suivi" + c.dataset.suivi + "_fait"] = c.checked;
+    rendre();
   });
 
-  // ---------- Candidats ----------
-  function renderCands(){
+  // ---------- Inscrits ----------
+  function rInscrits(){
     const q = $("#cq").value.trim().toLowerCase();
-    const list = CANDS.filter(c => !q || [c.prenom,c.courriel,c.domaine,c.etablissement,c.transport].join(" ").toLowerCase().includes(q));
-    $("#candTable").innerHTML = `<tr><th>Inscrit le</th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Domaine</th><th>Transport</th><th>Types</th><th>Disponibilités</th><th>CV</th><th>Actif</th><th></th></tr>` +
-      (list.length ? list.map(c => `<tr data-id="${c.id}">
-        <td class="mono">${new Date(c.created_at).toLocaleDateString("fr-CA")}</td><td>${esc(c.prenom)}</td><td>${esc(c.courriel)}</td>
-        <td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}</td><td>${esc(c.domaine || "")}</td><td>${esc(PJ.TRANSPORTS[c.transport] || "")}</td>
-        <td>${esc((c.types || []).join(", "))}</td><td>${esc(dispoTxt(c.dispos))}</td><td>${celluleCV(c)}</td>
-        <td><input type="checkbox" data-a="actif" aria-label="Actif" ${c.actif ? "checked" : ""}></td>
-        <td><button class="btn danger sm" data-a="suppr">Supprimer</button></td></tr>`).join("")
-      : `<tr><td colspan="12" class="small">Aucun candidat.</td></tr>`);
+    const list = CANDS.filter(c => !q || [c.prenom, c.nom, c.courriel, c.domaine, c.etablissement, c.ville].join(" ").toLowerCase().includes(q));
+    $("#inscTable").innerHTML = `<tr><th>Inscrit le</th><th>Nom</th><th>Courriel</th><th>Téléphone</th><th>École</th><th>Ville</th><th>Transport</th><th>Disponibilités</th><th>CV</th><th>Actif</th></tr>` +
+      (list.length ? list.map(c => `<tr data-cid="${c.id}"><td class="mono">${new Date(c.created_at).toLocaleDateString("fr-CA")}</td><td>${esc(nomComplet(c))}</td><td>${esc(c.courriel)}</td><td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}${c.domaine ? `<div class="small">${esc(c.domaine)}</div>` : ""}</td><td>${esc(c.ville || "")}</td><td>${esc(PJ.TRANSPORTS[c.transport] || "")}</td><td class="small">${esc((c.dispos || []).map(PJ.nomCreneau).join(", "))}</td><td>${c.cv_path ? `<button class="btn ghost sm" data-cv="${esc(c.cv_path)}">Ouvrir</button>` : '<span class="small">—</span>'}</td><td><input type="checkbox" data-actif ${c.actif ? "checked" : ""} aria-label="Actif"></td></tr>`).join("")
+      : `<tr><td colspan="10" class="small">Aucun inscrit.</td></tr>`);
   }
-  $("#cq").addEventListener("input", renderCands);
-  $("#candTable").addEventListener("click", async e => {
-    const el = e.target.closest("[data-a]"); if (!el) return;
-    const id = el.closest("[data-id]").dataset.id;
-    if (el.dataset.a === "actif") { const r = await sb.from("candidats").update({ actif: el.checked }).eq("id", id); if (r.error) el.checked = !el.checked; else charger(); }
-    if (el.dataset.a === "suppr") {
-      if (el.dataset.sure !== "1") { el.dataset.sure = "1"; el.textContent = "Confirmer"; return; }
-      const c = CANDS.find(x => x.id === id);
-      if (c && c.cv_path) await sb.storage.from("cvs").remove([c.cv_path]);
-      const r = await sb.from("candidats").delete().eq("id", id); if (!r.error) charger();
-    }
-  });
-  $("#csv").addEventListener("click", () => {
-    const cols = ["created_at","prenom","courriel","telephone","etablissement","domaine","transport","types","dispos","cv_path","actif"];
-    const cell = (x) => '"' + String(Array.isArray(x) ? x.join(" ") : (x ?? "")).replace(/"/g, '""') + '"';
-    const csv = "﻿" + cols.join(";") + "\n" + CANDS.map(c => cols.map(k => cell(c[k])).join(";")).join("\n");
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8" }));
-    a.download = "candidats-premierjob-" + PJ.today() + ".csv"; a.click();
+  $("#cq").addEventListener("input", rInscrits);
+  document.addEventListener("change", async e => {
+    const c = e.target.closest("[data-actif]"); if (!c) return;
+    const id = c.closest("[data-cid]").dataset.cid;
+    const r = await sb.from("candidats").update({ actif: c.checked }).eq("id", id);
+    if (r.error) { c.checked = !c.checked; erreur(r.error); }
   });
 
-  // ---------- Jumelage ----------
-  function renderMatchSelect(){
-    const s = $("#matchOffre"), cur = s.value;
-    const offres = OFFRES.filter(o => o.statut !== "archivee");
-    s.innerHTML = offres.length ? offres.map(o => `<option value="${o.id}">${esc(o.titre)} · ${esc(o.employeur)} (${STATUT[o.statut]})</option>`).join("") : "<option value=''>Aucune offre active</option>";
-    if (cur && offres.some(o => o.id === cur)) s.value = cur;
-    renderMatch();
-  }
-  $("#matchOffre").addEventListener("change", renderMatch);
-  function renderMatch(){
-    const o = OFFRES.find(x => x.id === $("#matchOffre").value);
-    if (!o) { $("#matchTable").innerHTML = ""; $("#matchInfo").textContent = ""; return; }
-    const res = CANDS.filter(c => c.actif).map(c => ({ c, m: PJ.jumeler(o, c) })).filter(x => x.m.communs.length > 0).sort((a,b) => b.m.score - a.m.score);
-    $("#matchInfo").textContent = `${res.length} candidat${res.length > 1 ? "s" : ""} disponible${res.length > 1 ? "s" : ""} pendant les horaires de ce poste (${(o.horaires || []).map(h => HORAIRES[h]).join(", ") || "aucun horaire indiqué"}). Les mieux placés sont en haut.`;
-    $("#matchTable").innerHTML = `<tr><th></th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Transport</th><th>CV</th><th>Créneaux communs</th><th>Compatibilité</th></tr>` +
-      (res.length ? res.map(({c,m}, i) => `<tr>
-        <td><input type="checkbox" class="pick" value="${esc(c.courriel)}" aria-label="Sélectionner ${esc(c.prenom)}" ${i < 5 ? "checked" : ""}></td>
-        <td>${esc(c.prenom)}</td><td>${esc(c.courriel)}</td><td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}${c.domaine ? " · " + esc(c.domaine) : ""}</td><td>${esc(PJ.TRANSPORTS[c.transport] || "")}</td><td>${celluleCV(c)}</td>
-        <td><span class="mono">${m.communs.length}</span> · ${esc(dispoTxt(m.communs))}</td>
-        <td class="tags">${m.typeOk ? '<span class="tag ok">Type OK</span>' : '<span class="tag bad">Autre type</span>'}${m.villeOk ? '<span class="tag ok">Ville OK</span>' : '<span class="tag bad">Autre ville</span>'}</td></tr>`).join("")
-      : `<tr><td colspan="9" class="small">Aucun candidat actif n'est disponible pendant ces horaires.</td></tr>`);
-  }
-  $("#copyEmails").addEventListener("click", async () => {
-    const emails = [...document.querySelectorAll(".pick:checked")].map(x => x.value);
-    const m = $("#copyMsg");
-    if (!emails.length) { m.textContent = "Sélectionne au moins un candidat."; return; }
-    try { await navigator.clipboard.writeText(emails.join(", ")); m.textContent = emails.length + " courriel(s) copiés. Mets-les en copie cachée (Cci)."; }
-    catch (e) { m.textContent = emails.join(", "); }
+  // ---------- CV : liens signés temporaires (stockage privé) ----------
+  document.addEventListener("click", async e => {
+    const b = e.target.closest("[data-cv]"); if (!b) return;
+    const w = window.open("", "_blank");
+    const { data, error } = await sb.storage.from("cvs").createSignedUrl(b.dataset.cv, 600);
+    if (error || !data) { if (w) w.close(); return flash("err", "Le CV n'a pas pu être ouvert."); }
+    if (w) w.location = data.signedUrl; else location.href = data.signedUrl;
   });
+
+  // ---------- Données ----------
+  function rDonnees(){
+    const limite = Date.now() - 365 * JOUR;
+    const vieuxP = POSTS.filter(p => new Date(p.statut_le || p.created_at).getTime() < limite);
+    const vieuxC = CANDS.filter(c => new Date(c.created_at).getTime() < limite);
+    $("#retInfo").textContent = `La politique de confidentialité prévoit 12 mois de conservation après la dernière activité. Plus de 12 mois : ${vieuxP.length} candidature(s), ${vieuxC.length} inscrit(s).`;
+    $("#retBtn").disabled = !(vieuxP.length + vieuxC.length);
+    $("#notifList").innerHTML = NOTIFS.length ? NOTIFS.map(n => `<div>${new Date(n.created_at).toLocaleString("fr-CA")} · ${esc(n.type)} → ${esc(n.destinataire)} · <b>${esc(n.statut)}</b>${n.erreur ? " · " + esc(n.erreur) : ""}</div>`).join("") : "Aucune notification envoyée pour l'instant.";
+  }
+  $("#supForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const c = $("#supCourriel").value.trim(), btn = $("#supBtn"), m = $("#supMsg");
+    if (!/^\S+@\S+\.\S+$/.test(c)) { m.className = "msg err"; m.textContent = "Entre un courriel valide."; return; }
+    if (btn.dataset.sure !== c) { btn.dataset.sure = c; btn.textContent = "Confirmer la suppression définitive"; return; }
+    btn.dataset.sure = ""; btn.textContent = "Supprimer";
+    const { data, error } = await sb.rpc("pj_supprimer_personne", { p_courriel: c });
+    if (error) { m.className = "msg err"; m.textContent = PJ.messageErreur(error); return; }
+    const chemins = (data || []).map(x => x.cv_path).filter(Boolean);
+    if (chemins.length) await sb.storage.from("cvs").remove(chemins);
+    m.className = "msg ok"; m.textContent = `Données de ${c} supprimées${chemins.length ? `, avec ${chemins.length} CV` : ""}. Tu peux lui confirmer la suppression.`;
+    $("#supCourriel").value = ""; await charger();
+  });
+  $("#retBtn").addEventListener("click", async () => {
+    const b = $("#retBtn"), m = $("#retMsg"), limite = Date.now() - 365 * JOUR;
+    if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Confirmer la suppression"; return; }
+    b.dataset.sure = ""; b.textContent = "Supprimer les données de plus de 12 mois";
+    const P = POSTS.filter(p => new Date(p.statut_le || p.created_at).getTime() < limite), C = CANDS.filter(c => new Date(c.created_at).getTime() < limite);
+    const cvs = [...P, ...C].map(x => x.cv_path).filter(Boolean);
+    if (P.length) { const r = await sb.from("candidatures").delete().in("id", P.map(x => x.id)); if (r.error) return erreur(r.error); }
+    if (C.length) { const r = await sb.from("candidats").delete().in("id", C.map(x => x.id)); if (r.error) return erreur(r.error); }
+    if (cvs.length) await sb.storage.from("cvs").remove(cvs);
+    m.className = "msg ok"; m.textContent = `${P.length} candidature(s) et ${C.length} inscrit(s) supprimés.`; await charger();
+  });
+  let orphelins = [];
+  $("#orphScan").addEventListener("click", async () => {
+    const m = $("#orphMsg");
+    const { data, error } = await sb.storage.from("cvs").list("", { limit: 1000 });
+    if (error) { m.className = "msg err"; m.textContent = "Impossible de lister les fichiers."; return; }
+    const utilises = new Set([...POSTS, ...CANDS].map(x => x.cv_path).filter(Boolean));
+    orphelins = (data || []).map(f => f.name).filter(n => n && !utilises.has(n));
+    m.className = "msg " + (orphelins.length ? "info" : "ok");
+    m.textContent = orphelins.length ? `${orphelins.length} fichier(s) orphelin(s) : ${orphelins.join(", ")}` : "Aucun fichier orphelin.";
+    $("#orphDel").hidden = !orphelins.length;
+  });
+  $("#orphDel").addEventListener("click", async () => {
+    const { error } = await sb.storage.from("cvs").remove(orphelins);
+    const m = $("#orphMsg");
+    if (error) { m.className = "msg err"; m.textContent = "La suppression n'a pas fonctionné."; return; }
+    m.className = "msg ok"; m.textContent = `${orphelins.length} fichier(s) supprimé(s).`; orphelins = []; $("#orphDel").hidden = true;
+  });
+  function csv(lignes, cols, nom){
+    const cell = (x) => '"' + String(Array.isArray(x) ? x.join(" ") : (x ?? "")).replace(/"/g, '""') + '"';
+    const t = "﻿" + cols.join(";") + "\n" + lignes.map(l => cols.map(k => cell(l[k])).join(";")).join("\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([t], { type: "text/csv;charset=utf-8" }));
+    a.download = nom + "-" + PJ.today() + ".csv"; a.click();
+  }
+  $("#csvInscrits").addEventListener("click", () => csv(CANDS, ["created_at","prenom","nom","courriel","telephone","etablissement","domaine","ville","transport","types","dispos","actif"], "inscrits-premierjob"));
+  $("#csvCand").addEventListener("click", () => csv(POSTS.map(p => ({ ...p, offre: (offreDe(p.offre_id) || {}).titre, employeur: (offreDe(p.offre_id) || {}).employeur })), ["created_at","offre","employeur","prenom","nom","courriel","telephone","ville","transport","dispos","statut","statut_par","transmise_le","entrevue_le","embauche_le"], "candidatures-premierjob"));
 
   sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") { $("#app").hidden = true; $("#loginBox").hidden = false; } });
   session();

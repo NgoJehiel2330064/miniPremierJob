@@ -24,7 +24,16 @@ premierjob-saas/
 
 Si ta base existait avant la refonte visuelle, colle aussi `supabase/migration-002-transport.sql` dans le *SQL Editor* et clique **Run**. Elle ajoute le moyen de transport des candidats. Sans elle, le site marche quand même, mais le transport n'est pas enregistré.
 
-Migrations déjà appliquées sur le projet PremierJob (12 nov. 2026) : 002 transport, 003 is_admin hors du public, 004 travail de nuit, 005 dépôt de CV (bucket privé `cvs`), 006 candidatures. Pour une nouvelle base, exécute `schema.sql` puis les migrations dans l'ordre.
+Migrations déjà appliquées sur le projet PremierJob (12 nov. 2026) : 002 transport, 003 is_admin hors du public, 004 travail de nuit, 005 dépôt de CV (bucket privé `cvs`), 006 candidatures, 007 processus complet (statuts, règle « aucune expérience exigée », quarts requis/idéaux, suivi, Loi 25), 008 notifications (+ 009), 010 détection des fautes de frappe.
+
+### Notifications courriel (fonction Supabase « notifier » + Resend)
+
+La fonction est déployée. Pour qu'elle envoie réellement :
+1. Crée un compte gratuit sur resend.com **avec le même courriel que ton compte admin**.
+2. Resend > API Keys > Create API Key, puis Supabase > Edge Functions > Secrets : ajoute `RESEND_API_KEY`.
+3. Tu reçois alors un courriel à chaque offre soumise et à chaque candidature.
+4. Confirmation aux candidats : il faut un nom de domaine vérifié chez Resend (ex. premierjob.ca, environ 15 $/an). Ajoute ensuite le secret `EXPEDITEUR` = `PremierJob <bonjour@tondomaine.ca>`. Sans domaine, le candidat voit quand même la confirmation à l'écran avec une référence.
+Chaque envoi est journalisé dans l'admin (onglet Données). Pour une nouvelle base, exécute `schema.sql` puis les migrations dans l'ordre.
 
 ## Étape 2 — Créer ton compte admin (3 min)
 

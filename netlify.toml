@@ -1,8 +1,9 @@
-# Réglages Netlify pour PremierJob (lus automatiquement quand le dépôt est relié).
-# Site statique : rien à construire, Netlify publie simplement le dossier « site ».
+# Réglages Netlify pour PremierJob (lus automatiquement à chaque déploiement).
+# Site statique : rien à construire. Le dossier « site » est publié tel quel,
+# et la fonction « offre » (netlify/edge-functions) sert l'aperçu de partage /o/<id>.
 [build]
-  base    = "premierjob-saas/premierjob-saas/site"
-  publish = "."
+  base    = "premierjob-saas/premierjob-saas"
+  publish = "site"
   command = "echo 'Site statique : rien à construire'"
 
 # La page admin ne doit pas apparaître dans Google.
@@ -16,3 +17,4 @@
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
