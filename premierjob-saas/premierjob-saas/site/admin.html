@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin · PremierJob</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="wrap topnav">
+  <a class="brand" href="index.html">PremierJob · Admin</a>
+  <nav class="navlinks"><a href="index.html">Site public</a><button class="btn ghost sm" id="logout" hidden>Se déconnecter</button></nav>
+</div>
+
+<main class="wrap">
+  <!-- Connexion -->
+  <section class="block" id="loginBox" hidden>
+    <h2>Connexion administrateur</h2>
+    <form id="loginForm" novalidate>
+      <div class="grid2">
+        <label for="lemail">Courriel<input type="email" id="lemail" required autocomplete="username"></label>
+        <label for="lpass">Mot de passe<input type="password" id="lpass" required autocomplete="current-password"></label>
+      </div>
+      <div><button class="btn" type="submit">Se connecter</button></div>
+      <div id="loginMsg" role="status"></div>
+    </form>
+  </section>
+
+  <!-- Tableau de bord -->
+  <div id="app" hidden>
+    <div class="stats" style="margin:8px 0 18px">
+      <span class="stat"><b id="sAttente">0</b> offres à valider</span>
+      <span class="stat"><b id="sPub">0</b> publiées</span>
+      <span class="stat"><b id="sCand">0</b> candidats actifs</span>
+      <span class="stat"><b id="sSemaine">0</b> inscriptions cette semaine</span>
+    </div>
+    <div class="tabs" role="tablist" id="tabs"></div>
+
+    <section id="vOffres">
+      <div class="frow" style="justify-content:space-between;margin-bottom:12px">
+        <p class="count" id="offCount" style="margin:0"></p>
+        <button class="btn sm" id="newOffre">+ Nouvelle offre</button>
+      </div>
+      <div class="list" id="offList"></div>
+    </section>
+
+    <section id="vCand" hidden>
+      <div class="frow" style="margin-bottom:12px">
+        <input type="search" id="cq" placeholder="Chercher un nom, un courriel, un domaine…" aria-label="Chercher un candidat">
+        <button class="btn ghost sm" id="csv">Exporter en CSV</button>
+      </div>
+      <div class="tablewrap"><table class="data" id="candTable"></table></div>
+    </section>
+
+    <section id="vMatch" hidden>
+      <label for="matchOffre" style="max-width:520px">Offre à pourvoir<select id="matchOffre"></select></label>
+      <p class="small" id="matchInfo"></p>
+      <div class="actions" style="margin:10px 0"><button class="btn sm" id="copyEmails">Copier les courriels sélectionnés</button><span class="small" id="copyMsg" role="status"></span></div>
+      <div class="tablewrap"><table class="data" id="matchTable"></table></div>
+    </section>
+  </div>
+  <div id="fatal" class="empty" hidden></div>
+</main>
+
+<!-- Édition d'offre -->
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <form id="offForm" novalidate>
+    <h2 id="dlgTitle">Offre</h2>
+    <div class="grid2">
+      <label for="o_titre">Titre<input id="o_titre" name="titre" required maxlength="120"></label>
+      <label for="o_employeur">Entreprise<input id="o_employeur" name="employeur" required maxlength="120"></label>
+      <label for="o_ville">Ville<select id="o_ville" name="ville"></select></label>
+      <label for="o_secteur">Secteur<input id="o_secteur" name="secteur" maxlength="80"></label>
+      <label for="o_type">Type<select id="o_type" name="type"></select></label>
+      <label for="o_salaire">Salaire<input id="o_salaire" name="salaire" maxlength="40"></label>
+    </div>
+    <fieldset><legend>Horaires</legend><div class="frow" id="o_horaires"></div></fieldset>
+    <label for="o_description">Description<textarea id="o_description" name="description" maxlength="1500"></textarea></label>
+    <label for="o_lien">Lien vers l'offre originale<input id="o_lien" name="lien" type="url" maxlength="500" placeholder="https://"></label>
+    <div class="grid2">
+      <label for="o_contact_nom">Contact (privé)<input id="o_contact_nom" name="contact_nom" maxlength="120"></label>
+      <label for="o_contact_courriel">Courriel du contact<input id="o_contact_courriel" name="contact_courriel" maxlength="160"></label>
+      <label for="o_contact_tel">Téléphone du contact<input id="o_contact_tel" name="contact_tel" maxlength="30"></label>
+      <label for="o_statut">Statut<select id="o_statut" name="statut"><option value="en_attente">À valider</option><option value="publiee">Publiée</option><option value="archivee">Archivée</option></select></label>
+      <label for="o_verifie_le">Vérifiée le<input id="o_verifie_le" name="verifie_le" type="date"></label>
+    </div>
+    <label class="consent" for="o_confirme"><input type="checkbox" id="o_confirme" name="confirme"><span>L'employeur m'a confirmé qu'aucune expérience n'est exigée</span></label>
+    <label for="o_notes">Notes internes<textarea id="o_notes" name="notes_admin" maxlength="2000"></textarea></label>
+    <div class="actions"><button class="btn" type="submit">Enregistrer</button><button class="btn ghost" type="button" id="dlgCancel">Annuler</button></div>
+    <div id="dlgMsg" role="status"></div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+  const { HORAIRES, TYPES, VILLES, JOURS, esc, fmtDate } = PJ;
+  const $ = (s) => document.querySelector(s);
+  let sb, OFFRES = [], CANDS = [], tab = "en_attente", editId = null, editHoraires = new Set();
+  const TABS = [["en_attente","À valider"],["publiee","Publiées"],["archivee","Archivées"],["candidats","Candidats"],["jumelage","Jumelage"]];
+  const STATUT = { en_attente:"À valider", publiee:"Publiée", archivee:"Archivée" };
+
+  try { sb = PJ.client(); } catch (err) { $("#fatal").hidden = false; $("#fatal").textContent = PJ.configMessage(err); return; }
+
+  const dispoTxt = (d) => JOURS.map(([j,l]) => {
+    const p = ["jour","soir"].filter(x => (d || []).includes(j + "-" + x));
+    return p.length ? l + " " + p.join("+") : "";
+  }).filter(Boolean).join(", ");
+
+  // ---------- Connexion ----------
+  async function session(){
+    const { data } = await sb.auth.getSession();
+    if (!data.session) { $("#loginBox").hidden = false; $("#app").hidden = true; $("#logout").hidden = true; return; }
+    const { data: ok, error } = await sb.rpc("is_admin");
+    if (error || !ok) {
+      $("#loginBox").hidden = false; $("#app").hidden = true;
+      const m = $("#loginMsg"); m.className = "msg err"; m.textContent = "Ce compte n'est pas administrateur. Ajoute son courriel dans la table admins.";
+      await sb.auth.signOut(); return;
+    }
+    $("#loginBox").hidden = true; $("#app").hidden = false; $("#logout").hidden = false;
+    await charger();
+  }
+  $("#loginForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const m = $("#loginMsg");
+    const { error } = await sb.auth.signInWithPassword({ email: $("#lemail").value.trim(), password: $("#lpass").value });
+    if (error) { m.className = "msg err"; m.textContent = "Courriel ou mot de passe incorrect."; return; }
+    m.className = ""; m.textContent = ""; session();
+  });
+  $("#logout").addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); });
+
+  // ---------- Données ----------
+  async function charger(){
+    const [o, c] = await Promise.all([
+      sb.from("offres").select("*").order("created_at", { ascending:false }),
+      sb.from("candidats").select("*").order("created_at", { ascending:false })
+    ]);
+    if (o.error || c.error) { $("#fatal").hidden = false; $("#fatal").textContent = "Impossible de charger les données : " + (o.error || c.error).message; return; }
+    OFFRES = o.data; CANDS = c.data;
+    const semaine = Date.now() - 7 * 864e5;
+    $("#sAttente").textContent = OFFRES.filter(x => x.statut === "en_attente").length;
+    $("#sPub").textContent = OFFRES.filter(x => x.statut === "publiee").length;
+    $("#sCand").textContent = CANDS.filter(x => x.actif).length;
+    $("#sSemaine").textContent = CANDS.filter(x => new Date(x.created_at).getTime() > semaine).length;
+    renderTabs(); renderVue();
+  }
+
+  function renderTabs(){
+    const n = { en_attente:0, publiee:0, archivee:0 };
+    OFFRES.forEach(o => n[o.statut]++);
+    n.candidats = CANDS.length; n.jumelage = "";
+    $("#tabs").innerHTML = TABS.map(([k,l]) => `<button class="tab" role="tab" data-k="${k}" aria-selected="${k === tab}">${l}<span class="n">${n[k]}</span></button>`).join("");
+  }
+  $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (!b) return; tab = b.dataset.k; renderTabs(); renderVue(); });
+
+  function renderVue(){
+    const isOff = ["en_attente","publiee","archivee"].includes(tab);
+    $("#vOffres").hidden = !isOff; $("#vCand").hidden = tab !== "candidats"; $("#vMatch").hidden = tab !== "jumelage";
+    if (isOff) renderOffres();
+    if (tab === "candidats") renderCands();
+    if (tab === "jumelage") renderMatchSelect();
+  }
+
+  // ---------- Offres ----------
+  function renderOffres(){
+    const list = OFFRES.filter(o => o.statut === tab);
+    $("#offCount").textContent = list.length + " offre" + (list.length > 1 ? "s" : "") + " · " + STATUT[tab].toLowerCase();
+    $("#offList").innerHTML = list.length ? list.map(o => `
+      <article class="card" data-id="${o.id}">
+        <div class="ctop">
+          <div><h3>${esc(o.titre)}</h3><div class="emp">${esc(o.employeur)} · ${esc(o.ville)}${o.secteur ? " · " + esc(o.secteur) : ""}</div></div>
+          ${o.salaire ? `<div class="pay">${esc(o.salaire)}</div>` : ""}
+        </div>
+        <div class="tags">
+          ${o.confirme ? '<span class="tag ok">Confirmée sans expérience</span>' : '<span class="tag sx">À confirmer avec l\'employeur</span>'}
+          <span class="tag">${esc(o.type)}</span>
+          ${(o.horaires || []).map(h => `<span class="tag">${esc(HORAIRES[h] || h)}</span>`).join("")}
+          <span class="tag">${o.source === "employeur" ? "Soumise par l'employeur" : "Ajoutée par toi"}</span>
+        </div>
+        ${o.description ? `<div class="small">${esc(o.description)}</div>` : ""}
+        <div class="small">Contact : ${esc(o.contact_nom || "—")} · ${esc(o.contact_courriel || "—")} · ${esc(o.contact_tel || "—")}${o.verifie_le ? " · Vérifiée le " + fmtDate(o.verifie_le) : ""}</div>
+        ${o.notes_admin ? `<div class="small"><b>Notes :</b> ${esc(o.notes_admin)}</div>` : ""}
+        <div class="actions">
+          ${o.statut !== "publiee" ? '<button class="btn sm" data-a="publier">Publier</button>' : ""}
+          <button class="btn ghost sm" data-a="modifier">Modifier</button>
+          <button class="btn ghost sm" data-a="jumeler">Voir les candidats compatibles</button>
+          ${o.statut !== "archivee" ? '<button class="btn ghost sm" data-a="archiver">Archiver</button>' : ""}
+          <button class="btn danger sm" data-a="supprimer">Supprimer</button>
+        </div>
+      </article>`).join("") : '<div class="empty">Rien ici pour le moment.</div>';
+  }
+
+  $("#offList").addEventListener("click", async e => {
+    const b = e.target.closest("[data-a]"); if (!b) return;
+    const id = b.closest("[data-id]").dataset.id, o = OFFRES.find(x => x.id === id), a = b.dataset.a;
+    if (a === "modifier") return ouvrir(o);
+    if (a === "jumeler") { tab = "jumelage"; renderTabs(); renderVue(); $("#matchOffre").value = id; renderMatch(); return; }
+    if (a === "supprimer") { if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Confirmer la suppression"; return; } }
+    b.disabled = true;
+    let r;
+    if (a === "publier") r = await sb.from("offres").update({ statut:"publiee", verifie_le: o.verifie_le || PJ.today() }).eq("id", id);
+    if (a === "archiver") r = await sb.from("offres").update({ statut:"archivee" }).eq("id", id);
+    if (a === "supprimer") r = await sb.from("offres").delete().eq("id", id);
+    if (r && r.error) { b.disabled = false; b.textContent = "Erreur : " + r.error.message; return; }
+    charger();
+  });
+
+  // ---------- Dialogue d'édition ----------
+  VILLES.concat(["Autre"]).forEach(v => $("#o_ville").add(new Option(v, v)));
+  TYPES.forEach(t => $("#o_type").add(new Option(t, t)));
+  function ouvrir(o){
+    editId = o ? o.id : null;
+    const f = $("#offForm"); f.reset(); $("#dlgMsg").textContent = ""; $("#dlgMsg").className = "";
+    $("#dlgTitle").textContent = o ? "Modifier l'offre" : "Nouvelle offre";
+    ["titre","employeur","ville","secteur","type","salaire","description","lien","contact_nom","contact_courriel","contact_tel","statut","verifie_le","notes_admin"]
+      .forEach(k => { if (f[k]) f[k].value = o ? (o[k] ?? "") : ""; });
+    if (!o) { f.ville.value = VILLES[0]; f.type.value = TYPES[0]; f.statut.value = "publiee"; f.verifie_le.value = PJ.today(); }
+    f.confirme.checked = o ? !!o.confirme : false;
+    editHoraires = new Set(o ? o.horaires : []);
+    $("#o_horaires").innerHTML = "";
+    Object.entries(HORAIRES).forEach(([k,l]) => $("#o_horaires").appendChild(PJ.chip(l, editHoraires.has(k), b => {
+      editHoraires.has(k) ? editHoraires.delete(k) : editHoraires.add(k); b.setAttribute("aria-pressed", editHoraires.has(k));
+    })));
+    $("#dlg").showModal();
+  }
+  $("#newOffre").addEventListener("click", () => ouvrir(null));
+  $("#dlgCancel").addEventListener("click", () => $("#dlg").close());
+  $("#offForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.target, m = $("#dlgMsg"), v = (k) => f[k].value.trim() || null;
+    if (!v("titre") || !v("employeur")) { m.className = "msg err"; m.textContent = "Le titre et l'entreprise sont obligatoires."; return; }
+    if (v("lien") && !/^https?:\/\//i.test(v("lien"))) { m.className = "msg err"; m.textContent = "Le lien doit commencer par https://"; return; }
+    const row = { titre:v("titre"), employeur:v("employeur"), ville:f.ville.value, secteur:v("secteur"), type:f.type.value,
+      horaires:[...editHoraires], salaire:v("salaire"), description:v("description"), lien:v("lien"),
+      contact_nom:v("contact_nom"), contact_courriel:v("contact_courriel"), contact_tel:v("contact_tel"),
+      statut:f.statut.value, verifie_le:v("verifie_le"), confirme:f.confirme.checked, notes_admin:v("notes_admin") };
+    const r = editId ? await sb.from("offres").update(row).eq("id", editId) : await sb.from("offres").insert({ ...row, source:"admin" });
+    if (r.error) { m.className = "msg err"; m.textContent = "Erreur : " + r.error.message; return; }
+    $("#dlg").close(); tab = row.statut; charger();
+  });
+
+  // ---------- Candidats ----------
+  function renderCands(){
+    const q = $("#cq").value.trim().toLowerCase();
+    const list = CANDS.filter(c => !q || [c.prenom,c.courriel,c.domaine,c.etablissement,c.ville].join(" ").toLowerCase().includes(q));
+    $("#candTable").innerHTML = `<tr><th>Inscrit le</th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Domaine</th><th>Ville</th><th>Types</th><th>Disponibilités</th><th>Actif</th><th></th></tr>` +
+      (list.length ? list.map(c => `<tr data-id="${c.id}">
+        <td class="mono">${new Date(c.created_at).toLocaleDateString("fr-CA")}</td><td>${esc(c.prenom)}</td><td>${esc(c.courriel)}</td>
+        <td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}</td><td>${esc(c.domaine || "")}</td><td>${esc(c.ville || "")}</td>
+        <td>${esc((c.types || []).join(", "))}</td><td>${esc(dispoTxt(c.dispos))}</td>
+        <td><input type="checkbox" data-a="actif" aria-label="Actif" ${c.actif ? "checked" : ""}></td>
+        <td><button class="btn danger sm" data-a="suppr">Supprimer</button></td></tr>`).join("")
+      : `<tr><td colspan="11" class="small">Aucun candidat.</td></tr>`);
+  }
+  $("#cq").addEventListener("input", renderCands);
+  $("#candTable").addEventListener("click", async e => {
+    const el = e.target.closest("[data-a]"); if (!el) return;
+    const id = el.closest("[data-id]").dataset.id;
+    if (el.dataset.a === "actif") { const r = await sb.from("candidats").update({ actif: el.checked }).eq("id", id); if (r.error) el.checked = !el.checked; else charger(); }
+    if (el.dataset.a === "suppr") {
+      if (el.dataset.sure !== "1") { el.dataset.sure = "1"; el.textContent = "Confirmer"; return; }
+      const r = await sb.from("candidats").delete().eq("id", id); if (!r.error) charger();
+    }
+  });
+  $("#csv").addEventListener("click", () => {
+    const cols = ["created_at","prenom","courriel","telephone","etablissement","domaine","ville","types","dispos","actif"];
+    const cell = (x) => '"' + String(Array.isArray(x) ? x.join(" ") : (x ?? "")).replace(/"/g, '""') + '"';
+    const csv = "﻿" + cols.join(";") + "\n" + CANDS.map(c => cols.map(k => cell(c[k])).join(";")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8" }));
+    a.download = "candidats-premierjob-" + PJ.today() + ".csv"; a.click();
+  });
+
+  // ---------- Jumelage ----------
+  function renderMatchSelect(){
+    const s = $("#matchOffre"), cur = s.value;
+    const offres = OFFRES.filter(o => o.statut !== "archivee");
+    s.innerHTML = offres.length ? offres.map(o => `<option value="${o.id}">${esc(o.titre)} · ${esc(o.employeur)} (${STATUT[o.statut]})</option>`).join("") : "<option value=''>Aucune offre active</option>";
+    if (cur && offres.some(o => o.id === cur)) s.value = cur;
+    renderMatch();
+  }
+  $("#matchOffre").addEventListener("change", renderMatch);
+  function renderMatch(){
+    const o = OFFRES.find(x => x.id === $("#matchOffre").value);
+    if (!o) { $("#matchTable").innerHTML = ""; $("#matchInfo").textContent = ""; return; }
+    const res = CANDS.filter(c => c.actif).map(c => ({ c, m: PJ.jumeler(o, c) })).filter(x => x.m.communs.length > 0).sort((a,b) => b.m.score - a.m.score);
+    $("#matchInfo").textContent = `${res.length} candidat${res.length > 1 ? "s" : ""} disponible${res.length > 1 ? "s" : ""} pendant les horaires de ce poste (${(o.horaires || []).map(h => HORAIRES[h]).join(", ") || "aucun horaire indiqué"}). Les mieux placés sont en haut.`;
+    $("#matchTable").innerHTML = `<tr><th></th><th>Prénom</th><th>Courriel</th><th>Téléphone</th><th>Établissement</th><th>Créneaux communs</th><th>Compatibilité</th></tr>` +
+      (res.length ? res.map(({c,m}, i) => `<tr>
+        <td><input type="checkbox" class="pick" value="${esc(c.courriel)}" aria-label="Sélectionner ${esc(c.prenom)}" ${i < 5 ? "checked" : ""}></td>
+        <td>${esc(c.prenom)}</td><td>${esc(c.courriel)}</td><td class="mono">${esc(c.telephone || "")}</td><td>${esc(c.etablissement || "")}${c.domaine ? " · " + esc(c.domaine) : ""}</td>
+        <td><span class="mono">${m.communs.length}</span> · ${esc(dispoTxt(m.communs))}</td>
+        <td class="tags">${m.typeOk ? '<span class="tag ok">Type OK</span>' : '<span class="tag bad">Autre type</span>'}${m.villeOk ? '<span class="tag ok">Ville OK</span>' : '<span class="tag bad">Autre ville</span>'}</td></tr>`).join("")
+      : `<tr><td colspan="7" class="small">Aucun candidat actif n'est disponible pendant ces horaires.</td></tr>`);
+  }
+  $("#copyEmails").addEventListener("click", async () => {
+    const emails = [...document.querySelectorAll(".pick:checked")].map(x => x.value);
+    const m = $("#copyMsg");
+    if (!emails.length) { m.textContent = "Sélectionne au moins un candidat."; return; }
+    try { await navigator.clipboard.writeText(emails.join(", ")); m.textContent = emails.length + " courriel(s) copiés. Mets-les en copie cachée (Cci)."; }
+    catch (e) { m.textContent = emails.join(", "); }
+  });
+
+  sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") { $("#app").hidden = true; $("#loginBox").hidden = false; } });
+  session();
+})();
+</script>
+</body>
+</html>

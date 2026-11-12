@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Afficher une offre · PremierJob Saguenay</title>
+<meta name="description" content="Employeurs du Saguenay : affichez gratuitement un poste ouvert aux débutants.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="wrap topnav">
+  <a class="brand" href="index.html">PremierJob · Saguenay</a>
+  <nav class="navlinks"><a href="index.html">Voir les offres</a></nav>
+</div>
+<header class="wrap hero">
+  <h1>Affichez gratuitement un poste ouvert aux débutants</h1>
+  <p class="lead">Les étudiants de Jonquière, Chicoutimi et La Baie inscrivent leurs disponibilités. Vous recevez des candidats qui peuvent réellement travailler aux heures de vos quarts.</p>
+</header>
+<main class="wrap">
+  <section class="block">
+    <form id="form" novalidate>
+      <div class="hp" aria-hidden="true"><label for="site_web">Ne pas remplir<input type="text" id="site_web" name="site_web" tabindex="-1" autocomplete="off"></label></div>
+      <h2>Le poste</h2>
+      <div class="grid2">
+        <label for="titre">Titre du poste<input type="text" id="titre" name="titre" required maxlength="120" placeholder="Ex. : Commis de cuisine"></label>
+        <label for="employeur">Nom de l'entreprise<input type="text" id="employeur" name="employeur" required maxlength="120"></label>
+        <label for="ville">Ville<select id="ville" name="ville"></select></label>
+        <label for="secteur">Secteur<input type="text" id="secteur" name="secteur" maxlength="80" placeholder="Ex. : Restauration"></label>
+        <label for="type">Type<select id="type" name="type"></select></label>
+        <label for="salaire">Salaire<input type="text" id="salaire" name="salaire" maxlength="40" placeholder="Ex. : 17,50 $/h"></label>
+      </div>
+      <fieldset><legend>Horaires du poste</legend><div class="frow" id="horaires"></div></fieldset>
+      <label for="description">Description courte (tâches, formation offerte, nombre d'heures)<textarea id="description" name="description" maxlength="1500"></textarea></label>
+      <label for="lien">Lien vers l'offre complète (facultatif)<input type="url" id="lien" name="lien" maxlength="500" placeholder="https://"></label>
+      <h2>Vos coordonnées</h2>
+      <p class="small">Elles ne sont jamais affichées publiquement. Elles servent à vérifier l'offre avec vous et à vous présenter des candidats.</p>
+      <div class="grid2">
+        <label for="contact_nom">Votre nom<input type="text" id="contact_nom" name="contact_nom" required maxlength="120" autocomplete="name"></label>
+        <label for="contact_courriel">Courriel<input type="email" id="contact_courriel" name="contact_courriel" required maxlength="160" autocomplete="email"></label>
+        <label for="contact_tel">Téléphone<input type="tel" id="contact_tel" name="contact_tel" maxlength="30" autocomplete="tel"></label>
+      </div>
+      <label class="consent" for="engagement"><input type="checkbox" id="engagement" required>
+        <span>Je confirme que ce poste n'exige aucune expérience préalable et que nous nous engageons à répondre aux candidats que PremierJob nous présente.</span>
+      </label>
+      <div><button class="btn" type="submit" id="submitBtn">Envoyer l'offre</button></div>
+      <div id="formMsg" role="status"></div>
+    </form>
+  </section>
+  <p class="small">Votre offre est vérifiée avant sa mise en ligne, généralement en moins de 48 heures.</p>
+</main>
+<footer class="wrap">PremierJob est un projet étudiant en phase de test au Saguenay.</footer>
+<script>
+(function(){
+  const $ = (s) => document.querySelector(s);
+  PJ.VILLES.concat(["Autre"]).forEach(v => $("#ville").add(new Option(v, v)));
+  PJ.TYPES.forEach(t => $("#type").add(new Option(t, t)));
+  const horaires = new Set();
+  Object.entries(PJ.HORAIRES).forEach(([k,l]) => $("#horaires").appendChild(PJ.chip(l, false, b => {
+    horaires.has(k) ? horaires.delete(k) : horaires.add(k);
+    b.setAttribute("aria-pressed", horaires.has(k));
+  })));
+
+  $("#form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.target, msg = $("#formMsg"), btn = $("#submitBtn");
+    const say = (cls, t) => { msg.className = "msg " + cls; msg.textContent = t; };
+    if (f.site_web.value) return say("ok", "Merci! Votre offre a été reçue.");
+    const v = (n) => f[n].value.trim();
+    if (v("titre").length < 3 || v("employeur").length < 2 || !v("contact_nom")) return say("err", "Remplissez le titre du poste, le nom de l'entreprise et votre nom.");
+    if (!/^\S+@\S+\.\S+$/.test(v("contact_courriel"))) return say("err", "Entrez un courriel valide pour qu'on puisse vous joindre.");
+    if (horaires.size === 0) return say("err", "Choisissez au moins un horaire pour le poste.");
+    if (v("lien") && !/^https?:\/\//i.test(v("lien"))) return say("err", "Le lien doit commencer par https://");
+    if (!$("#engagement").checked) return say("err", "Cochez la confirmation pour envoyer l'offre.");
+    const row = {
+      titre:v("titre"), employeur:v("employeur"), ville:f.ville.value, secteur:v("secteur") || null, type:f.type.value,
+      horaires:[...horaires], salaire:v("salaire") || null, description:v("description") || null, lien:v("lien") || null,
+      contact_nom:v("contact_nom"), contact_courriel:v("contact_courriel"), contact_tel:v("contact_tel") || null
+    };
+    btn.disabled = true;
+    try {
+      const { error } = await PJ.client().from("offres").insert(row);
+      if (error) throw error;
+      say("ok", "Merci! Votre offre a été reçue. Nous vous contactons pour la vérifier avant sa mise en ligne.");
+      PJ.track("offre-employeur");
+      f.reset(); horaires.clear();
+      document.querySelectorAll("#horaires .chip").forEach(b => b.setAttribute("aria-pressed","false"));
+    } catch (err) {
+      say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err) : "L'envoi n'a pas fonctionné. Vérifiez vos réponses et réessayez.");
+    } finally { btn.disabled = false; }
+  });
+})();
+</script>
+</body>
+</html>

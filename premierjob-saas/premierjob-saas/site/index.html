@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PremierJob Saguenay</title>
+<meta name="description" content="Des emplois vérifiés, vraiment ouverts aux débutants, avec les horaires indiqués. Jonquière, Chicoutimi, La Baie.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+</head>
+<body>
+<div class="wrap topnav">
+  <a class="brand" href="index.html">PremierJob · Saguenay</a>
+  <nav class="navlinks"><a href="#inscription">M'inscrire</a><a href="employeur.html">Employeurs</a></nav>
+</div>
+<header class="wrap hero">
+  <h1>Des jobs vraiment ouverts aux débutants, avec l'horaire écrit noir sur blanc</h1>
+  <p class="lead">Chaque offre est vérifiée à la main : aucune expérience exigée, et les horaires sont indiqués pour que tu saches tout de suite si ça fonctionne avec tes cours.</p>
+  <div class="stats">
+    <span class="stat"><b id="nbOffres">–</b> offres vérifiées</span>
+    <span class="stat"><b id="nbConf">–</b> confirmées par l'employeur</span>
+    <span class="stat">Jonquière · Chicoutimi · La Baie</span>
+  </div>
+</header>
+
+<div class="filters" role="search">
+  <div class="wrap">
+    <div class="frow">
+      <input type="search" id="q" placeholder="Chercher un poste, un secteur…" aria-label="Chercher une offre">
+      <select id="ville" aria-label="Ville"><option value="">Toutes les villes</option></select>
+    </div>
+    <div class="frow" id="fHoraire"><span class="flabel">Horaire</span></div>
+    <div class="frow" id="fType"><span class="flabel">Type</span></div>
+  </div>
+</div>
+
+<main class="wrap">
+  <p class="count" id="count" aria-live="polite">Chargement des offres…</p>
+  <div class="list" id="list"></div>
+
+  <section class="block" id="inscription">
+    <h2>Reçois les offres qui fonctionnent avec ton horaire</h2>
+    <p class="small">Indique quand tu es disponible. On t'envoie seulement les offres qui correspondent. C'est gratuit.</p>
+    <form id="form" novalidate>
+      <div class="hp" aria-hidden="true"><label for="site_web">Ne pas remplir<input type="text" id="site_web" name="site_web" tabindex="-1" autocomplete="off"></label></div>
+      <div class="grid2">
+        <label for="prenom">Prénom<input type="text" id="prenom" name="prenom" required maxlength="60" autocomplete="given-name"></label>
+        <label for="courriel">Courriel<input type="email" id="courriel" name="courriel" required maxlength="160" autocomplete="email"></label>
+        <label for="telephone">Téléphone (facultatif)<input type="tel" id="telephone" name="telephone" maxlength="30" autocomplete="tel"></label>
+        <label for="etablissement">Établissement<select id="etablissement" name="etablissement"></select></label>
+        <label for="domaine">Programme ou domaine<input type="text" id="domaine" name="domaine" maxlength="120" placeholder="Ex. : informatique, soins infirmiers"></label>
+        <label for="villeF">Ville souhaitée<select id="villeF" name="ville"><option>Peu importe</option></select></label>
+      </div>
+      <fieldset><legend>Type d'emploi recherché</legend><div class="frow" id="typeF"></div></fieldset>
+      <fieldset><legend>Tes disponibilités (touche les cases)</legend><div class="avail"><table id="avail" aria-label="Grille de disponibilités"></table></div></fieldset>
+      <label class="consent" for="consent"><input type="checkbox" id="consent" required>
+        <span>J'accepte que PremierJob conserve ces renseignements pour m'envoyer des offres et, avec mon accord à chaque fois, présenter mon profil à un employeur. Je peux demander leur suppression en tout temps. <a href="#confidentialite">Politique de confidentialité</a></span>
+      </label>
+      <div><button class="btn" type="submit" id="submitBtn">M'inscrire</button></div>
+      <div id="formMsg" role="status"></div>
+    </form>
+  </section>
+
+  <section class="block" id="confidentialite">
+    <h2>Confidentialité (Loi 25)</h2>
+    <p class="small">Renseignements recueillis : prénom, courriel, téléphone facultatif, établissement, domaine, ville, type d'emploi et disponibilités. Ils servent seulement à t'envoyer des offres et, si tu l'acceptes au cas par cas, à transmettre ton profil à un employeur. Ils ne sont jamais vendus et sont hébergés chez Supabase. Pour les consulter, les corriger ou les supprimer, écris au responsable de la protection des renseignements personnels : <strong id="respTxt"></strong>.</p>
+  </section>
+</main>
+<footer class="wrap">PremierJob est un projet étudiant en phase de test au Saguenay. Les offres renvoient vers l'annonce originale de l'employeur.</footer>
+
+<script>
+(function(){
+  const { HORAIRES, TYPES, VILLES, ETABLISSEMENTS, esc, fmtDate, safeUrl } = PJ;
+  const $ = (s) => document.querySelector(s);
+  const state = { q:"", ville:"", horaires:new Set(), type:"" };
+  let OFFRES = [];
+
+  $("#respTxt").textContent = (window.PJ_CONFIG || {}).responsable || "";
+  VILLES.forEach(v => { $("#ville").add(new Option(v, v)); $("#villeF").add(new Option(v, v)); });
+  ETABLISSEMENTS.forEach(e => $("#etablissement").add(new Option(e, e)));
+
+  // Filtres
+  Object.entries(HORAIRES).forEach(([k,l]) => $("#fHoraire").appendChild(PJ.chip(l, false, b => {
+    state.horaires.has(k) ? state.horaires.delete(k) : state.horaires.add(k);
+    b.setAttribute("aria-pressed", state.horaires.has(k)); render();
+  })));
+  const typeBtns = TYPES.map(t => PJ.chip(t, false, () => {
+    state.type = state.type === t ? "" : t;
+    typeBtns.forEach(x => x.setAttribute("aria-pressed", x.textContent === state.type)); render();
+  }));
+  typeBtns.forEach(b => $("#fType").appendChild(b));
+  $("#q").addEventListener("input", e => { state.q = e.target.value; render(); });
+  $("#ville").addEventListener("change", e => { state.ville = e.target.value; render(); });
+  $("#list").addEventListener("click", e => { const a = e.target.closest("a[data-id]"); if (a) PJ.track("clic-offre/" + a.dataset.id); });
+
+  function render(){
+    const q = state.q.trim().toLowerCase();
+    const res = OFFRES.filter(o =>
+      (!state.ville || o.ville === state.ville) &&
+      (!state.type || o.type === state.type) &&
+      (state.horaires.size === 0 || (o.horaires || []).some(h => state.horaires.has(h))) &&
+      (!q || [o.titre,o.employeur,o.secteur,o.description].join(" ").toLowerCase().includes(q))
+    );
+    $("#count").textContent = res.length + (res.length > 1 ? " offres correspondent" : " offre correspond");
+    $("#list").innerHTML = res.length ? res.map(o => {
+      const lien = safeUrl(o.lien);
+      return `<article class="card">
+        <div class="ctop">
+          <div><h3>${esc(o.titre)}</h3><div class="emp">${esc(o.employeur)} · ${esc(o.ville)}${o.secteur ? " · " + esc(o.secteur) : ""}</div></div>
+          ${o.salaire ? `<div class="pay">${esc(o.salaire)}</div>` : ""}
+        </div>
+        <div class="tags">
+          ${o.confirme ? '<span class="tag ok">Sans expérience · confirmé par l\'employeur</span>' : '<span class="tag sx">Sans expérience selon l\'offre</span>'}
+          <span class="tag">${esc(o.type)}</span>
+          ${(o.horaires || []).map(h => `<span class="tag">${esc(HORAIRES[h] || h)}</span>`).join("")}
+        </div>
+        ${o.description ? `<div class="small">${esc(o.description)}</div>` : ""}
+        <div class="cbottom">
+          <span>${o.verifie_le ? "Vérifiée le " + fmtDate(o.verifie_le) : ""}</span>
+          ${lien ? `<a class="btn ghost" href="${esc(lien)}" target="_blank" rel="noopener" data-id="${esc(o.id)}">Voir l'offre</a>` : ""}
+        </div>
+      </article>`;
+    }).join("") : '<div class="empty">Aucune offre pour ces filtres pour l\'instant. Inscris-toi plus bas pour être averti dès qu\'il y en a une.</div>';
+  }
+
+  async function charger(){
+    try {
+      const { data, error } = await PJ.client().from("offres").select(PJ.OFFRE_PUBLIQUE)
+        .eq("statut","publiee").order("verifie_le", { ascending:false, nullsFirst:false });
+      if (error) throw error;
+      OFFRES = data || [];
+      $("#nbOffres").textContent = OFFRES.length;
+      $("#nbConf").textContent = OFFRES.filter(o => o.confirme).length;
+      render();
+    } catch (err) {
+      $("#count").textContent = "";
+      $("#list").innerHTML = `<div class="empty">${esc(PJ.configMessage(err))}</div>`;
+    }
+  }
+
+  // Inscription
+  const typesChoisis = new Set();
+  TYPES.forEach(t => $("#typeF").appendChild(PJ.chip(t, false, b => {
+    typesChoisis.has(t) ? typesChoisis.delete(t) : typesChoisis.add(t);
+    b.setAttribute("aria-pressed", typesChoisis.has(t));
+  })));
+  let dispo = PJ.grilleDispos($("#avail"));
+
+  $("#form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.target, msg = $("#formMsg"), btn = $("#submitBtn");
+    const say = (cls, t) => { msg.className = "msg " + cls; msg.textContent = t; };
+    if (f.site_web.value) { say("ok", "Merci! Ton inscription est enregistrée."); return; } // robot
+    if (!f.prenom.value.trim() || !/^\S+@\S+\.\S+$/.test(f.courriel.value.trim())) return say("err", "Entre ton prénom et un courriel valide.");
+    if (dispo.size === 0) return say("err", "Coche au moins une case de disponibilité.");
+    if (!$("#consent").checked) return say("err", "Coche la case de consentement pour t'inscrire.");
+    const row = {
+      prenom: f.prenom.value.trim(), courriel: f.courriel.value.trim(), telephone: f.telephone.value.trim() || null,
+      etablissement: f.etablissement.value, domaine: f.domaine.value.trim() || null, ville: f.ville.value,
+      types: [...typesChoisis], dispos: [...dispo], consentement: true
+    };
+    btn.disabled = true;
+    try {
+      const { error } = await PJ.client().from("candidats").insert(row);
+      if (error) {
+        if (error.code === "23505") return say("info", "Ce courriel est déjà inscrit. Pour modifier tes disponibilités, écris-nous.");
+        throw error;
+      }
+      say("ok", `Merci ${row.prenom}! Tu recevras les offres qui correspondent à ton horaire.`);
+      PJ.track("inscription");
+      f.reset(); typesChoisis.clear();
+      document.querySelectorAll("#typeF .chip").forEach(b => b.setAttribute("aria-pressed","false"));
+      dispo = PJ.grilleDispos($("#avail"));
+    } catch (err) {
+      say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err) : "L'inscription n'a pas fonctionné. Vérifie tes réponses et réessaie.");
+    } finally { btn.disabled = false; }
+  });
+
+  charger();
+})();
+</script>
+</body>
+</html>
