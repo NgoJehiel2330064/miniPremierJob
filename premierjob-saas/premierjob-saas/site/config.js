@@ -10,5 +10,5 @@ window.PJ_CONFIG = {
   responsable: "Jehiel, fondateur de PremierJob (ngoumdjeuj@gmail.com)",
   // Statistiques (facultatif) : crée un compte gratuit sur goatcounter.com
   // et mets ici ton code, ex. "premierjob" pour premierjob.goatcounter.com
-  goatcounter: ""
+  goatcounter: "premierjob"
 };
