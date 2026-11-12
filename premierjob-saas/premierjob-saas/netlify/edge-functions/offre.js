@@ -4,8 +4,8 @@
 // puis redirige la personne vers l'offre sur le site.
 // Utilise seulement la clé publique : le public ne lit que les offres publiées.
 
-const SUPABASE_URL = "https://zgmyybminggblctvfiif.supabase.co";
-const CLE_PUBLIQUE = "sb_publishable_ku6QPwWlvrecBA9zffSirw_e7sLtjvi";
+const SUPABASE_URL = "https://hejkousthfnfckblwkqw.supabase.co";
+const CLE_PUBLIQUE = "sb_publishable_rgYHtZv4yq6S39nzOAhVKQ_RptFXlad";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 

@@ -4,8 +4,8 @@
 // La clé anon est faite pour être publique : la sécurité vient des règles RLS.
 // =====================================================================
 window.PJ_CONFIG = {
-  supabaseUrl: "https://zgmyybminggblctvfiif.supabase.co",
-  supabaseAnonKey: "sb_publishable_ku6QPwWlvrecBA9zffSirw_e7sLtjvi",
+  supabaseUrl: "https://hejkousthfnfckblwkqw.supabase.co",
+  supabaseAnonKey: "sb_publishable_rgYHtZv4yq6S39nzOAhVKQ_RptFXlad",
   contactEmail: "premierjob.ca@gmail.com",
   responsable: "l'équipe PremierJob (premierjob.ca@gmail.com)",
   // Statistiques (facultatif) : crée un compte gratuit sur goatcounter.com

@@ -145,5 +145,5 @@ create policy "admin se voit" on public.admins
 
 -- ---------- À FAIRE UNE FOIS : ton courriel d'admin ----------
 -- Remplace l'adresse ci-dessous par celle de ton compte admin, puis exécute.
-insert into public.admins (email) values ('ngoumdjeuj@gmail.com')
+insert into public.admins (email) values ('premierjob.ca@gmail.com')
   on conflict (email) do nothing;
