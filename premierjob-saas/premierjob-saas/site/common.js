@@ -27,7 +27,7 @@
     return r;
   }
   // Colonnes que le public a le droit de lire (voir schema.sql).
-  const OFFRE_PUBLIQUE = "id,titre,employeur,ville,secteur,type,horaires,salaire,description,lien,confirme,statut,verifie_le";
+  const OFFRE_PUBLIQUE = "id,titre,employeur,ville,lieu,secteur,type,horaires,salaire,description,lien,confirme,statut,verifie_le,publiee_le,date_debut,qualification,nb_postes,creneaux_obligatoires,creneaux_souhaites";
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmtDate = (d) => (d ? new Date(d + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" }) : "");
@@ -96,7 +96,7 @@
         const td = document.createElement("td");
         const b = document.createElement("button");
         b.type = "button";
-        b.className = "slot";
+        b.className = "slot"; b.dataset.k = k;
         b.setAttribute("aria-label", `${jl} ${pl.toLowerCase()}`);
         const sync = () => { const on = dispo.has(k); b.setAttribute("aria-pressed", on ? "true" : "false"); b.textContent = on ? "✓" : ""; };
         b.addEventListener("click", () => { dispo.has(k) ? dispo.delete(k) : dispo.add(k); sync(); });
@@ -143,6 +143,97 @@
     return chemin;
   }
 
+
+  // ----- Règle « aucune expérience exigée » (miroir de pj_experience_exigee côté base) -----
+  const PAT_EXIGE = [
+    /((\d+|un|une|deux|trois|quatre|cinq|six)\s*\+?\s*(an|ans|année|années|annee|annees|mois)\s+(minimum\s+|au moins\s+)?(d'|d\s+|de\s+)?\s*(exp[eé]rience|exp(?![\p{L}])))/u,
+    /(exp[eé]rience\s+(de\s+|d'|minimum\s+|minimale\s+de\s+|d'au moins\s+|d'un minimum de\s+)?(\d+|un|une|deux|trois|quatre|cinq|six)\s*(an|ans|année|années|annee|annees|mois)(?![\p{L}]))/u,
+    /((?<!aucune )(?<!sans )(?<!pas d')(?<!pas de )exp[eé]rience\s+((professionnelle|pr[eé]alable|pertinente|minimale|similaire|dans le domaine|en [\p{L}_]+)\s+)?(obligatoire|exig[eé]e|essentielle|indispensable))/u,
+    /(\d+\s*\+?\s*(years?|yrs?)\s+(of\s+)?(relevant\s+)?experience)/u
+  ];
+  const norm = (t) => String(t || "").toLowerCase().replace(/’/g, "'");
+  function experienceExigee(t) {
+    const s = norm(t);
+    for (const p of PAT_EXIGE) { const m = s.match(p); if (m) return m[1]; }
+    return null;
+  }
+  function experienceMentionnee(t) {
+    let s = norm(t);
+    s = s.replace(/(aucune|sans|pas d'|pas de)\s*([\p{L}_]+\s+)?exp[eé]rience(\s+(professionnelle|pr[eé]alable|requise|exig[eé]e|n[eé]cessaire|obligatoire))*/gu, " ");
+    s = s.replace(/exp[eé]rience\s+(non|pas)\s+(requise|exig[eé]e|n[eé]cessaire|obligatoire)/gu, " ");
+    s = s.replace(/no experience( required| needed)?/g, " ");
+    return /(exp[eé]rience|experience)/.test(s);
+  }
+  // Message lisible pour les erreurs renvoyées par la base (codes PJ_…)
+  function messageErreur(err, defaut) {
+    const m = (err && err.message) || "";
+    const pj = m.match(/PJ_[A-Z]+:\s*(.*)$/);
+    if (pj) return pj[1];
+    if (err && err.code === "23505") return "Cette information existe déjà.";
+    if (/Failed to fetch|NetworkError|network/i.test(m)) return "Pas de connexion Internet. Vérifie ton réseau, puis réessaie : rien n'a été perdu.";
+    return defaut || "Une erreur est survenue. Réessaie dans un moment.";
+  }
+
+  // ----- Statuts -----
+  const OFFRE_STATUTS = { pending: "À valider", published: "Publiée", paused: "Suspendue", closed: "Fermée", rejected: "Refusée" };
+  const CAND_STATUTS = { received: "Reçue", forwarded: "Transmise", interview: "Entrevue", hired: "Embauché", rejected: "Non retenue", withdrawn: "Retirée" };
+
+  // ----- Horaires du poste : grille à 3 états (vide → Requis → Idéal → vide) -----
+  function grilleOffre(table, oblig, souh) {
+    const O = new Set(oblig || []), S = new Set(souh || []);
+    table.innerHTML = "<tr><th></th>" + JOURS.map(([, l]) => `<th scope="col">${l}</th>`).join("") + "</tr>";
+    PERIODES.forEach(([p, pl]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<th scope="row">${pl}</th>`;
+      JOURS.forEach(([j, jl]) => {
+        const k = j + "-" + p, td = document.createElement("td"), b = document.createElement("button");
+        b.type = "button"; b.className = "slot";
+        const sync = () => {
+          const etat = O.has(k) ? "req" : S.has(k) ? "ideal" : "";
+          b.dataset.etat = etat; b.setAttribute("aria-pressed", etat ? "true" : "false");
+          b.textContent = etat === "req" ? "R" : etat === "ideal" ? "I" : "";
+          b.setAttribute("aria-label", `${jl} ${pl.toLowerCase()} : ${etat === "req" ? "requis" : etat === "ideal" ? "idéal" : "non travaillé"}`);
+        };
+        b.addEventListener("click", () => {
+          if (O.has(k)) { O.delete(k); S.add(k); } else if (S.has(k)) { S.delete(k); } else { O.add(k); }
+          sync();
+        });
+        sync(); td.appendChild(b); tr.appendChild(td);
+      });
+      table.appendChild(tr);
+    });
+    return { O, S };
+  }
+  // Grille en lecture seule (page publique, dossier admin)
+  function grilleLecture(oblig, souh, dispos) {
+    const O = new Set(oblig || []), S = new Set(souh || []), D = dispos ? new Set(dispos) : null;
+    if (!O.size && !S.size) return "";
+    const lignes = PERIODES.filter(([p]) => JOURS.some(([j]) => O.has(j + "-" + p) || S.has(j + "-" + p)));
+    return `<table class="glect"><tr><th></th>${JOURS.map(([, l]) => `<th>${l}</th>`).join("")}</tr>` +
+      lignes.map(([p, pl]) => `<tr><th>${pl}</th>${JOURS.map(([j]) => {
+        const k = j + "-" + p, e = O.has(k) ? "req" : S.has(k) ? "ideal" : "";
+        const manque = D && e === "req" && !D.has(k) ? " manque" : "";
+        return `<td><span class="g ${e}${manque}">${e === "req" ? "R" : e === "ideal" ? "I" : ""}</span></td>`;
+      }).join("")}</tr>`).join("") + "</table>";
+  }
+
+  // ----- Jumelage (règles simples, l'admin garde la décision) -----
+  function jumelerV2(offre, cand) {
+    const D = new Set(cand.dispos || []);
+    let O = offre.creneaux_obligatoires || [], S = offre.creneaux_souhaites || [];
+    if (!O.length && !S.length) S = [...creneauxOffre(offre.horaires)];
+    const manquants = O.filter((k) => !D.has(k));
+    const couverts = S.filter((k) => D.has(k)).length + (O.length - manquants.length);
+    const aucuneDispo = D.size === 0;
+    const compatible = !aucuneDispo && manquants.length === 0 && (O.length > 0 || couverts > 0);
+    const villeOk = !cand.ville || cand.ville === "Peu importe" || cand.ville === offre.ville;
+    const deplacement = !villeOk && cand.transport === "pied-velo" ? "Autre ville et sans auto : déplacement à vérifier" : !villeOk ? "Habite une autre ville" : "";
+    const typeOk = !cand.types || !cand.types.length || cand.types.includes(offre.type);
+    return { compatible, aucuneDispo, manquants, couverts, villeOk, deplacement, typeOk,
+             score: (compatible ? 100 : 0) + couverts * 2 + (villeOk ? 5 : 0) + (typeOk ? 3 : 0) - manquants.length * 10 };
+  }
+  const nomCreneau = (k) => { const [j, p] = k.split("-"); const jl = (JOURS.find((x) => x[0] === j) || [, j])[1]; const pl = (PERIODES.find((x) => x[0] === p) || [, p])[1]; return jl + " " + pl.toLowerCase(); };
+
   // Statistiques GoatCounter : chargées seulement si un code est configuré (pas sur la page admin).
   (function chargerStats() {
     const code = (window.PJ_CONFIG || {}).goatcounter;
@@ -153,5 +244,5 @@
     document.head.appendChild(s);
   })();
 
-  window.PJ = { verifierCV, deposerCV, HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
+  window.PJ = { experienceExigee, experienceMentionnee, messageErreur, OFFRE_STATUTS, CAND_STATUTS, grilleOffre, grilleLecture, jumelerV2, nomCreneau, uuid, verifierCV, deposerCV, HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
 })();

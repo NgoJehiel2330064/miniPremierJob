@@ -283,3 +283,46 @@ table.data select{min-width:130px;padding:8px 10px}
 dialog{border:1px solid var(--line-2);border-radius:18px;background:var(--panel-solid);color:var(--ink);padding:22px;width:min(720px,94vw);max-height:90vh}
 @media (max-width:640px){dialog{width:100%;max-width:100%;margin:auto 0 0;border-radius:20px 20px 0 0;max-height:92vh;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}}
 dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(4px)}
+
+/* ---------- Règle sans expérience, quarts du poste, jumelage ---------- */
+.regle{margin:0;padding:12px 14px;border-radius:10px;font-size:13.5px;color:var(--muted);background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.regle b{color:var(--ink)}
+.slot[data-etat="req"]{background:#f4f4f5;border-color:transparent;color:#0b0b0c}
+.slot[data-etat="ideal"]{background:rgba(255,179,71,.18);border-color:rgba(255,179,71,.55);color:#ffd59e}
+.g{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 4px;border-radius:5px;font:600 11px/1 var(--sans);color:var(--dim);border:1px solid var(--line)}
+.g.req{background:#f4f4f5;color:#0b0b0c;border-color:transparent}
+.g.ideal{background:rgba(255,179,71,.18);color:#ffd59e;border-color:rgba(255,179,71,.5)}
+.g.manque{background:rgba(248,113,113,.18);color:var(--danger);border-color:rgba(248,113,113,.5)}
+.glect{border-collapse:separate;border-spacing:3px;font-size:11.5px;width:auto;justify-self:start}
+.glect th{font-weight:500;color:var(--dim);padding:0 2px;text-align:center}
+.glect th:first-child{text-align:left;padding-right:6px}
+.glect td{padding:0;text-align:center}
+.avail .slot.requis-offre{box-shadow:0 0 0 2px rgba(255,255,255,.55)}
+.fit{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px}
+.fit.ok{color:var(--go);background:rgba(74,222,128,.1)}
+.fit.no{color:var(--danger);background:rgba(248,113,113,.1)}
+.fit.mid{color:var(--warn);background:rgba(250,204,21,.08)}
+.alerte{padding:10px 12px;border-radius:10px;font-size:13px}
+.alerte.forte{background:rgba(248,113,113,.1);color:var(--danger);box-shadow:inset 0 0 0 1px rgba(248,113,113,.35)}
+.alerte.douce{background:rgba(250,204,21,.08);color:var(--warn);box-shadow:inset 0 0 0 1px rgba(250,204,21,.25)}
+/* Admin : tuiles, à faire, dossier */
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:6px 0 18px}
+.tile{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 14px;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.tile b{display:block;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.tile span{font-size:12.5px;color:var(--muted)}
+.tile.hot b{color:var(--accent)}
+@media (min-width:900px){.tiles{grid-template-columns:repeat(6,1fr)}}
+.todo{display:grid;gap:8px}
+.todo-item{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02);padding:12px 14px}
+.todo-item .t{font-weight:600}
+.todo-item .s{font-size:13px;color:var(--muted)}
+.sec-t{font-size:13px;font-weight:600;color:var(--muted);margin:22px 0 10px}
+.pill-st{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;border:1px solid var(--line-2);color:var(--muted);white-space:nowrap}
+.pill-st.pending,.pill-st.received{color:var(--warn);border-color:rgba(250,204,21,.35)}
+.pill-st.published,.pill-st.hired{color:var(--go);border-color:rgba(74,222,128,.35)}
+.pill-st.forwarded,.pill-st.interview{color:#93c5fd;border-color:rgba(147,197,253,.35)}
+.pill-st.rejected,.pill-st.withdrawn,.pill-st.closed,.pill-st.paused{color:var(--dim)}
+.cand{display:grid;gap:8px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:rgba(255,255,255,.02)}
+.cand-top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.cand input[type=checkbox]{margin-top:3px}
+textarea.mail{min-height:220px;font:13px/1.5 var(--mono)}

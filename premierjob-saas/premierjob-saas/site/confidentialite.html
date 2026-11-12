@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07080a">
+<title>Confidentialité · PremierJob Saguenay</title>
+<meta name="description" content="Comment PremierJob recueille, utilise, protège et supprime tes renseignements personnels.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>.doc{max-width:720px}.doc h2{font-size:clamp(1.6rem,5vw,2.1rem);margin-top:40px}.doc p,.doc li{color:var(--muted);font-size:15px}.doc ul{padding-left:20px;display:grid;gap:6px}.doc b{color:var(--ink)}</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="page">
+<nav class="nav"><div class="wrap">
+  <a class="logo" href="index.html"><span class="mark">P</span>PremierJob <small>Saguenay</small></a>
+  <div class="navlinks"><a class="link" href="index.html">Offres</a></div>
+</div></nav>
+<main class="wrap hero doc">
+  <span class="place">Mise à jour : 12 novembre 2026</span>
+  <h1 style="font-size:clamp(2.4rem,8vw,3.6rem)">Tes renseignements, <em>en clair.</em></h1>
+  <p class="lead">Tes renseignements sont protégés conformément à la Loi 25 du Québec. Ils servent uniquement à te mettre en relation avec un employeur, jamais à autre chose.</p>
+
+  <ul>
+    <li><b>Ce qu'on recueille :</b> ce que tu inscris dans le formulaire (coordonnées, disponibilités, CV facultatif).</li>
+    <li><b>À qui c'est transmis :</b> seulement à l'employeur de l'offre à laquelle tu postules, avec ton accord. Rien n'est vendu ni utilisé pour de la publicité.</li>
+    <li><b>Sécurité :</b> ton CV est privé. L'employeur le reçoit par un lien qui expire après 7 jours.</li>
+    <li><b>Tes droits :</b> tu peux consulter, corriger ou supprimer tes renseignements en tout temps. Écris à <b id="resp"></b>.</li>
+  </ul>
+
+  <p style="font-size:13px;margin-top:32px">Nos fournisseurs techniques (hébergement, envoi de courriels) peuvent traiter certains renseignements à l'extérieur du Québec. Tu peux porter plainte à la Commission d'accès à l'information du Québec.</p>
+</main>
+<footer><div class="wrap"><div>PremierJob · projet étudiant lancé au Saguenay · <a href="index.html">Offres</a> · <a href="employeur.html">Employeurs</a> · <a id="contactLien" href="#">Nous joindre</a></div></div></footer>
+</div>
+<script>{ const m = (window.PJ_CONFIG || {}).contactEmail || ""; const r = document.getElementById("resp"); r.innerHTML = '<a href="mailto:' + m + '">' + m + '</a>'; document.getElementById("contactLien").href = "mailto:" + m; }</script>
+</body>
+</html>
