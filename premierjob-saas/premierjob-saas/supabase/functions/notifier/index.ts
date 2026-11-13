@@ -98,16 +98,9 @@ Deno.serve(async (req) => {
     const o = ((await rest(`offres?id=eq.${c.offre_id}&select=titre,employeur,ville`)).data ?? [])[0] ?? {};
     const ref = String(c.id).slice(0, 8).toUpperCase();
     if (c.canal === "externe") {
-      // Le candidat part vers le formulaire de l'employeur : on prévient l'admin, pas de confirmation au candidat.
-      const texte = [
-        "Un candidat est parti vers le formulaire de l'employeur", "",
-        `${c.prenom} ${c.nom ?? ""} · ${c.telephone} · ${c.courriel}`,
-        `Poste : ${o.titre ?? "?"} chez ${o.employeur ?? "?"}`,
-        `Référence : ${ref} · Statut : intention (candidature pas encore déclarée)`,
-        "", `Tableau de bord : ${SITE}/admin.html`,
-      ].join("\n");
-      for (const a of admins) resultats.push(await envoyer("intention_externe", c.id, a, `PremierJob · Intention : ${c.prenom} vers ${o.employeur ?? "un employeur"}`, texte));
-      return new Response(JSON.stringify({ ok: true, resultats }), { status: 200, headers: { "Content-Type": "application/json" } });
+      // Candidature faite sur le site de l'employeur, puis déclarée sur PremierJob :
+      // aucun courriel (ni admin ni candidat). Elle apparaît dans le tableau de bord.
+      return new Response(JSON.stringify({ ok: true, ignore: "candidature externe : pas de courriel" }), { status: 200, headers: { "Content-Type": "application/json" } });
     }
     const pourAdmin = [
       "Nouvelle candidature à traiter", "",
