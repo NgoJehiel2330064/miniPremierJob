@@ -44,6 +44,8 @@
     <section id="v-apercu">
       <div class="sec-t">À faire maintenant</div>
       <div class="todo" id="todo"></div>
+      <div class="sec-t">Chiffres <span class="small" style="text-transform:none;letter-spacing:0">chaque étape compte à part : un clic n'est pas une candidature, une déclaration n'est pas une embauche</span></div>
+      <div class="chiffres" id="chiffres"></div>
     </section>
 
     <!-- Offres -->
@@ -287,7 +289,9 @@
     // Formulaire de l'employeur, 14 jours sans nouvelles du candidat : un texto
     POSTS.filter(p => p.canal === "externe" && !p.resultat_declare && ["intent","declared","forwarded"].includes(p.statut) && ancienJours(p.created_at) >= 14).forEach(p => { const o = offreDe(p.offre_id);
       const texto = `Bonjour ${p.prenom}, c'est PremierJob. As-tu eu des nouvelles de ${o ? o.employeur : "l'employeur"} pour le poste « ${o ? o.titre : ""} »? Réponds simplement : appelé(e), embauché(e) ou pas de nouvelles. Merci!`;
-      items.push(`<div class="todo-item"><div><div class="t">Demander des nouvelles à ${esc(nomComplet(p))}</div><div class="s">${o ? esc(o.employeur) : ""} · il y a ${ancienJours(p.created_at)} j · ${esc(p.telephone)}</div></div><a class="btn ghost sm" href="sms:${esc(p.telephone.replace(/[^\d+]/g, ""))}?&body=${encodeURIComponent(texto)}">Texto</a></div>`); });
+      const joindre = p.telephone ? `<a class="btn ghost sm" href="sms:${esc(p.telephone.replace(/[^\d+]/g, ""))}?&body=${encodeURIComponent(texto)}">Texto</a>`
+        : `<a class="btn ghost sm" href="mailto:${esc(p.courriel)}?subject=${encodeURIComponent("PremierJob · des nouvelles de ta candidature?")}&body=${encodeURIComponent(texto)}">Courriel</a>`;
+      items.push(`<div class="todo-item"><div><div class="t">Demander des nouvelles à ${esc(nomComplet(p))}</div><div class="s">${o ? esc(o.employeur) : ""} · il y a ${ancienJours(p.created_at)} j · ${esc(p.telephone || p.courriel)}</div></div>${joindre}</div>`); });
     POSTS.filter(p => p.statut === "forwarded" && p.canal !== "externe" && ancienJours(p.statut_le) >= 5).forEach(p => { const o = offreDe(p.offre_id);
       items.push(`<div class="todo-item"><div><div class="t">Relancer ${o ? esc(o.employeur) : "l'employeur"} pour ${esc(nomComplet(p))}</div><div class="s">Transmise il y a ${ancienJours(p.statut_le)} j, sans nouvelle</div></div><button class="btn ghost sm" data-ouvrir-offre="${p.offre_id}">Ouvrir</button></div>`); });
     POSTS.filter(p => p.statut === "interview" && ancienJours(p.statut_le) >= 7).forEach(p => { const o = offreDe(p.offre_id);
@@ -296,6 +300,20 @@
       items.push(`<div class="todo-item"><div><div class="t">Suivi à ${j} jours : ${esc(nomComplet(p))}</div><div class="s">Embauché(e) le ${fmtDate(p.embauche_le)} chez ${o ? esc(o.employeur) : "?"}</div></div><button class="btn ghost sm" data-go="suivis">Voir</button></div>`); });
     NOTIFS.filter(n => n.statut === "echec").slice(0, 3).forEach(n => items.push(`<div class="todo-item"><div><div class="t">Un courriel n'est pas parti</div><div class="s">${esc(n.type)} · ${esc(n.erreur || "")}</div></div><button class="btn ghost sm" data-go="donnees">Voir</button></div>`));
     $("#todo").innerHTML = items.length ? items.join("") : '<div class="empty">Rien à traiter pour le moment.</div>';
+    rChiffres();
+  }
+  function rChiffres(){
+    const gc = (window.PJ_CONFIG || {}).goatcounter, gcLien = gc && /^[a-z0-9-]+$/i.test(gc) ? `https://${gc}.goatcounter.com` : "";
+    const ext = POSTS.filter(p => p.canal === "externe");
+    const L = [
+      ["Clics vers les sites d'employeurs", null, `Anonymes, sans cookie (événements « clic-sortant » dans GoatCounter). Un clic n'est pas une candidature.${gcLien ? ` <a href="${gcLien}" target="_blank" rel="noopener">Ouvrir GoatCounter ↗</a>` : " GoatCounter n'est pas configuré."}`],
+      ["Candidatures déclarées", nb(ext, p => !!p.declaree_le), "Le candidat dit avoir postulé sur le site de l'employeur et a laissé son courriel. Non vérifié. Les déclarations sans courriel sont comptées dans GoatCounter (événement « declaree »)."],
+      ["Corroborées par l'employeur", nb(POSTS, p => p.confirmee_employeur), "L'employeur a confirmé avoir reçu la candidature (bouton « L'employeur l'a bien reçue »)."],
+      ["Reçues sur PremierJob", nb(POSTS, p => p.canal !== "externe"), "Candidatures faites avec le formulaire de PremierJob (employeurs partenaires)."],
+      ["Embauches déclarées, à confirmer", nb(POSTS, p => p.resultat_declare === "embauche" && p.statut !== "hired"), "Le candidat dit avoir été embauché. Pas encore confirmé."],
+      ["Embauches confirmées", nb(POSTS, p => p.statut === "hired"), "Statut « Embauché » mis dans l'admin après confirmation de l'employeur."],
+      ["Abonnés aux alertes", nb(CANDS, c => c.actif), "Courriels distincts inscrits aux alertes, toujours actifs."]];
+    $("#chiffres").innerHTML = L.map(([t, n, d]) => `<div class="chiffre"><b>${n === null ? "—" : n}</b><div><div class="t">${esc(t)}</div><div class="small">${d}</div></div></div>`).join("");
   }
   document.addEventListener("click", e => {
     const b = e.target.closest("[data-ouvrir-offre]"); if (!b) return;
@@ -478,7 +496,7 @@
       <div class="cand-top"><label class="consent" style="font-size:15px;color:var(--ink)">${coche ? `<input type="checkbox" data-sel="${p.id}" ${selection.has(p.id) ? "checked" : ""} aria-label="Sélectionner ${esc(nomComplet(p))}">` : ""}<span><b>${esc(nomComplet(p))}</b> <span class="small">· réf. ${esc(p.id.slice(0, 8).toUpperCase())} · il y a ${ancienJours(p.created_at)} j</span></span></label><span class="pill-st ${p.statut}">${CAND_STATUTS[p.statut]}</span></div>
       ${!avecSelection && o ? `<div class="small">Offre : <b>${esc(o.titre)}</b> · ${esc(o.employeur)}</div>` : ""}
       ${preuve}
-      <div class="small">${esc(p.telephone)} · ${esc(p.courriel)} · ${esc(p.ville || "ville ?")}${ext ? "" : " · " + esc(libTransport(p.transport))}</div>
+      <div class="small">${esc(p.telephone || "pas de téléphone")} · ${esc(p.courriel)}${ext ? (p.ville ? " · " + esc(p.ville) : "") : " · " + esc(p.ville || "ville ?") + " · " + esc(libTransport(p.transport))}</div>
       ${o && !(ext && !(p.dispos || []).length) ? `<div>${blocFit(o, p)}</div>${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites, p.dispos)}` : ""}
       ${p.message ? `<div class="small">« ${esc(p.message)} »</div>` : ""}
       <div class="small">Consentement donné le ${new Date(p.consentement_le || p.created_at).toLocaleString("fr-CA")}${p.transmise_le ? " · transmise le " + new Date(p.transmise_le).toLocaleDateString("fr-CA") : ""}${p.embauche_le ? " · embauche le " + fmtDate(p.embauche_le) : ""}</div>
@@ -555,12 +573,12 @@
   function preparerSignalement(o, ps){
     const decl = ps.filter(p => p.declaree_le || ["appele","embauche"].includes(p.resultat_declare));
     const inten = ps.filter(p => !decl.includes(p));
-    const ligne = (p) => `- ${nomComplet(p)} · ${p.telephone}`;
+    const ligne = (p) => `- ${nomComplet(p)}${p.telephone ? " · " + p.telephone : ""}`;
     const sujet = `PremierJob · ${ps.length} candidat${ps.length > 1 ? "s" : ""} pour « ${o.titre} »`;
-    const parts = [`Bonjour ${o.contact_nom || ""},`, "", `Voici les personnes venues de PremierJob pour le poste « ${o.titre} ». Chacune a accepté que nous vous transmettions son nom et son téléphone.`];
+    const parts = [`Bonjour ${o.contact_nom || ""},`, "", `Voici les personnes venues de PremierJob pour le poste « ${o.titre} ». Chacune a accepté que nous vous signalions sa candidature.`];
     if (decl.length) parts.push("", "Elles nous ont dit avoir envoyé votre formulaire :", ...decl.map(ligne));
     if (inten.length) parts.push("", "Elles ont ouvert votre formulaire depuis PremierJob (envoi non confirmé) :", ...inten.map(ligne));
-    parts.push("", "Vous n'avez rien à faire. Si vous rencontrez ou embauchez l'une de ces personnes, un simple mot nous aide à vous envoyer les bons candidats.", "", "Merci!", "L'équipe PremierJob Saguenay");
+    parts.push("", "Pourriez-vous simplement nous confirmer que vous avez bien reçu leur candidature? Et si vous rencontrez ou embauchez l'une de ces personnes, un mot nous aide à vous envoyer les bons candidats.", "", "Merci!", "L'équipe PremierJob Saguenay");
     const corps = parts.join("\n");
     mailIds = ps.map(p => p.id);
     $("#mailTitle").textContent = "Signaler au gérant";
@@ -594,7 +612,7 @@
     const hired = POSTS.filter(p => p.statut === "hired");
     $("#suiviList").innerHTML = hired.length ? hired.map(p => { const o = offreDe(p.offre_id); const age = p.embauche_le ? Math.floor((Date.now() - new Date(p.embauche_le + "T12:00:00").getTime()) / JOUR) : 0;
       const etat = (j, fait) => fait ? "fait" : age >= j ? '<b style="color:var(--accent)">à faire</b>' : `dans ${j - age} j`;
-      return `<div class="cand" data-pid="${p.id}"><div class="cand-top"><span><b>${esc(nomComplet(p))}</b> · ${esc(p.telephone)}</span><span class="small">embauche le ${fmtDate(p.embauche_le)}</span></div>
+      return `<div class="cand" data-pid="${p.id}"><div class="cand-top"><span><b>${esc(nomComplet(p))}</b> · ${esc(p.telephone || p.courriel)}</span><span class="small">embauche le ${fmtDate(p.embauche_le)}</span></div>
         <div class="small">${o ? esc(o.titre) + " · " + esc(o.employeur) + " · " + esc(o.contact_nom || "") + " " + esc(o.contact_tel || o.contact_courriel || "") : ""}</div>
         <div class="actions"><label class="consent"><input type="checkbox" data-suivi="14" ${p.suivi14_fait ? "checked" : ""}><span>Suivi 14 jours (${etat(14, p.suivi14_fait)})</span></label>
         <label class="consent"><input type="checkbox" data-suivi="30" ${p.suivi30_fait ? "checked" : ""}><span>Suivi 30 jours (${etat(30, p.suivi30_fait)})</span></label></div></div>`; }).join("")

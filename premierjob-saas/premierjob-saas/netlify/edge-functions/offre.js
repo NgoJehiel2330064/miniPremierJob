@@ -123,7 +123,7 @@ export default async (request) => {
     </dl>
     ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
     <div class="cta"><a class="btn" href="/#offre-${esc(o.id)}">Postuler</a><a class="btn ghost" href="/#offres">Voir les autres offres</a></div>
-    <p class="small">Gratuit, sans compte. ${o.candidature_externe ? `La candidature se termine sur le formulaire officiel de ${esc(o.employeur)}.` : "Ta candidature est transmise à l'employeur seulement avec ton accord."}</p>
+    <p class="small">Gratuit, sans compte. ${o.candidature_externe ? `Tu postules directement sur le site officiel de ${esc(o.employeur)}.` : "Ta candidature est transmise à l'employeur seulement avec ton accord."}</p>
   </article>`;
   return new Response(gabarit({ titre, desc, page, origin: url.origin, corps, jsonld: jobPosting(o, page), indexer: true }), {
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" },
