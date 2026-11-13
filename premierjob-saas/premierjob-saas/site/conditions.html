@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07080a">
+<title>Conditions d'utilisation · PremierJob Saguenay</title>
+<meta name="description" content="Les règles d'utilisation de PremierJob pour les candidats et les employeurs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>.doc{max-width:720px}.doc h2{font-size:clamp(1.6rem,5vw,2.1rem);margin-top:40px}.doc p,.doc li{color:var(--muted);font-size:15px}.doc ul{padding-left:20px;display:grid;gap:6px}.doc b{color:var(--ink)}</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="page">
+<nav class="nav"><div class="wrap">
+  <a class="logo" href="index.html"><span class="mark">P</span>PremierJob <small>Saguenay</small></a>
+  <div class="navlinks"><a class="link" href="index.html">Offres</a></div>
+</div></nav>
+<main class="wrap hero doc">
+  <span class="place">Mise à jour : 13 novembre 2026</span>
+  <h1 style="font-size:clamp(2.4rem,8vw,3.6rem)">Conditions <em>d'utilisation.</em></h1>
+  <p class="lead">PremierJob est un service gratuit qui affiche des offres d'emploi sans expérience exigée au Saguenay. En l'utilisant, tu acceptes ces règles simples.</p>
+
+  <h2>Pour les candidats</h2>
+  <ul>
+    <li><b>Gratuit, sans compte.</b> Consulter les offres, postuler et recevoir des alertes ne coûte rien.</li>
+    <li><b>Des renseignements exacts.</b> Tu t'engages à donner des informations vraies et à postuler en ton nom seulement.</li>
+    <li><b>La décision revient à l'employeur.</b> PremierJob transmet ta candidature, mais ne garantit ni entrevue ni embauche.</li>
+    <li><b>Candidature sur le site de l'employeur.</b> Pour certaines offres, tu termines ta candidature sur le formulaire de l'employeur. Ce site relève de l'employeur, pas de PremierJob.</li>
+    <li><b>Retrait.</b> Tu peux retirer ta candidature en tout temps. Une candidature déjà transmise par courriel à l'employeur ne peut pas être rappelée.</li>
+  </ul>
+
+  <h2>Pour les employeurs</h2>
+  <ul>
+    <li><b>Seulement des postes sans expérience exigée.</b> Une formation, un permis ou une qualification légale peuvent être demandés.</li>
+    <li><b>Des offres réelles et à jour.</b> L'employeur confirme que le poste existe, que les informations sont exactes et nous prévient quand il est pourvu.</li>
+    <li><b>Validation avant publication.</b> PremierJob peut corriger, refuser, mettre en pause ou retirer une offre, notamment si elle exige de l'expérience, n'est plus disponible ou semble trompeuse.</li>
+    <li><b>Respect des candidats.</b> Les renseignements reçus servent uniquement au recrutement pour le poste visé, conformément aux lois applicables au Québec.</li>
+    <li><b>Aucune promesse de résultat.</b> PremierJob diffuse l'offre et transmet les candidatures, mais ne garantit pas un nombre de candidats.</li>
+  </ul>
+
+  <h2>Pour tout le monde</h2>
+  <ul>
+    <li><b>Signaler un problème.</b> Le bouton « Signaler cette offre » sert à nous prévenir d'une offre pourvue, fausse ou douteuse.</li>
+    <li><b>Usage interdit.</b> Pas d'envois automatisés, de faux renseignements ni de tentatives de contourner la sécurité du site.</li>
+    <li><b>Disponibilité.</b> Nous faisons notre possible pour que le site fonctionne, sans pouvoir garantir qu'il soit toujours accessible ou sans erreur.</li>
+    <li><b>Changements.</b> Ces conditions peuvent évoluer ; la date de mise à jour figure en haut de la page.</li>
+    <li><b>Questions :</b> écris à <b id="resp"></b>. Pour tes renseignements personnels, voir la page <a href="confidentialite.html">Confidentialité</a>.</li>
+  </ul>
+</main>
+<footer><div class="wrap"><div>PremierJob · lancé au Saguenay · <a href="index.html">Offres</a> · <a href="confidentialite.html">Confidentialité</a> · <a id="contactLien" href="#">Nous joindre</a></div></div></footer>
+</div>
+<script>{ const m = (window.PJ_CONFIG || {}).contactEmail || ""; const r = document.getElementById("resp"); r.innerHTML = '<a href="mailto:' + m + '">' + m + '</a>'; document.getElementById("contactLien").href = "mailto:" + m; }</script>
+</body>
+</html>

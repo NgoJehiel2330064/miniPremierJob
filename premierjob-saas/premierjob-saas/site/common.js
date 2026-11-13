@@ -44,7 +44,7 @@
   const OFFRE_PUBLIQUE = "id,titre,employeur,ville,lieu,secteur,type,horaires,salaire,description,lien,confirme,statut,verifie_le,publiee_le,date_debut,qualification,nb_postes,creneaux_obligatoires,creneaux_souhaites,candidature_externe";
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const fmtDate = (d) => (d ? new Date(d + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" }) : "");
+  const fmtDate = (d) => (d ? new Date(String(d).slice(0, 10) + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" }) : "");
   const today = () => new Date().toLocaleDateString("en-CA");
   const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : "");
 
@@ -265,5 +265,16 @@
     document.head.appendChild(s);
   })();
 
-  window.PJ = { REGIONS, remplirVilles, RESULTATS_DECLARES, lienConcurrent, lienEtiquete, experienceExigee, experienceMentionnee, messageErreur, OFFRE_STATUTS, CAND_STATUTS, grilleOffre, grilleLecture, jumelerV2, nomCreneau, uuid, verifierCV, deposerCV, HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
+  // Salaire horaire minimum lu dans le texte (« 16,10 à 18,50 $/h » → 16.1) ; null si non horaire
+  function salaireHoraire(texte) {
+    const t = String(texte || ""); if (!/\/\s*h\b|heure/i.test(t)) return null;
+    const n = (t.match(/\d+(?:[,.]\d+)?/g) || []).map(x => parseFloat(x.replace(",", "."))).filter(x => x > 5 && x < 200);
+    return n.length ? n[0] : null;
+  }
+  // « il y a 3 jours » à partir d'une date de publication
+  function ilYa(d) {
+    if (!d) return ""; const j = Math.floor((Date.now() - new Date(String(d).length === 10 ? d + "T12:00:00" : d).getTime()) / 864e5);
+    if (j <= 0) return "aujourd'hui"; if (j === 1) return "hier"; if (j < 31) return `il y a ${j} jours`; return "il y a plus d'un mois";
+  }
+  window.PJ = { salaireHoraire, ilYa, REGIONS, remplirVilles, RESULTATS_DECLARES, lienConcurrent, lienEtiquete, experienceExigee, experienceMentionnee, messageErreur, OFFRE_STATUTS, CAND_STATUTS, grilleOffre, grilleLecture, jumelerV2, nomCreneau, uuid, verifierCV, deposerCV, HORAIRES, HORAIRES_COURTS, TRANSPORTS, teinte, initiale, insererAvecRepli, TYPES, VILLES, JOURS, PERIODES, ETABLISSEMENTS, OFFRE_PUBLIQUE, esc, fmtDate, today, safeUrl, client, configMessage, creneauxOffre, jumeler, chip, grilleDispos, track };
 })();

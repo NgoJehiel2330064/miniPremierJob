@@ -74,6 +74,7 @@
     </div>
     <div class="pal-filters" id="filters" aria-label="Filtres">
       <select id="ville" aria-label="Ville"><option value="">Toutes les villes</option></select>
+      <select id="salMin" aria-label="Salaire minimum"><option value="">Tout salaire</option><option value="16">16 $/h et +</option><option value="17">17 $/h et +</option><option value="18">18 $/h et +</option><option value="20">20 $/h et +</option></select>
       <span class="sep" aria-hidden="true"></span>
     </div>
     <div class="pal-body">
@@ -177,13 +178,14 @@
       <strong style="color:var(--muted)">Confidentialité (Loi 25).</strong>
       Tes renseignements sont hébergés au Québec, protégés conformément à la Loi 25 et transmis à un employeur seulement avec ton accord. <a href="confidentialite.html">En savoir plus</a>.
     </div>
-    <div>PremierJob · lancé au Saguenay · <a href="employeur.html">Afficher une offre</a> · <a id="contactLien" href="#">Nous joindre</a></div>
+    <div>PremierJob · lancé au Saguenay · <a href="employeur.html">Afficher une offre</a> · <a href="conditions.html">Conditions</a> · <a id="contactLien" href="#">Nous joindre</a></div>
   </div>
 </footer>
 </div>
 
 <!-- Postuler à une offre -->
 <dialog id="apply" aria-labelledby="applyT"></dialog>
+<dialog id="signaler" aria-labelledby="sigT"></dialog>
 
 <!-- Détail sur mobile -->
 <div class="scrim" id="scrim"></div>
@@ -240,7 +242,13 @@
   const { HORAIRES, HORAIRES_COURTS, TYPES, VILLES, ETABLISSEMENTS, TRANSPORTS, esc, fmtDate, safeUrl, teinte, initiale } = PJ;
   const $ = (s) => document.querySelector(s);
   const large = window.matchMedia("(min-width: 900px)");
-  const state = { q:"", ville:"", horaires:new Set(), type:"", sel:0 };
+  const state = { q:"", ville:"", horaires:new Set(), type:"", sel:0, salMin:0, fav:false };
+  // Offres sauvegardées : gardées sur cet appareil seulement
+  const favoris = {
+    liste(){ try { return JSON.parse(localStorage.getItem("pj_favoris") || "[]"); } catch (e) { return []; } },
+    a(id){ return favoris.liste().includes(id); },
+    basculer(id){ const l = favoris.liste(); const i = l.indexOf(id); i >= 0 ? l.splice(i, 1) : l.unshift(id); try { localStorage.setItem("pj_favoris", JSON.stringify(l.slice(0, 100))); } catch (e) {} return i < 0; }
+  };
   let OFFRES = [], VUE = [];
 
   $("#contactLien").href = "mailto:" + ((window.PJ_CONFIG || {}).contactEmail || "");
@@ -259,6 +267,13 @@
     typeBtns.forEach(x => x.setAttribute("aria-pressed", x.textContent === state.type)); state.sel = 0; render();
   }));
   typeBtns.forEach(b => $("#filters").appendChild(b));
+  const favBtn = PJ.chip("♥ Sauvegardées", false, b => { state.fav = !state.fav; b.setAttribute("aria-pressed", state.fav); state.sel = 0; render(); });
+  favBtn.id = "favFiltre";
+  $("#filters").insertBefore(favBtn, $("#filters").firstChild);
+  function majFavFiltre(){
+    const n = OFFRES.filter(o => favoris.a(o.id)).length;
+    favBtn.textContent = `♥ Sauvegardées${n ? " (" + n + ")" : ""}`; favBtn.hidden = !n && !state.fav;
+  }
   let fitBtn = null;
   function ajouterFiltreFit(){
     if (fitBtn || !mesDispos().length) return;
@@ -267,13 +282,16 @@
   }
   $("#q").addEventListener("input", e => { state.q = e.target.value; state.sel = 0; render(); });
   $("#ville").addEventListener("change", e => { state.ville = e.target.value; state.sel = 0; render(); });
+  $("#salMin").addEventListener("change", e => { state.salMin = +e.target.value || 0; state.sel = 0; render(); });
 
   // ----- Rendu -----
   const JOUR = 864e5;
   const estNouvelle = (o) => o.verifie_le && (Date.now() - new Date(o.verifie_le + "T12:00:00").getTime()) < 7 * JOUR;
   const lienOffre = (o) => location.origin + "/o/" + o.id;
   const mesDispos = () => (memo.get().dispos || []);
-  const fitDe = (o) => { const d = mesDispos(); return d.length ? PJ.jumelerV2(o, { dispos: d }) : null; };
+  // Horaire inconnu : aucune compatibilité affichée (on ne devine pas)
+  const horaireConnu = (o) => (o.creneaux_obligatoires || []).length + (o.creneaux_souhaites || []).length > 0;
+  const fitDe = (o) => { const d = mesDispos(); return d.length && horaireConnu(o) ? PJ.jumelerV2(o, { dispos: d }) : null; };
   let avis = "";
   const icone = (o, lg) => `<span class="ico${lg ? " lg" : ""}" style="--h:${teinte(o.secteur || o.employeur)}">${esc(initiale(o.employeur))}</span>`;
 
@@ -281,7 +299,7 @@
     const h = (o.horaires || []).map((x, n) => `<span class="k${n > 0 ? " hide-sm" : ""}">${esc(HORAIRES_COURTS[x] || x)}</span>`).join("");
     return `<button class="row" role="option" data-i="${i}" aria-selected="${i === state.sel}">
       ${icone(o)}
-      <span style="min-width:0"><span class="t">${estNouvelle(o) ? '<span class="new">Nouveau</span>' : ""}${esc(o.titre)}</span><span class="s">${esc(o.employeur)} · ${esc(o.ville)}${(() => { const f = fitDe(o); return f ? (f.compatible ? ' · <span style="color:var(--go)">✓ fit avec tes dispos</span>' : '') : ""; })()}</span></span>
+      <span style="min-width:0"><span class="t">${estNouvelle(o) ? '<span class="new">Nouveau</span>' : ""}${esc(o.titre)}</span><span class="s">${favoris.a(o.id) ? '<span class="coeur" aria-label="Sauvegardée">♥</span> ' : ""}${esc(o.employeur)} · ${esc(o.ville)}${o.publiee_le ? ` · <span class="quand">${PJ.ilYa(o.publiee_le)}</span>` : ""}${(() => { const f = fitDe(o); return f ? (f.compatible ? ' · <span style="color:var(--go)">✓ fit avec tes dispos</span>' : '') : ""; })()}</span></span>
       <span class="acc">${h}${o.salaire ? `<span class="money hide-sm">${esc(o.salaire)}</span>` : ""}</span>
     </button>`;
   }
@@ -305,7 +323,8 @@
         ${o.nb_postes > 1 ? `<dt>Postes</dt><dd>${o.nb_postes}</dd>` : ""}
         ${o.date_debut ? `<dt>Début</dt><dd>${fmtDate(o.date_debut)}</dd>` : ""}
         ${o.qualification ? `<dt>Exigé</dt><dd>${esc(o.qualification)}</dd>` : ""}
-        ${(o.creneaux_obligatoires || []).length + (o.creneaux_souhaites || []).length === 0 ? `<dt>Horaire</dt><dd>${esc((o.horaires || []).map(x => HORAIRES[x] || x).join(", ") || "—")}</dd>` : ""}
+        ${(o.creneaux_obligatoires || []).length + (o.creneaux_souhaites || []).length === 0 ? `<dt>Horaire</dt><dd>${esc((o.horaires || []).map(x => HORAIRES[x] || x).join(", ") || "À confirmer avec l'employeur")}</dd>` : ""}
+        ${o.publiee_le ? `<dt>Publiée</dt><dd>${PJ.ilYa(o.publiee_le)}</dd>` : ""}
         ${o.verifie_le ? `<dt>Vérifiée le</dt><dd>${fmtDate(o.verifie_le)}</dd>` : ""}
       </dl>
       ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites) ? `<div><div class="small" style="margin-bottom:6px">Quarts : <span class="g req">R</span> requis · <span class="g ideal">I</span> idéal</div>${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}</div>` : ""}
@@ -313,19 +332,24 @@
       ${o.candidature_externe && lien ? `<p class="small" style="margin:0">Candidature en 2 étapes : tu laisses ton nom ici, puis tu remplis le formulaire officiel de ${esc(o.employeur)}. On signale ta candidature au gérant.</p>` : ""}
       <div class="cta" style="margin-top:4px">
         <button class="btn" type="button" data-apply="${esc(o.id)}">${o.candidature_externe && lien ? "Postuler" : "Postuler via PremierJob"}</button>
+        <button class="btn ghost" type="button" data-fav="${esc(o.id)}" aria-pressed="${favoris.a(o.id)}">${favoris.a(o.id) ? "♥ Sauvegardée" : "♡ Sauvegarder"}</button>
         <button class="btn ghost" type="button" data-share="${esc(o.id)}">Partager</button>
         ${lien && !o.candidature_externe ? `<a class="btn ghost" href="${esc(lien)}" target="_blank" rel="noopener" data-track="${esc(o.id)}">Annonce originale ↗</a>` : ""}
       </div>
+      <button class="lien-signaler" type="button" data-signaler="${esc(o.id)}">Signaler cette offre</button>
     </div>`;
   }
 
   function render(){
+    majFavFiltre();
     const q = state.q.trim().toLowerCase();
     VUE = OFFRES.filter(o =>
       (!state.ville || o.ville === state.ville) &&
       (!state.type || o.type === state.type) &&
       (state.horaires.size === 0 || (o.horaires || []).some(h => state.horaires.has(h))) &&
       (!state.fit || (fitDe(o) || {}).compatible) &&
+      (!state.fav || favoris.a(o.id)) &&
+      (!state.salMin || (PJ.salaireHoraire(o.salaire) || 0) >= state.salMin) &&
       (!q || [o.titre,o.employeur,o.secteur,o.description,o.ville].join(" ").toLowerCase().includes(q)));
     VUE.sort((a,b) => String(b.publiee_le || b.verifie_le || "").localeCompare(String(a.publiee_le || a.verifie_le || "")));
     if (state.sel >= VUE.length) state.sel = Math.max(0, VUE.length - 1);
@@ -339,7 +363,9 @@
       $("#detail").innerHTML = detail(null); return;
     }
     if (VUE.length === 0) {
-      $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + `<div class="pal-empty"><span class="big">Rien pour ces filtres.</span><span>Essaie un autre horaire ou une autre ville.</span></div>`;
+      $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + (state.fav
+        ? `<div class="pal-empty"><span class="big">Aucune offre sauvegardée.</span><span>Touche « ♡ Sauvegarder » dans une offre pour la retrouver ici.</span></div>`
+        : `<div class="pal-empty"><span class="big">Rien pour ces filtres.</span><span>Essaie un autre horaire, une autre ville ou un autre salaire. Ou reçois les prochaines offres par courriel.</span><a class="btn ghost sm" href="#alerte">Créer une alerte</a></div>`);
       $("#detail").innerHTML = detail(null); return;
     }
     $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + VUE.map((o,i) => ligne(o,i)).join("");
@@ -394,6 +420,12 @@
   document.addEventListener("click", e => {
     const t = e.target.closest("[data-track]"); if (t) PJ.track("clic-offre/" + t.dataset.track);
     const sh = e.target.closest("[data-share]"); if (sh) partager(sh, sh.dataset.share);
+    const fv = e.target.closest("[data-fav]"); if (fv) {
+      const ajoute = favoris.basculer(fv.dataset.fav); PJ.track((ajoute ? "favori/" : "favori-retire/") + fv.dataset.fav);
+      document.querySelectorAll(`[data-fav="${fv.dataset.fav}"]`).forEach(b => { b.textContent = ajoute ? "♥ Sauvegardée" : "♡ Sauvegarder"; b.setAttribute("aria-pressed", ajoute); });
+      const i = state.sel; majFavFiltre(); $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + VUE.map((o,k) => ligne(o,k)).join(""); state.sel = i;
+    }
+    const sg = e.target.closest("[data-signaler]"); if (sg) ouvrirSignaler(sg.dataset.signaler);
     const ap = e.target.closest("[data-apply]"); if (ap) ouvrirPostuler(ap.dataset.apply);
     if (e.target.closest("[data-apply-close]")) $("#apply").close();
     if (e.target.closest("[data-close]")) fermer();
@@ -596,6 +628,52 @@
       return repondre(id, b.dataset.repondre, b);
     }
     if (e.target.closest("[data-voir-fit]") && fitBtn && !state.fit) fitBtn.click();
+  });
+
+  // ----- Signaler une offre -----
+  document.getElementById("signaler").innerHTML = `
+  <form id="sigForm" novalidate style="display:grid;gap:14px">
+    <div><span class="small" id="sigEmp"></span><h3 id="sigT" style="font-size:20px;margin-top:2px">Signaler cette offre</h3></div>
+    <div id="sigChamps" style="display:grid;gap:14px">
+      <fieldset><legend>Qu'est-ce qui ne va pas?</legend>
+        <div class="choix">
+          <label class="consent"><input type="radio" name="raison" value="pourvue"><span>Le poste est déjà pourvu ou l'offre n'existe plus</span></label>
+          <label class="consent"><input type="radio" name="raison" value="info_incorrecte"><span>Une information est fausse (salaire, horaire, exigence…)</span></label>
+          <label class="consent"><input type="radio" name="raison" value="lien_brise"><span>Un lien ne fonctionne pas</span></label>
+          <label class="consent"><input type="radio" name="raison" value="arnaque"><span>Ça ressemble à une arnaque</span></label>
+          <label class="consent"><input type="radio" name="raison" value="autre"><span>Autre chose</span></label>
+        </div>
+      </fieldset>
+      <label for="sigCom">Précisions <span class="opt">(facultatif)</span><textarea id="sigCom" maxlength="500" placeholder="Ex. : l'employeur m'a dit que le poste est comblé."></textarea></label>
+      <label for="sigMail">Ton courriel <span class="opt">(facultatif, si tu veux une réponse)</span><input type="email" id="sigMail" maxlength="160" inputmode="email" autocomplete="email"></label>
+      <div class="actions"><button class="btn" type="submit" id="sigBtn">Envoyer le signalement</button><button class="btn ghost" type="button" data-sig-close>Annuler</button></div>
+    </div>
+    <div id="sigMsg" role="status"></div>
+  </form>`;
+  let offreSignalee = null;
+  function ouvrirSignaler(id){
+    offreSignalee = OFFRES.find(o => o.id === id); if (!offreSignalee) return;
+    $("#sigForm").reset(); $("#sigChamps").hidden = false; $("#sigMsg").className = ""; $("#sigMsg").textContent = "";
+    $("#sigEmp").textContent = `${offreSignalee.titre} · ${offreSignalee.employeur}`;
+    $("#signaler").showModal();
+  }
+  document.addEventListener("click", e => { if (e.target.closest("[data-sig-close]")) $("#signaler").close(); });
+  $("#sigForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const msg = $("#sigMsg"), raison = ($("#sigForm").querySelector("input[name=raison]:checked") || {}).value;
+    const say = (c, t) => { msg.className = "msg " + c; msg.textContent = t; };
+    if (!raison) return say("err", "Choisis ce qui ne va pas.");
+    const courriel = $("#sigMail").value.trim();
+    if (courriel && !/^\S+@\S+\.\S+$/.test(courriel)) return say("err", "Ce courriel ne semble pas valide (il est facultatif).");
+    $("#sigBtn").disabled = true;
+    try {
+      const { error } = await PJ.client().from("signalements").insert({ offre_id: offreSignalee.id, raison, commentaire: $("#sigCom").value.trim() || null, courriel: courriel || null });
+      if (error) throw error;
+      PJ.track("signalement/" + offreSignalee.id);
+      $("#sigChamps").hidden = true; say("ok", "Merci! On vérifie cette offre avec l'employeur et on la corrige ou on la retire.");
+      setTimeout(() => { if ($("#signaler").open) $("#signaler").close(); }, 3500);
+    } catch (err) { say("err", PJ.messageErreur(err, "L'envoi n'a pas fonctionné. Réessaie dans un instant.")); }
+    finally { $("#sigBtn").disabled = false; }
   });
 
   async function charger(){

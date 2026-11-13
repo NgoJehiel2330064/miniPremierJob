@@ -376,3 +376,19 @@ details.plus[open]{padding-bottom:14px}
 .points b{color:var(--ink);font-weight:600}
 @media (max-width:899px){ .hero.emp .sticky{position:static} }
 .grid2.salaire{grid-template-columns:1fr 1fr}
+
+/* Page publique d'une offre (/o/<id>) */
+.offre-page{padding-block:32px 48px;max-width:720px}
+.offre-carte{display:grid;gap:16px;border:1px solid var(--line);border-radius:var(--r);padding:22px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01))}
+.offre-titre{font-size:clamp(1.8rem,6vw,2.6rem);margin:0;line-height:1.1}
+.offre-emp{margin:0;color:var(--muted);font-size:16px}
+.foot-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--dim)}
+.foot-row a{color:var(--muted)}
+
+/* Favoris, date, signalement */
+.coeur{color:#f472b6}
+.quand{color:var(--dim)}
+.lien-signaler{justify-self:start;background:none;border:0;padding:10px 0 0;color:var(--dim);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}
+.lien-signaler:hover{color:var(--muted)}
+.choix{display:grid;gap:8px}
+#salMin{max-width:150px}
