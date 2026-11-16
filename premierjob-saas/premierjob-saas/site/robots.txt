@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: /admin.html
 
-Sitemap: https://premierjob-saguenay.netlify.app/sitemap.xml
+Sitemap: https://premierjob.ca/sitemap.xml

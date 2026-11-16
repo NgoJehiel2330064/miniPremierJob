@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://premierjob-saguenay.netlify.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
-  <url><loc>https://premierjob-saguenay.netlify.app/employeur.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://premierjob-saguenay.netlify.app/confidentialite.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://premierjob-saguenay.netlify.app/conditions.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://premierjob.ca/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://premierjob.ca/employeur.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://premierjob.ca/confidentialite.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://premierjob.ca/conditions.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>
