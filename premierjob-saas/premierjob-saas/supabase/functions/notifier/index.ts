@@ -13,7 +13,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const RESEND = Deno.env.get("RESEND_API_KEY") ?? "";
 const EXPEDITEUR = Deno.env.get("EXPEDITEUR") ?? "";
-const SITE = "https://premierjob-saguenay.netlify.app";
+const SITE = "https://premierjob.ca";
 const FRAICHEUR_MS = 15 * 60 * 1000; // on ne notifie que des lignes créées il y a moins de 15 min
 
 const H = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json" };
