@@ -7,7 +7,7 @@
 
 const SUPABASE_URL = "https://hejkousthfnfckblwkqw.supabase.co";
 const CLE_PUBLIQUE = "sb_publishable_rgYHtZv4yq6S39nzOAhVKQ_RptFXlad";
-const COLONNES = "id,titre,employeur,ville,lieu,salaire,type,description,qualification,date_debut,nb_postes,verifie_le,publiee_le,creneaux_obligatoires,creneaux_souhaites,horaires,candidature_externe";
+const COLONNES = "id,titre,employeur,ville,lieu,salaire,type,description,qualification,date_debut,nb_postes,verifie_le,publiee_le,creneaux_obligatoires,creneaux_souhaites,horaires,candidature_externe,offre_publique";
 const VALIDITE_JOURS = 30; // une offre non reconfirmée n'est plus annoncée à Google après 30 jours
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -112,7 +112,7 @@ export default async (request) => {
   const req = (o.creneaux_obligatoires || []).map(creneau), ideal = (o.creneaux_souhaites || []).map(creneau);
   const ligne = (k, v) => (v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "");
   const corps = `<article class="offre-carte">
-    <div class="tags"><span class="badge ok">✓ Sans expérience exigée · vérifiée avec l'employeur</span></div>
+    <div class="tags">${o.offre_publique ? `<span class="badge">Offre publique</span>` : `<span class="badge ok">✓ Sans expérience exigée · vérifiée avec l'employeur</span>`}</div>
     <h1 class="offre-titre">${esc(o.titre)}</h1>
     <p class="offre-emp">${esc(o.employeur)} · ${esc(o.ville)}</p>
     <dl class="kv">
@@ -123,9 +123,9 @@ export default async (request) => {
     </dl>
     ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
     <div class="cta"><a class="btn" href="/#offre-${esc(o.id)}">Postuler</a><a class="btn ghost" href="/#offres">Voir les autres offres</a></div>
-    <p class="small">Gratuit, sans compte. ${o.candidature_externe ? `Tu postules directement sur le site officiel de ${esc(o.employeur)}.` : "Ta candidature est transmise à l'employeur seulement avec ton accord."}</p>
+    <p class="small">Gratuit, sans compte. ${o.offre_publique ? `Offre reprise du site de ${esc(o.employeur)}. Postule via PremierJob ou directement sur son site.` : o.candidature_externe ? `Tu postules directement sur le site officiel de ${esc(o.employeur)}.` : "Ta candidature est transmise à l'employeur seulement avec ton accord."}</p>
   </article>`;
-  return new Response(gabarit({ titre, desc, page, origin: url.origin, corps, jsonld: jobPosting(o, page), indexer: true }), {
+  return new Response(gabarit({ titre, desc, page, origin: url.origin, corps, jsonld: o.offre_publique ? null : jobPosting(o, page), indexer: true }), {
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" },
   });
 };

@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
   } else {
     const c = ((await rest(`candidatures?id=eq.${id}&select=*`)).data ?? [])[0];
     if (!c || !recent(c.created_at)) return new Response("ignoré", { status: 200 });
-    const o = ((await rest(`offres?id=eq.${c.offre_id}&select=titre,employeur,ville`)).data ?? [])[0] ?? {};
+    const o = ((await rest(`offres?id=eq.${c.offre_id}&select=titre,employeur,ville,offre_publique`)).data ?? [])[0] ?? {};
     const ref = String(c.id).slice(0, 8).toUpperCase();
     if (c.canal === "externe") {
       // Candidature faite sur le site de l'employeur, puis déclarée sur PremierJob :
@@ -107,13 +107,16 @@ Deno.serve(async (req) => {
       `${c.prenom} ${c.nom ?? ""} · ${c.telephone} · ${c.courriel}`,
       `Poste : ${o.titre ?? "?"} chez ${o.employeur ?? "?"}`,
       `CV : ${c.cv_path ? "oui" : "non"} · Référence : ${ref}`,
+      o.offre_publique ? `\nOffre publique : ${o.employeur ?? "l'employeur"} n'a pas encore donné son accord. Appelle-le pour lui présenter ce candidat.` : "",
       "", `Ouvrir le tableau de bord : ${SITE}/admin.html`,
     ].join("\n");
     for (const a of admins) resultats.push(await envoyer("candidature_recue", c.id, a, `PremierJob · Candidature : ${c.prenom} pour ${o.titre ?? "une offre"}`, pourAdmin));
     const pourCandidat = [
       `Bonjour ${c.prenom},`, "",
       `Ta candidature pour « ${o.titre ?? "le poste"} » chez ${o.employeur ?? "l'employeur"} est bien reçue (référence ${ref}).`, "",
-      "Nous la vérifions, puis la transmettons à l'employeur. S'il veut te rencontrer, il t'appellera directement : réponds même si le numéro est inconnu.", "",
+      o.offre_publique
+        ? "Nous contactons l'employeur pour lui présenter ta candidature. Pour mettre toutes les chances de ton côté, postule aussi sur son site. S'il veut te rencontrer, il t'appellera directement : réponds même si le numéro est inconnu."
+        : "Nous la vérifions, puis la transmettons à l'employeur. S'il veut te rencontrer, il t'appellera directement : réponds même si le numéro est inconnu.", "",
       "Pour retirer ta candidature ou faire supprimer tes données, réponds simplement à ce courriel.", "",
       "PremierJob Saguenay", SITE,
     ].join("\n");
