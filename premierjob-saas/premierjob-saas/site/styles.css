@@ -134,6 +134,7 @@ h3{font-weight:600;font-size:16px;letter-spacing:-.1px;margin:0}
 .badge{display:inline-flex;align-items:center;gap:6px;font:500 12.5px/1 var(--sans);padding:6px 9px;border-radius:7px;width:fit-content}
 .badge.ok{color:var(--go);background:rgba(74,222,128,.1);box-shadow:inset 0 0 0 1px rgba(74,222,128,.25)}
 .badge.wait{color:var(--warn);background:rgba(250,204,21,.08);box-shadow:inset 0 0 0 1px rgba(250,204,21,.22)}
+.badge.pub{color:var(--ink);background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
 .legend{display:grid;gap:12px;color:var(--muted);font-size:13.5px}
 .new{display:inline-block;font-size:11px;font-weight:600;color:#1a0606;background:var(--accent);border-radius:5px;padding:2px 6px;margin-right:7px;vertical-align:1px;letter-spacing:.2px}
 .badge.new-b{color:#ffb3b3;background:rgba(255,99,99,.1);box-shadow:inset 0 0 0 1px rgba(255,99,99,.3)}

@@ -140,6 +140,7 @@
     <div id="o_alerte" role="status"></div>
     <label for="o_lien">Lien vers le formulaire officiel ou l'annonce de l'employeur<input id="o_lien" name="lien" type="url" maxlength="500" placeholder="https://"></label>
     <label class="consent" for="o_externe"><input type="checkbox" id="o_externe"><span>Les candidats postulent sur le <b>formulaire de l'employeur</b> (lien obligatoire). PremierJob note leur nom, les envoie au formulaire et signale leur candidature au gérant.</span></label>
+    <label class="consent" for="o_publique"><input type="checkbox" id="o_publique"><span><b>Offre publique</b> : annonce reprise du site de l'employeur, sans son accord pour l'instant. Lien vers le <b>poste précis</b> obligatoire. Le candidat choisit : postuler sur PremierJob ou sur le site de l'employeur.</span></label>
     <label for="o_prospection">Suivi auprès de l'employeur <span class="opt">(offres repérées sur son site)</span><select id="o_prospection" name="prospection">
       <option value="">— Offre reçue de l'employeur</option><option value="a_appeler">Repérée : à appeler</option><option value="rappeler">À rappeler</option>
       <option value="confirmee">Confirmée par l'employeur (accord pour publier)</option><option value="plus_disponible">Plus disponible</option><option value="refus">L'employeur refuse</option></select></label>
@@ -151,7 +152,7 @@
     </div>
     <label for="o_notes">Notes internes<textarea id="o_notes" name="notes_admin" maxlength="2000" style="min-height:70px"></textarea></label>
     <fieldset id="o_verif"><legend>Vérification avant publication (obligatoire)</legend>
-      <label class="consent" for="v1"><input type="checkbox" id="v1"><span>L'employeur m'a confirmé qu'<b>aucune expérience professionnelle préalable</b> n'est exigée.</span></label>
+      <label class="consent" for="v1"><input type="checkbox" id="v1"><span id="v1t">L'employeur m'a confirmé qu'<b>aucune expérience professionnelle préalable</b> n'est exigée.</span></label>
       <label class="consent" for="v2"><input type="checkbox" id="v2"><span>Un débutant peut réellement être embauché à ce poste.</span></label>
       <label class="consent" for="v3"><input type="checkbox" id="v3"><span>Les critères (permis, qualification) ne contredisent pas cette règle.</span></label>
     </fieldset>
@@ -349,6 +350,7 @@
     return `<article class="card" data-id="${o.id}">
       <div class="ctop"><div><h3>${esc(o.titre)}</h3><div class="emp">${esc(o.employeur)} · ${esc(o.ville)}${o.lieu ? " · " + esc(o.lieu) : ""}</div></div><span class="pill-st ${o.statut}">${OFFRE_STATUTS[o.statut]}</span></div>
       ${o.alerte_experience ? `<div class="alerte ${forte ? "forte" : "douce"}">${esc(o.alerte_experience)}</div>` : ""}
+      ${o.offre_publique ? `<div class="small"><span class="pill-st">Offre publique</span> reprise de : <a href="${esc(PJ.safeUrl(o.lien) || "#")}" target="_blank" rel="noopener">${esc((o.lien || "").slice(0, 70))}</a></div>` : ""}
       ${o.candidature_externe ? `<div class="small">Candidature sur le <b>formulaire de l'employeur</b> : <a href="${esc(PJ.safeUrl(o.lien) || "#")}" target="_blank" rel="noopener">${esc((o.lien || "").slice(0, 70))}</a></div>` : ""}
       <div class="small">${esc(o.type)} · ${esc(o.salaire || "salaire ?")} · ${o.nb_postes || 1} poste(s)${o.date_debut ? " · début " + fmtDate(o.date_debut) : ""}${o.qualification ? " · exige : " + esc(o.qualification) : ""}</div>
       ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}
@@ -406,6 +408,7 @@
     $("#dlgTitle").textContent = o ? (o.statut === "pending" ? "Vérifier l'offre" : "Modifier l'offre") : "Créer une offre (avec l'accord de l'employeur)";
     CHAMPS.forEach(k => { f[k].value = o ? (o[k] ?? "") : ""; });
     $("#o_externe").checked = !!(o && o.candidature_externe);
+    $("#o_publique").checked = !!(o && o.offre_publique); majV1();
     f.prospection.value = (o && o.prospection) || "";
     f.nb_postes.value = o ? (o.nb_postes || 1) : 1; f.date_debut.value = o ? (o.date_debut || "") : "";
     if (!o) { f.ville.value = "Chicoutimi"; f.type.value = "Temps partiel"; f.reception.value = "courriel"; }
@@ -417,6 +420,12 @@
     verifAlerte();
     $("#dlg").showModal();
   }
+  function majV1(){
+    $("#v1t").innerHTML = $("#o_publique").checked
+      ? "L'annonce de l'employeur dit clairement qu'<b>aucune expérience professionnelle préalable</b> n'est exigée."
+      : "L'employeur m'a confirmé qu'<b>aucune expérience professionnelle préalable</b> n'est exigée.";
+  }
+  $("#o_publique").addEventListener("change", majV1);
   $("#newOffre").addEventListener("click", () => ouvrirEditeur(null));
   document.addEventListener("click", e => { if (e.target.closest("[data-close-dlg]")) $("#dlg").close(); if (e.target.closest("[data-close-mail]")) $("#dlgMail").close(); });
   $("#offForm").addEventListener("submit", async e => {
@@ -427,7 +436,10 @@
     if (!v("titre") || !v("employeur")) return dire("err", "Le poste et l'entreprise sont obligatoires.");
     const publier = mode === "publier";
     if (publier && grille.O.size + grille.S.size === 0) return dire("err", "Indique au moins un quart pour publier (touche une case de la grille). Une offre repérée peut être enregistrée sans horaire.");
-    if (publier && f.prospection.value && f.prospection.value !== "confirmee") return dire("err", "Cette offre a été repérée : confirme-la d'abord avec l'employeur (Suivi : « Confirmée par l'employeur »).");
+    const publique = $("#o_publique").checked;
+    if (publique && !v("lien")) return dire("err", "Une offre publique doit avoir le lien du poste précis sur le site de l'employeur.");
+    if (publique && $("#o_externe").checked) return dire("err", "Offre publique : décoche « formulaire de l'employeur ». Les deux boutons (PremierJob et site de l'employeur) s'affichent tout seuls.");
+    if (publier && !publique && f.prospection.value && f.prospection.value !== "confirmee") return dire("err", "Cette offre a été repérée : confirme-la d'abord avec l'employeur (Suivi : « Confirmée par l'employeur »).");
     if (v("lien") && !/^https?:\/\//i.test(v("lien"))) return dire("err", "Le lien doit commencer par https://");
     if (PJ.lienConcurrent(v("lien"))) return dire("err", "Ce lien mène à une autre plateforme d'emploi. Utilise le lien du site ou du formulaire de l'employeur.");
     if ($("#o_externe").checked && !v("lien")) return dire("err", "Ajoute le lien du formulaire de l'employeur.");
@@ -437,8 +449,9 @@
     row.reception = f.reception.value; row.nb_postes = nbp >= 1 && nbp <= 50 ? nbp : 1; row.date_debut = f.date_debut.value || null;
     row.creneaux_obligatoires = [...grille.O]; row.creneaux_souhaites = [...grille.S];
     row.candidature_externe = $("#o_externe").checked;
+    row.offre_publique = publique;
     if (f.prospection.value || (editId && (offreDe(editId) || {}).prospection)) row.prospection = f.prospection.value || null;
-    if (publier) { row.statut = "published"; row.confirme = true; row.aucune_experience_confirmee = true; }
+    if (publier) { row.statut = "published"; row.confirme = !publique; row.aucune_experience_confirmee = true; }
     const r = editId ? await sb.from("offres").update(row).eq("id", editId)
                      : await sb.from("offres").insert({ ...row, source: "admin", statut: publier ? "published" : "pending" });
     if (r.error) return dire("err", PJ.messageErreur(r.error, "L'enregistrement n'a pas fonctionné."));
