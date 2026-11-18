@@ -69,6 +69,11 @@
 <!-- Les offres, façon palette -->
 <section class="wrap" id="offres" aria-label="Offres d'emploi">
   <div class="palette">
+    <div class="libre" id="libre">
+      <div class="libre-t" id="t-libre">Quand es-tu libre?</div>
+      <div class="libre-btns" id="libreBtns" role="group" aria-labelledby="t-libre"></div>
+      <div class="libre-r" id="libreR" aria-live="polite"></div>
+    </div>
     <div class="pal-search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input type="search" id="q" placeholder="Caissier, cuisine, stage TI…" aria-label="Chercher une offre" autocomplete="off">
@@ -248,11 +253,11 @@
   ETABLISSEMENTS.forEach(e => $("#etablissement").add(new Option(e, e)));
 
   // ----- Filtres -----
-  Object.entries(HORAIRES).forEach(([k,l]) => $("#filters").appendChild(PJ.chip(l, false, b => {
+  Object.entries(HORAIRES).forEach(([k,l]) => { const c = PJ.chip(l, false, b => {
     state.horaires.has(k) ? state.horaires.delete(k) : state.horaires.add(k);
     b.setAttribute("aria-pressed", state.horaires.has(k)); state.sel = 0; render();
-  })));
-  const sep = document.createElement("span"); sep.className = "sep"; $("#filters").appendChild(sep);
+  }); c.classList.add("f-hor"); $("#filters").appendChild(c); });
+  const sep = document.createElement("span"); sep.className = "sep f-hor"; $("#filters").appendChild(sep);
   const typeBtns = TYPES.map(t => PJ.chip(t, false, () => {
     state.type = state.type === t ? "" : t;
     typeBtns.forEach(x => x.setAttribute("aria-pressed", x.textContent === state.type)); state.sel = 0; render();
@@ -297,6 +302,52 @@
       <span class="acc">${h}${o.salaire ? `<span class="money hide-sm">${esc(o.salaire)}</span>` : ""}</span>
     </button>`;
   }
+
+  // ----- Mobile : « Quand es-tu libre? » et cartes (horaire d'abord) -----
+  const LIBRE = [["jour","Jour"],["soirs","Soir"],["nuit","Nuit"],["fds","Fin de sem."]];
+  let libreSel = null; // chargé au premier rendu (gardé sur cet appareil)
+  function chargerLibre(){
+    try { const v = JSON.parse(localStorage.getItem("pj_libre") || "null"); if (Array.isArray(v)) return new Set(v); } catch (e) {}
+    const s = new Set(); // sinon : déduit des disponibilités déjà données sur ce téléphone
+    mesDispos().forEach(k => { const [j, p] = k.split("-");
+      if (p === "nuit") s.add("nuit"); else if (j === "sam" || j === "dim") s.add("fds"); else if (p === "jour") s.add("jour"); else if (p === "soir") s.add("soirs"); });
+    return s;
+  }
+  const libreBtns = LIBRE.map(([k, l]) => {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = l; b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => {
+      libreSel.has(k) ? libreSel.delete(k) : libreSel.add(k);
+      try { localStorage.setItem("pj_libre", JSON.stringify([...libreSel])); } catch (e) {}
+      PJ.track("libre/" + [...libreSel].sort().join("-")); state.sel = 0; render();
+    });
+    $("#libreBtns").appendChild(b); return b;
+  });
+  function accord(o){
+    if (!libreSel || !libreSel.size) return null;
+    const h = o.horaires || [];
+    if (h.includes("flexible")) return "flex";
+    if (!h.length) return "inconnu";
+    return h.some(x => libreSel.has(x)) ? "ok" : "non";
+  }
+  const RANG = { ok: 0, flex: 1, inconnu: 2, non: 3 };
+  function carte(o, i){
+    const a = accord(o), h = o.horaires || [], flex = h.includes("flexible");
+    const segs = LIBRE.map(([k, l]) => { const on = flex || h.includes(k), toi = on && libreSel && libreSel.has(k);
+      return `<span class="seg${on ? (flex && !toi ? " flex" : " on") : ""}${toi ? " toi" : ""}">${l}</span>`; }).join("");
+    const badge = a === "ok" ? '<span class="accord ok">✓ Va avec ton horaire</span>'
+      : a === "flex" ? '<span class="accord flex">Horaire flexible : à discuter</span>'
+      : a === "non" ? '<span class="accord non">Pas sur tes disponibilités</span>'
+      : a === "inconnu" ? '<span class="accord non">Horaire à confirmer</span>' : "";
+    return `<button class="row carte" type="button" data-i="${i}" aria-selected="false">
+      <span class="c-haut">${icone(o)}<span class="c-emp"><span class="c-e">${esc(o.employeur)}</span><span class="c-v">${esc(o.ville)}${o.publiee_le ? " · " + PJ.ilYa(o.publiee_le) : ""}</span></span>${favoris.a(o.id) ? '<span class="coeur" aria-label="Sauvegardée">♥</span>' : ""}</span>
+      <span class="c-t">${esc(o.titre)}</span>
+      <span class="c-sal${o.salaire ? "" : " vide"}">${o.salaire ? esc(o.salaire) : "Salaire non affiché"}</span>
+      <span class="sr-only">Horaire : ${esc(h.map(x => HORAIRES[x] || x).join(", ") || "à confirmer")}.</span>
+      <span class="c-segs" aria-hidden="true">${segs}</span>
+      <span class="c-bas">${badge}<span class="c-tag">${o.offre_publique ? "Offre publique" : "✓ Vérifiée"}</span></span>
+    </button>`;
+  }
+  const item = (o, i) => large.matches ? ligne(o, i) : carte(o, i);
 
   function detail(o){
     if (!o) return `<div class="legend">
@@ -352,6 +403,12 @@
       (!state.salMin || (PJ.salaireHoraire(o.salaire) || 0) >= state.salMin) &&
       (!q || [o.titre,o.employeur,o.secteur,o.description,o.ville].join(" ").toLowerCase().includes(q)));
     VUE.sort((a,b) => String(b.publiee_le || b.verifie_le || "").localeCompare(String(a.publiee_le || a.verifie_le || "")));
+    if (libreSel === null) libreSel = chargerLibre();
+    libreBtns.forEach((b, n) => b.setAttribute("aria-pressed", libreSel.has(LIBRE[n][0])));
+    if (!large.matches && libreSel.size) VUE.sort((a, b) => RANG[accord(a)] - RANG[accord(b)]);
+    const nOk = libreSel.size ? VUE.filter(o => accord(o) === "ok").length : 0;
+    $("#libreR").innerHTML = !libreSel.size ? "Touche tes moments libres : les offres qui vont avec ton horaire passent en premier."
+      : nOk ? `<b>${nOk} offre${nOk > 1 ? "s vont" : " va"}</b> avec ton horaire.` : "Aucune offre ne va avec ces moments pour l'instant. Crée une alerte plus bas.";
     if (state.sel >= VUE.length) state.sel = Math.max(0, VUE.length - 1);
     $("#count").textContent = OFFRES.length === 0 ? "Aucune offre pour l'instant" : VUE.length + (VUE.length > 1 ? " résultats" : " résultat");
 
@@ -368,7 +425,7 @@
         : `<div class="pal-empty"><span class="big">Rien pour ces filtres.</span><span>Essaie un autre horaire, une autre ville ou un autre salaire. Ou reçois les prochaines offres par courriel.</span><a class="btn ghost sm" href="#alerte">Créer une alerte</a></div>`);
       $("#detail").innerHTML = detail(null); return;
     }
-    $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + VUE.map((o,i) => ligne(o,i)).join("");
+    $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + VUE.map((o,i) => item(o,i)).join("");
     $("#detail").innerHTML = detail(VUE[state.sel]);
   }
 
@@ -414,6 +471,7 @@
     select(i, true);
   }
   window.addEventListener("hashchange", ouvrirDepuisAdresse);
+  large.addEventListener("change", () => render());
   $("#list").addEventListener("click", e => { const r = e.target.closest(".row"); if (r) select(+r.dataset.i, true); });
   $("#scrim").addEventListener("click", fermer);
   $("#sheetX").addEventListener("click", fermer);
@@ -423,7 +481,7 @@
     const fv = e.target.closest("[data-fav]"); if (fv) {
       const ajoute = favoris.basculer(fv.dataset.fav); PJ.track((ajoute ? "favori/" : "favori-retire/") + fv.dataset.fav);
       document.querySelectorAll(`[data-fav="${fv.dataset.fav}"]`).forEach(b => { b.textContent = ajoute ? "♥ Sauvegardée" : "♡ Sauvegarder"; b.setAttribute("aria-pressed", ajoute); });
-      const i = state.sel; majFavFiltre(); $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + VUE.map((o,k) => ligne(o,k)).join(""); state.sel = i;
+      const i = state.sel; majFavFiltre(); $("#list").innerHTML = (avis ? `<div class="msg info" style="margin:6px">${esc(avis)}</div>` : "") + VUE.map((o,k) => item(o,k)).join(""); state.sel = i;
     }
     const sg = e.target.closest("[data-signaler]"); if (sg) ouvrirSignaler(sg.dataset.signaler);
     const ap = e.target.closest("[data-apply]"); if (ap) ouvrirPostuler(ap.dataset.apply);
