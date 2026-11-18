@@ -37,6 +37,12 @@
   </section>
 
   <div id="app" hidden>
+    <div class="recherche-admin" role="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="gq" placeholder="Rechercher partout : offre, employeur, candidat, courriel, téléphone…" aria-label="Rechercher dans l'admin" aria-controls="gres" autocomplete="off">
+      <kbd class="hide-touch" aria-hidden="true">/</kbd>
+      <div id="gres" class="gres" hidden></div>
+    </div>
     <div class="tiles" id="tiles"></div>
     <div class="tabs" role="tablist" id="tabs"></div>
     <div id="flash" role="status"></div>
@@ -51,10 +57,15 @@
 
     <!-- Offres -->
     <section id="v-offres" hidden>
-      <div class="frow" style="justify-content:space-between;margin-bottom:12px">
+      <div class="frow" style="justify-content:space-between;margin-bottom:10px">
         <div class="chips" id="offFiltres"></div>
         <button class="btn sm" id="newOffre">+ Créer une offre</button>
       </div>
+      <div class="frow" style="margin-bottom:12px">
+        <input type="search" id="oq" placeholder="Filtrer : titre, employeur, ville, notes…" aria-label="Filtrer les offres" autocomplete="off">
+        <select id="otri" aria-label="Trier les offres" style="width:auto"><option value="recent">Plus récentes</option><option value="ancien">Plus anciennes</option><option value="employeur">Employeur (A à Z)</option><option value="ville">Ville</option><option value="cands">Plus de candidatures</option></select>
+      </div>
+      <p class="count" id="offCount" style="margin:0 0 10px"></p>
       <div class="list" id="offList"></div>
     </section>
 
@@ -71,7 +82,9 @@
 
     <!-- Candidatures -->
     <section id="v-candidatures" hidden>
-      <div class="chips" id="candFiltres" style="margin-bottom:12px"></div>
+      <div class="chips" id="candFiltres" style="margin-bottom:10px"></div>
+      <div class="frow" style="margin-bottom:12px"><input type="search" id="kq" placeholder="Filtrer : nom, courriel, téléphone, offre, employeur…" aria-label="Filtrer les candidatures" autocomplete="off"></div>
+      <p class="count" id="candCount" style="margin:0 0 10px"></p>
       <div class="list" id="candList"></div>
     </section>
 
@@ -207,6 +220,7 @@
       await sb.auth.signOut(); return;
     }
     $("#loginBox").hidden = true; $("#app").hidden = false; $("#logout").hidden = false;
+    lireAdresse();
     await charger();
   }
   $("#loginForm").addEventListener("submit", async e => {
@@ -236,7 +250,17 @@
 
   // ---------- Navigation ----------
   const ONGLETS = [["apercu","Aperçu"],["offres","Offres"],["candidatures","Candidatures"],["suivis","Suivis"],["inscrits","Inscrits"],["donnees","Données"]];
-  function aller(v){ vue = v; rendre(); window.scrollTo(0, 0); }
+  function aller(v, sansHistorique){
+    vue = v;
+    if (!sansHistorique) { const h = "#" + v + (v === "dossier" && dossierId ? "/" + dossierId : ""); if (location.hash !== h) try { history.pushState(null, "", h); } catch (e) {} }
+    rendre(); window.scrollTo(0, 0);
+  }
+  function lireAdresse(){
+    const m = location.hash.match(/^#([a-z]+)(?:\/([0-9a-f-]{36}))?$/i); if (!m) return;
+    if (m[1] === "dossier") { if (!m[2]) return; dossierId = m[2]; vue = "dossier"; return; }
+    if (ONGLETS.some(([k]) => k === m[1])) vue = m[1];
+  }
+  window.addEventListener("popstate", () => { lireAdresse(); if (!$("#app").hidden) rendre(); });
   document.addEventListener("click", e => {
     const g = e.target.closest("[data-go]"); if (!g) return;
     if (g.dataset.filtre) { if (g.dataset.go === "offres") filtreOff = g.dataset.filtre; else filtreCand = g.dataset.filtre; }
@@ -268,6 +292,62 @@
     ["apercu","offres","dossier","candidatures","suivis","inscrits","donnees"].forEach(k => { $("#v-" + k).hidden = k !== vue; });
     ({ apercu: rApercu, offres: rOffres, dossier: rDossier, candidatures: rCandidatures, suivis: rSuivis, inscrits: rInscrits, donnees: rDonnees })[vue]();
   }
+
+  // ---------- Recherche partout (offres, candidatures, inscrits) ----------
+  const sansAccent = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const correspond = (q) => { const mots = sansAccent(q).split(/\s+/).filter(Boolean); return (...champs) => { const t = sansAccent(champs.join(" ")); return mots.every(m => t.includes(m)); }; };
+  function rRecherche(){
+    const q = $("#gq").value.trim(), box = $("#gres");
+    if (q.length < 2) { box.hidden = true; box.innerHTML = ""; return; }
+    const m = correspond(q);
+    const off = OFFRES.filter(o => m(o.titre, o.employeur, o.ville, o.lieu, o.notes_admin, o.contact_nom, o.contact_courriel, o.contact_tel, o.description, OFFRE_STATUTS[o.statut]));
+    const cand = POSTS.filter(p => { const o = offreDe(p.offre_id) || {}; return m(nomComplet(p), p.courriel, p.telephone, o.titre, o.employeur, CAND_STATUTS[p.statut]); });
+    const insc = CANDS.filter(c => m(nomComplet(c), c.courriel, c.telephone, c.etablissement, c.domaine, c.ville));
+    const groupe = (titre, n, items) => n ? `<div class="gres-t">${titre} <span>${n}</span></div>${items}` : "";
+    box.innerHTML = (groupe("Offres", off.length, off.slice(0, 8).map(o => `<button type="button" class="gr" data-gr-offre="${o.id}"><span class="gr-t">${esc(o.titre)}</span><span class="gr-s">${esc(o.employeur)} · ${esc(o.ville)} · ${esc(OFFRE_STATUTS[o.statut])}${o.offre_publique ? " · offre publique" : ""}</span></button>`).join(""))
+      + groupe("Candidatures", cand.length, cand.slice(0, 8).map(p => { const o = offreDe(p.offre_id) || {}; return `<button type="button" class="gr" data-gr-cand="${p.id}" data-gr-offre-de="${p.offre_id}"><span class="gr-t">${esc(nomComplet(p))}</span><span class="gr-s">${esc(o.titre || "Offre supprimée")} · ${esc(o.employeur || "")} · ${esc(CAND_STATUTS[p.statut] || p.statut)}</span></button>`; }).join(""))
+      + groupe("Inscrits aux alertes", insc.length, insc.slice(0, 6).map(c => `<button type="button" class="gr" data-gr-insc="${esc(c.courriel)}"><span class="gr-t">${esc(nomComplet(c))}</span><span class="gr-s">${esc(c.courriel)}${c.ville ? " · " + esc(c.ville) : ""}</span></button>`).join("")))
+      || `<div class="gres-vide">Rien trouvé pour « ${esc(q)} ».</div>`;
+    box.hidden = false;
+  }
+  function surligner(sel){
+    const el = document.querySelector(sel); if (!el) return;
+    el.scrollIntoView({ block: "center" }); el.classList.remove("hl"); void el.offsetWidth; el.classList.add("hl");
+  }
+  function fermerRecherche(vider){ $("#gres").hidden = true; if (vider) { $("#gq").value = ""; $("#gres").innerHTML = ""; } }
+  $("#gq").addEventListener("input", rRecherche);
+  $("#gq").addEventListener("focus", rRecherche);
+  $("#gq").addEventListener("keydown", e => {
+    if (e.key === "Escape") { fermerRecherche(true); $("#gq").blur(); }
+    if (e.key === "Enter") { const b = $("#gres .gr"); if (b) { e.preventDefault(); b.click(); } }
+    if (e.key === "ArrowDown") { const b = $("#gres .gr"); if (b) { e.preventDefault(); b.focus(); } }
+  });
+  $("#gres").addEventListener("keydown", e => {
+    const tous = [...document.querySelectorAll("#gres .gr")], i = tous.indexOf(document.activeElement);
+    if (e.key === "ArrowDown" && i >= 0) { e.preventDefault(); (tous[i + 1] || tous[i]).focus(); }
+    if (e.key === "ArrowUp" && i >= 0) { e.preventDefault(); (i ? tous[i - 1] : $("#gq")).focus(); }
+    if (e.key === "Escape") { fermerRecherche(true); }
+  });
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".recherche-admin")) fermerRecherche(false);
+    const b = e.target.closest("#gres .gr"); if (!b) return;
+    fermerRecherche(true);
+    if (b.dataset.grOffre) {
+      const o = offreDe(b.dataset.grOffre); if (!o) return;
+      filtreOff = o.statut; $("#oq").value = ""; aller("offres"); surligner(`#offList [data-id="${o.id}"]`);
+    } else if (b.dataset.grCand) {
+      if (!offreDe(b.dataset.grOffreDe)) { filtreCand = (POSTS.find(p => p.id === b.dataset.grCand) || {}).statut || filtreCand; aller("candidatures"); return surligner(`#candList [data-pid="${b.dataset.grCand}"]`); }
+      dossierId = b.dataset.grOffreDe; selection.clear(); aller("dossier"); surligner(`#dosCands [data-pid="${b.dataset.grCand}"]`);
+    } else if (b.dataset.grInsc) {
+      $("#cq").value = b.dataset.grInsc; aller("inscrits");
+    }
+  });
+  // Raccourcis : / ou Ctrl+K pour chercher
+  document.addEventListener("keydown", e => {
+    if ($("#app").hidden || document.querySelector("dialog[open]")) return;
+    const dansChamp = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+    if ((e.key === "/" && !dansChamp) || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k")) { e.preventDefault(); $("#gq").focus(); $("#gq").select(); }
+  });
 
   // ---------- Aperçu ----------
   function rApercu(){
@@ -327,12 +407,23 @@
   // ---------- Offres ----------
   function rOffres(){
     const aAppeler = (o) => ["a_appeler","rappeler"].includes(o.prospection) && !["closed","rejected"].includes(o.statut);
-    $("#offFiltres").innerHTML = Object.entries(OFFRE_STATUTS).map(([k,l]) => `<button class="chip" data-foff="${k}" aria-pressed="${k === filtreOff}">${l} ${nb(OFFRES, o => o.statut === k)}</button>`).join("")
+    $("#offFiltres").innerHTML = `<button class="chip" data-foff="toutes" aria-pressed="${filtreOff === "toutes"}">Toutes ${OFFRES.length}</button>`
+      + Object.entries(OFFRE_STATUTS).map(([k,l]) => `<button class="chip" data-foff="${k}" aria-pressed="${k === filtreOff}">${l} ${nb(OFFRES, o => o.statut === k)}</button>`).join("")
       + `<button class="chip" data-foff="aappeler" aria-pressed="${filtreOff === "aappeler"}">📞 À appeler ${nb(OFFRES, aAppeler)}</button>`;
-    const list = filtreOff === "aappeler" ? OFFRES.filter(aAppeler) : OFFRES.filter(o => o.statut === filtreOff);
-    $("#offList").innerHTML = list.length ? list.map(carteOffre).join("") : '<div class="empty">Aucune offre dans cette catégorie.</div>';
+    const q = $("#oq").value.trim(), m = correspond(q);
+    let list = filtreOff === "toutes" ? OFFRES.slice() : filtreOff === "aappeler" ? OFFRES.filter(aAppeler) : OFFRES.filter(o => o.statut === filtreOff);
+    if (q) list = list.filter(o => m(o.titre, o.employeur, o.ville, o.lieu, o.notes_admin, o.contact_nom, o.contact_courriel, o.contact_tel, o.salaire));
+    const tri = $("#otri").value, nbC = (o) => nb(POSTS, p => p.offre_id === o.id);
+    if (tri === "ancien") list.reverse();
+    if (tri === "employeur") list.sort((a, b) => a.employeur.localeCompare(b.employeur, "fr") || a.titre.localeCompare(b.titre, "fr"));
+    if (tri === "ville") list.sort((a, b) => a.ville.localeCompare(b.ville, "fr") || a.employeur.localeCompare(b.employeur, "fr"));
+    if (tri === "cands") list.sort((a, b) => nbC(b) - nbC(a));
+    $("#offCount").textContent = q ? `${list.length} offre${list.length > 1 ? "s" : ""} pour « ${q} »` : "";
+    $("#offList").innerHTML = list.length ? list.map(carteOffre).join("") : `<div class="empty">${q ? "Aucune offre ne correspond à ce filtre." : "Aucune offre dans cette catégorie."}</div>`;
   }
   $("#offFiltres").addEventListener("click", e => { const b = e.target.closest("[data-foff]"); if (b) { filtreOff = b.dataset.foff; rOffres(); } });
+  $("#oq").addEventListener("input", () => rOffres());
+  $("#otri").addEventListener("change", () => rOffres());
   function compteurs(o){
     const ps = POSTS.filter(p => p.offre_id === o.id);
     if (!ps.length) return '<span class="small">Aucune candidature</span>';
@@ -614,11 +705,16 @@
 
   // ---------- Candidatures ----------
   function rCandidatures(){
-    $("#candFiltres").innerHTML = Object.entries(CAND_STATUTS).map(([k,l]) => `<button class="chip" data-fc="${k}" aria-pressed="${k === filtreCand}">${l} ${nb(POSTS, p => p.statut === k)}</button>`).join("");
-    const list = POSTS.filter(p => p.statut === filtreCand);
-    $("#candList").innerHTML = list.length ? list.map(p => carteCand(p, offreDe(p.offre_id), false)).join("") : '<div class="empty">Aucune candidature dans cette catégorie.</div>';
+    $("#candFiltres").innerHTML = `<button class="chip" data-fc="toutes" aria-pressed="${filtreCand === "toutes"}">Toutes ${POSTS.length}</button>`
+      + Object.entries(CAND_STATUTS).map(([k,l]) => `<button class="chip" data-fc="${k}" aria-pressed="${k === filtreCand}">${l} ${nb(POSTS, p => p.statut === k)}</button>`).join("");
+    const q = $("#kq").value.trim(), m = correspond(q);
+    let list = filtreCand === "toutes" ? POSTS.slice() : POSTS.filter(p => p.statut === filtreCand);
+    if (q) list = list.filter(p => { const o = offreDe(p.offre_id) || {}; return m(nomComplet(p), p.courriel, p.telephone, o.titre, o.employeur, p.ville, p.message); });
+    $("#candCount").textContent = q ? `${list.length} candidature${list.length > 1 ? "s" : ""} pour « ${q} »` : "";
+    $("#candList").innerHTML = list.length ? list.map(p => carteCand(p, offreDe(p.offre_id), false)).join("") : `<div class="empty">${q ? "Aucune candidature ne correspond à ce filtre." : "Aucune candidature dans cette catégorie."}</div>`;
   }
   $("#candFiltres").addEventListener("click", e => { const b = e.target.closest("[data-fc]"); if (b) { filtreCand = b.dataset.fc; rCandidatures(); } });
+  $("#kq").addEventListener("input", () => rCandidatures());
 
   // ---------- Suivis ----------
   function rSuivis(){
