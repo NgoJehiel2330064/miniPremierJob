@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#07080a">
+<meta name="theme-color" content="#f8f7f4">
 <title>Admin · PremierJob</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script src="theme.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="common.js"></script>
@@ -435,8 +436,8 @@
     const dire = (cls, t) => { m.className = "msg " + cls; m.textContent = t; };
     if (!v("titre") || !v("employeur")) return dire("err", "Le poste et l'entreprise sont obligatoires.");
     const publier = mode === "publier";
-    if (publier && grille.O.size + grille.S.size === 0) return dire("err", "Indique au moins un quart pour publier (touche une case de la grille). Une offre repérée peut être enregistrée sans horaire.");
     const publique = $("#o_publique").checked;
+    if (publier && !publique && grille.O.size + grille.S.size === 0) return dire("err", "Indique au moins un quart pour publier (touche une case de la grille). Une offre repérée peut être enregistrée sans horaire.");
     if (publique && !v("lien")) return dire("err", "Une offre publique doit avoir le lien du poste précis sur le site de l'employeur.");
     if (publique && $("#o_externe").checked) return dire("err", "Offre publique : décoche « formulaire de l'employeur ». Les deux boutons (PremierJob et site de l'employeur) s'affichent tout seuls.");
     if (publier && !publique && f.prospection.value && f.prospection.value !== "confirmee") return dire("err", "Cette offre a été repérée : confirme-la d'abord avec l'employeur (Suivi : « Confirmée par l'employeur »).");
