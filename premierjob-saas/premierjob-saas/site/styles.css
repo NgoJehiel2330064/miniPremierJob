@@ -472,3 +472,41 @@ details.plus[open]{padding-bottom:14px}
 @media (max-width:420px){.theme-btn{width:36px;height:36px;border-radius:9px}.navlinks .btn.sm{padding-inline:10px}.navlinks{gap:5px}}
 @media (max-width:389px){.nav .wrap{padding-inline:10px;gap:6px}.logo{gap:7px}.navlinks{gap:4px}.navlinks .btn.sm{padding-inline:8px;font-size:12.5px}.theme-btn{width:34px;height:34px}}
 @media (max-width:349px){.logo{font-size:0;gap:0}}
+
+/* Liste mobile : « Quand es-tu libre? » + cartes, horaire d'abord */
+.libre{display:none}
+.row.carte{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel-solid);box-shadow:0 1px 2px var(--sh-ring)}
+.row.carte:hover,.row.carte[aria-selected="true"]{background:var(--panel-solid);box-shadow:0 1px 2px var(--sh-ring)}
+.c-haut{display:flex;align-items:center;gap:10px}
+.c-emp{display:flex;flex-direction:column;min-width:0;flex:1}
+.c-e{font-size:13.5px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-v{font-size:12.5px;color:var(--dim)}
+.c-t{font-size:17px;font-weight:600;line-height:1.3;letter-spacing:-.1px;color:var(--ink)}
+.c-sal{font-size:19px;font-weight:700;letter-spacing:-.2px;color:var(--ink)}
+.c-sal.vide{font-size:14px;font-weight:500;color:var(--dim)}
+.c-segs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.seg{font-size:11.5px;font-weight:600;text-align:center;padding:6px 0;border-radius:7px;color:var(--dim);border:1px dashed var(--line)}
+.seg.on{background:rgba(var(--fg),.07);color:var(--ink);border:1px solid transparent}
+.seg.flex{background:rgba(245,158,11,.14);color:var(--ideal-ink);border:1px solid transparent}
+.seg.toi{background:rgba(22,163,74,.14);color:var(--go);border:1px solid transparent}
+.c-bas{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.accord{font-size:13px;font-weight:600}
+.accord.ok{color:var(--go)}.accord.flex{color:var(--ideal-ink)}.accord.non{color:var(--dim)}
+.c-tag{margin-left:auto;font-size:12px;font-weight:500;color:var(--dim);border:1px solid var(--line-2);padding:3px 8px;border-radius:6px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:899px){
+  .libre{display:grid;gap:10px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--panel-solid);margin-bottom:12px}
+  .libre-t{font-weight:600;font-size:15px;color:var(--ink)}
+  .libre-btns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .libre-btns button{min-height:44px;padding:0 4px;border-radius:10px;border:1px solid var(--line-2);background:var(--panel-solid);color:var(--muted);font:600 13px var(--sans);cursor:pointer}
+  .libre-btns button[aria-pressed="true"]{background:var(--inv-bg);color:var(--inv-ink);border-color:var(--inv-bg)}
+  .libre-r{font-size:13px;color:var(--muted)}
+  .libre-r b{color:var(--go)}
+  .palette{background:transparent;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;overflow:visible}
+  .pal-search{background:var(--panel-solid);border:1px solid var(--line-2);border-radius:12px;padding:10px 14px}
+  .pal-filters{border-bottom:0;padding:10px 0 12px}
+  .pal-filters .f-hor{display:none}
+  .pal-list{max-height:none;overflow:visible;padding:0;display:grid;gap:12px}
+  .pal-foot{background:transparent;border-top:0;padding:12px 2px 0}
+}
+.palette.vide .libre{display:none}
