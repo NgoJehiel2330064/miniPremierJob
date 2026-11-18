@@ -141,7 +141,7 @@
     <div id="o_alerte" role="status"></div>
     <label for="o_lien">Lien vers le formulaire officiel ou l'annonce de l'employeur<input id="o_lien" name="lien" type="url" maxlength="500" placeholder="https://"></label>
     <label class="consent" for="o_externe"><input type="checkbox" id="o_externe"><span>Les candidats postulent sur le <b>formulaire de l'employeur</b> (lien obligatoire). PremierJob note leur nom, les envoie au formulaire et signale leur candidature au gérant.</span></label>
-    <label class="consent" for="o_publique"><input type="checkbox" id="o_publique"><span><b>Offre publique</b> : annonce reprise du site de l'employeur, sans son accord pour l'instant. Lien vers le <b>poste précis</b> obligatoire. Le candidat choisit : postuler sur PremierJob ou sur le site de l'employeur.</span></label>
+    <label class="consent" for="o_publique"><input type="checkbox" id="o_publique"><span><b>Offre publique</b> : annonce reprise du site de l'employeur, sans son accord pour l'instant. Avec le lien du <b>poste précis</b> sur le site de l'employeur, le candidat choisit : PremierJob ou le site de l'employeur. Sans lien (annonce vue seulement sur Indeed, Jobillico…), seul « Postuler via PremierJob » s'affiche. Jamais de lien vers un site concurrent.</span></label>
     <label for="o_prospection">Suivi auprès de l'employeur <span class="opt">(offres repérées sur son site)</span><select id="o_prospection" name="prospection">
       <option value="">— Offre reçue de l'employeur</option><option value="a_appeler">Repérée : à appeler</option><option value="rappeler">À rappeler</option>
       <option value="confirmee">Confirmée par l'employeur (accord pour publier)</option><option value="plus_disponible">Plus disponible</option><option value="refus">L'employeur refuse</option></select></label>
@@ -351,7 +351,7 @@
     return `<article class="card" data-id="${o.id}">
       <div class="ctop"><div><h3>${esc(o.titre)}</h3><div class="emp">${esc(o.employeur)} · ${esc(o.ville)}${o.lieu ? " · " + esc(o.lieu) : ""}</div></div><span class="pill-st ${o.statut}">${OFFRE_STATUTS[o.statut]}</span></div>
       ${o.alerte_experience ? `<div class="alerte ${forte ? "forte" : "douce"}">${esc(o.alerte_experience)}</div>` : ""}
-      ${o.offre_publique ? `<div class="small"><span class="pill-st">Offre publique</span> reprise de : <a href="${esc(PJ.safeUrl(o.lien) || "#")}" target="_blank" rel="noopener">${esc((o.lien || "").slice(0, 70))}</a></div>` : ""}
+      ${o.offre_publique ? `<div class="small"><span class="pill-st">Offre publique</span> ${o.lien ? `reprise de : <a href="${esc(PJ.safeUrl(o.lien) || "#")}" target="_blank" rel="noopener">${esc(o.lien.slice(0, 70))}</a>` : "sans lien : candidatures via PremierJob seulement"}</div>` : ""}
       ${o.candidature_externe ? `<div class="small">Candidature sur le <b>formulaire de l'employeur</b> : <a href="${esc(PJ.safeUrl(o.lien) || "#")}" target="_blank" rel="noopener">${esc((o.lien || "").slice(0, 70))}</a></div>` : ""}
       <div class="small">${esc(o.type)} · ${esc(o.salaire || "salaire ?")} · ${o.nb_postes || 1} poste(s)${o.date_debut ? " · début " + fmtDate(o.date_debut) : ""}${o.qualification ? " · exige : " + esc(o.qualification) : ""}</div>
       ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}
@@ -438,7 +438,6 @@
     const publier = mode === "publier";
     const publique = $("#o_publique").checked;
     if (publier && !publique && grille.O.size + grille.S.size === 0) return dire("err", "Indique au moins un quart pour publier (touche une case de la grille). Une offre repérée peut être enregistrée sans horaire.");
-    if (publique && !v("lien")) return dire("err", "Une offre publique doit avoir le lien du poste précis sur le site de l'employeur.");
     if (publique && $("#o_externe").checked) return dire("err", "Offre publique : décoche « formulaire de l'employeur ». Les deux boutons (PremierJob et site de l'employeur) s'affichent tout seuls.");
     if (publier && !publique && f.prospection.value && f.prospection.value !== "confirmee") return dire("err", "Cette offre a été repérée : confirme-la d'abord avec l'employeur (Suivi : « Confirmée par l'employeur »).");
     if (v("lien") && !/^https?:\/\//i.test(v("lien"))) return dire("err", "Le lien doit commencer par https://");

@@ -375,6 +375,7 @@
       ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites) ? `<div><div class="small" style="margin-bottom:6px">Quarts : <span class="g req">R</span> requis · <span class="g ideal">I</span> idéal</div>${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}</div>` : ""}
       ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
       ${estPublique(o) ? `<p class="small" style="margin:0">Offre reprise du site de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur. Tu peux aussi postuler directement sur son site.</p>` : ""}
+      ${o.offre_publique && !estPublique(o) ? `<p class="small" style="margin:0">Offre repérée dans une annonce publique de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.</p>` : ""}
       ${estExterne(o) ? `<p class="small" style="margin:0">${esc(o.employeur)} reçoit les candidatures sur son propre site. Si on te demande comment tu as connu l'entreprise, écris <b style="color:var(--ink)">PremierJob</b>.</p>` : ""}
       <div class="cta" style="margin-top:4px">
         ${estPublique(o)
