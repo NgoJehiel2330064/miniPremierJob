@@ -65,7 +65,7 @@ function gabarit({ titre, desc, page, origin, corps, jsonld, indexer }) {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(titre)}</title><meta name="description" content="${esc(desc)}">
 ${indexer ? "" : '<meta name="robots" content="noindex">'}
-<meta name="theme-color" content="#07080a">
+<meta name="theme-color" content="#f8f7f4">
 <meta property="og:type" content="website"><meta property="og:site_name" content="PremierJob Saguenay"><meta property="og:locale" content="fr_CA">
 <meta property="og:title" content="${esc(titre)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(page)}"><meta property="og:image" content="${esc(origin)}/og.jpg">
@@ -74,6 +74,7 @@ ${indexer ? "" : '<meta name="robots" content="noindex">'}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css">
+<script src="/theme.js"></script>
 ${jsonld ? `<script type="application/ld+json">${json(jsonld)}</script>` : ""}
 </head><body>
 <div class="glow" aria-hidden="true"></div><div class="page">
