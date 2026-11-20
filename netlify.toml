@@ -18,3 +18,26 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Liens collés dans un courriel : Gmail y ajoute parfois « &source=gmail&ust=… » ;
+# on renvoie ces adresses mal formées vers la bonne page au lieu d'afficher une erreur 404.
+[[redirects]]
+  from   = "/employeur.html&*"
+  to     = "/employeur.html"
+  status = 301
+
+[[redirects]]
+  from   = "/employeur&*"
+  to     = "/employeur.html"
+  status = 301
+
+[[redirects]]
+  from   = "/&*"
+  to     = "/"
+  status = 301
+
+# Anciennes demandes d'icône d'écran d'accueil (iPhone) : même image.
+[[redirects]]
+  from   = "/apple-touch-icon-precomposed.png"
+  to     = "/apple-touch-icon.png"
+  status = 200
