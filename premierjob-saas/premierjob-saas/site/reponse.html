@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f8f7f4">
+<meta name="referrer" content="no-referrer">
+<title>Votre réponse · PremierJob Saguenay</title>
+<meta name="description" content="Dites-nous en un clic ce qu'il advient d'une candidature reçue par PremierJob.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<script src="/theme.js"></script>
+<style>.doc{max-width:640px}.choix{display:grid;gap:10px;max-width:380px;margin:26px auto 0}.choix .btn{width:100%;justify-content:center}</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="page">
+<nav class="nav"><div class="wrap">
+  <a class="logo" href="index.html"><span class="mark">P</span>PremierJob <small>Saguenay</small></a>
+</div></nav>
+<main class="wrap hero center doc" style="margin-inline:auto;text-align:center">
+  <span class="place">Réponse employeur</span>
+  <h1 style="font-size:clamp(2rem,6.5vw,3rem)" id="titre">Un instant…</h1>
+  <p class="lead" id="msg">Nous chargeons la candidature.</p>
+  <div class="choix" id="actions" hidden>
+    <button class="btn ghost" type="button" data-r="appele">Je l'ai appelé(e) ou j'ai prévu une entrevue</button>
+    <button class="btn ghost" type="button" data-r="embauche">Je l'ai embauché(e)</button>
+    <button class="btn ghost" type="button" data-r="pas_retenu">Pas retenu(e) ou poste comblé</button>
+  </div>
+  <p class="small" style="margin-top:28px">Une question? Écrivez-nous à <a href="mailto:premierjob.ca@gmail.com">premierjob.ca@gmail.com</a>.</p>
+</main>
+<script>
+(function () {
+  var F = "https://hejkousthfnfckblwkqw.supabase.co/functions/v1/reponse";
+  var q = new URLSearchParams(location.search), j = q.get("j") || "", r = q.get("r") || "";
+  var titre = document.getElementById("titre"), msg = document.getElementById("msg"), actions = document.getElementById("actions");
+  var LIB = { appele: "appel ou entrevue", embauche: "embauche", pas_retenu: "pas retenu(e) ou poste comblé" };
+  function fin(t, m) { titre.textContent = t; msg.textContent = m; actions.hidden = true; }
+  if (!/^[0-9a-f-]{36}$/i.test(j)) { fin("Lien incomplet", "Ouvrez le lien directement depuis notre courriel, ou répondez simplement à ce courriel."); return; }
+  var boutons = actions.querySelectorAll("[data-r]");
+  // Le choix du lien cliqué passe en premier et en évidence ; les deux autres restent possibles.
+  if (LIB[r]) for (var i = 0; i < boutons.length; i++) if (boutons[i].dataset.r === r) { boutons[i].className = "btn"; actions.insertBefore(boutons[i], actions.firstChild); }
+  fetch(F + "?j=" + encodeURIComponent(j))
+    .then(function (x) { return x.json(); })
+    .then(function (d) {
+      if (!d || !d.ok) return fin("Lien expiré ou invalide", "Cette candidature n'est plus dans nos dossiers. Répondez simplement à notre courriel si besoin.");
+      titre.textContent = "Et pour " + d.prenom + " ?";
+      msg.textContent = (d.poste ? "Poste « " + d.poste + " »" + (d.employeur ? " chez " + d.employeur : "") + ". " : "")
+        + (d.reponse ? "Votre dernière réponse : " + LIB[d.reponse] + ". Vous pouvez la changer." : "Confirmez en un clic. Ça nous aide à vous envoyer les bons candidats.");
+      actions.hidden = false;
+    })
+    .catch(function () { fin("Ça n'a pas marché", "Vérifiez votre connexion et réessayez, ou répondez simplement à notre courriel."); });
+  actions.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-r]"); if (!b) return;
+    for (var i = 0; i < boutons.length; i++) boutons[i].disabled = true;
+    b.textContent = "Un instant…";
+    fetch(F, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ j: j, r: b.dataset.r }) })
+      .then(function (x) { return x.json(); })
+      .then(function (d) {
+        if (d && d.ok) fin("Merci, c'est noté.", d.reponse === "embauche" ? "Félicitations pour cette embauche! Nous restons disponibles pour vos prochains postes." : "Merci de nous tenir au courant. Nous restons disponibles pour vos prochains postes.");
+        else fin("Ça n'a pas marché", "Répondez simplement à notre courriel et nous le noterons à la main.");
+      })
+      .catch(function () { fin("Ça n'a pas marché", "Vérifiez votre connexion et réessayez, ou répondez simplement à notre courriel."); });
+  });
+})();
+</script>
+<footer><div class="wrap"><div>PremierJob · lancé au Saguenay · <a href="/conditions.html">Conditions</a> · <a href="/confidentialite.html">Confidentialité</a></div></div></footer>
+</div>
+</body>
+</html>

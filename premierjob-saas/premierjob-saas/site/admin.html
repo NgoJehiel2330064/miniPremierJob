@@ -656,6 +656,18 @@
     $("#mailTitle").textContent = "Transmettre à l'employeur";
     $("#mailMarquer").textContent = "C'est envoyé : marquer comme transmises";
     const blocs = [];
+    // Liens de réponse en un clic (un jeton secret par candidature, réutilisé si on retransmet)
+    const jetons = {};
+    try {
+      await sb.from("reponses_employeur").upsert(ps.map(p => ({ candidature_id: p.id })), { onConflict: "candidature_id", ignoreDuplicates: true });
+      const rj = await sb.from("reponses_employeur").select("jeton,candidature_id").in("candidature_id", ps.map(p => p.id));
+      for (const x of (rj.data || [])) jetons[x.candidature_id] = x.jeton;
+    } catch (e) { /* sans liens, le courriel reste valable */ }
+    const liensReponse = (p) => {
+      const j = jetons[p.id]; if (!j) return "";
+      const u = (r) => `https://premierjob.ca/reponse.html?j=${j}&r=${r}`;
+      return `\n   Votre réponse en un clic :\n   - Appelé(e) ou entrevue prévue : ${u("appele")}\n   - Embauché(e) : ${u("embauche")}\n   - Pas retenu(e) ou poste comblé : ${u("pas_retenu")}`;
+    };
     for (const [i, p] of ps.entries()) {
       let lien = "pas de CV";
       if (p.cv_path) {
@@ -663,10 +675,10 @@
         lien = error || !data ? "(lien indisponible, je vous l'envoie à part)" : data.signedUrl;
       }
       const f = PJ.jumelerV2(o, p);
-      blocs.push(`${i + 1}. ${nomComplet(p)} · ${p.telephone} · ${p.courriel}\n   ${p.ville || ""}${p.transport ? " · " + libTransport(p.transport) : ""}\n   Disponible : ${(p.dispos || []).map(PJ.nomCreneau).join(", ") || "non indiqué"}${f.manquants.length ? "\n   Attention, pas libre : " + f.manquants.map(PJ.nomCreneau).join(", ") : ""}\n   CV (lien valable 7 jours) : ${lien}${p.message ? "\n   Son mot : « " + p.message + " »" : ""}`);
+      blocs.push(`${i + 1}. ${nomComplet(p)} · ${p.telephone} · ${p.courriel}\n   ${p.ville || ""}${p.transport ? " · " + libTransport(p.transport) : ""}\n   Disponible : ${(p.dispos || []).map(PJ.nomCreneau).join(", ") || "non indiqué"}${f.manquants.length ? "\n   Attention, pas libre : " + f.manquants.map(PJ.nomCreneau).join(", ") : ""}\n   CV (lien valable 7 jours) : ${lien}${p.message ? "\n   Son mot : « " + p.message + " »" : ""}${liensReponse(p)}`);
     }
     const sujet = `PremierJob · ${ps.length} candidat${ps.length > 1 ? "s" : ""} pour « ${o.titre} »`;
-    const corps = `Bonjour ${o.contact_nom || ""},\n\nVoici ${ps.length > 1 ? ps.length + " candidatures" : "une candidature"} pour le poste « ${o.titre} ». Chaque personne a accepté que sa candidature vous soit transmise.\n\n${blocs.join("\n\n")}\n\nVous pouvez les appeler directement pour fixer une entrevue. Merci de nous dire qui vous rencontrez et qui est embauché : ça nous aide à vous envoyer les bons candidats.\n\nMerci!\nL'équipe PremierJob Saguenay`;
+    const corps = `Bonjour ${o.contact_nom || ""},\n\nVoici ${ps.length > 1 ? ps.length + " candidatures" : "une candidature"} pour le poste « ${o.titre} ». Chaque personne a accepté que sa candidature vous soit transmise.\n\n${blocs.join("\n\n")}\n\nVous pouvez les appeler directement pour fixer une entrevue. Un clic sur le lien sous chaque nom nous dit où en est la candidature, même si ce n'est pas retenu : la personne a ainsi une réponse, et ça nous aide à vous envoyer les bons candidats.\n\nMerci!\nL'équipe PremierJob Saguenay`;
     mailIds = ps.map(p => p.id);
     $("#mailInfo").textContent = `À : ${o.contact_nom || ""} <${o.contact_courriel}>${o.reception === "telephone" ? " · cet employeur préfère aussi un appel." : ""}`;
     $("#mailTexte").value = `Objet : ${sujet}\n\n${corps}`;
