@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f8f7f4">
-<title>PremierJob Saguenay</title>
-<meta name="description" content="Des jobs au Saguenay ouverts aux débutants, avec les vrais horaires. Chicoutimi, Jonquière, La Baie, Laterrière et Alma.">
-<meta property="og:title" content="PremierJob Saguenay">
+<title>Emplois sans expérience au Saguenay et à Alma · PremierJob</title>
+<meta name="description" content="Emplois et premiers jobs sans expérience exigée à Chicoutimi, Jonquière, La Baie, Laterrière et Alma, avec les vrais horaires. Emploi étudiant, temps partiel, stages. Postule en 2 minutes, gratuit.">
+<meta property="og:title" content="Emplois sans expérience au Saguenay et à Alma · PremierJob">
 <meta property="og:description" content="Des jobs sans expérience exigée au Saguenay, avec les vrais horaires.">
 <meta property="og:type" content="website">
 <link rel="canonical" href="https://premierjob.ca/">
@@ -52,7 +52,7 @@
   <a class="employeur-lien" href="employeur.html">Vous êtes employeur? <b>Affichez un poste gratuitement →</b></a>
   <div class="meta-row">
     <span id="nbWrap" hidden><b id="nbOffres"></b> offres en ligne</span>
-    <span>Postule ici ou sur le site de l'employeur</span>
+    <span>Postule ici en 2 minutes</span>
     <span id="nouvTxt" hidden></span>
     <span id="majTxt"></span>
   </div>
@@ -186,6 +186,7 @@
       <strong style="color:var(--muted)">Confidentialité (Loi 25).</strong>
       Tes renseignements sont hébergés au Québec, protégés conformément à la Loi 25 et transmis à un employeur seulement avec ton accord. <a href="confidentialite.html">En savoir plus</a>.
     </div>
+    <div>Emplois sans expérience : <a href="/emplois/chicoutimi">Chicoutimi</a> · <a href="/emplois/jonquiere">Jonquière</a> · <a href="/emplois/la-baie">La Baie</a> · <a href="/emplois/alma">Alma</a> · <a href="/emploi-etudiant">Emploi étudiant</a> · <a href="/emplois">Toutes les offres</a></div>
     <div>PremierJob · lancé au Saguenay · <a href="employeur.html">Afficher une offre</a> · <a href="conditions.html">Conditions</a> · <a id="contactLien" href="#">Nous joindre</a></div>
   </div>
 </footer>
@@ -386,13 +387,12 @@
       </dl>
       ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites) ? `<div><div class="small" style="margin-bottom:6px">Quarts : <span class="g req">R</span> requis · <span class="g ideal">I</span> idéal</div>${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}</div>` : ""}
       ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
-      ${estPublique(o) ? `<p class="small" style="margin:0">Offre reprise du site de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur. Tu peux aussi postuler directement sur son site.</p>` : ""}
+      ${estPublique(o) ? `<p class="small" style="margin:0">Offre reprise du site de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.</p>` : ""}
       ${o.offre_publique && !estPublique(o) ? `<p class="small" style="margin:0">Offre repérée dans une annonce publique de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.</p>` : ""}
       ${estExterne(o) ? `<p class="small" style="margin:0">${esc(o.employeur)} reçoit les candidatures sur son propre site. Si on te demande comment tu as connu l'entreprise, écris <b style="color:var(--ink)">PremierJob</b>.</p>` : ""}
       <div class="cta" style="margin-top:4px">
         ${estPublique(o)
-          ? `<button class="btn" type="button" data-apply="${esc(o.id)}">Postuler via PremierJob</button>
-             <a class="btn ghost" href="${esc(PJ.lienEtiquete(o.lien))}" target="_blank" rel="noopener" data-sortant="${esc(o.id)}">${o.employeur.length <= 24 ? "Postuler sur le site de " + esc(o.employeur) : "Postuler sur leur site"} ↗</a>`
+          ? `<button class="btn" type="button" data-apply="${esc(o.id)}">Postuler via PremierJob</button>`
           : estExterne(o)
           ? `<a class="btn" href="${esc(PJ.lienEtiquete(o.lien))}" target="_blank" rel="noopener" data-sortant="${esc(o.id)}">${o.employeur.length <= 24 ? "Postuler sur le site de " + esc(o.employeur) : "Postuler sur leur site"} ↗</a>`
           : `<button class="btn" type="button" data-apply="${esc(o.id)}">Postuler via PremierJob</button>`}
@@ -710,8 +710,8 @@
       }
       ajouterFiltreFit();
       fini(offreCible.offre_publique
-        ? `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. On contacte ${offreCible.employeur} pour lui présenter ta candidature. Pour mettre toutes les chances de ton côté, postule aussi sur leur site. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds!`
-        : `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. Nous vérifions ta candidature puis la transmettons à ${offreCible.employeur}. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds!`);
+        ? `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. On contacte ${offreCible.employeur} pour lui présenter ta candidature. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds! Pour augmenter tes chances, postule aussi à d'autres offres qui vont avec ton horaire.${row.cv_path ? "" : " Petit conseil : joins ton CV à tes prochaines candidatures et apporte-le à l'entrevue, les employeurs le demandent presque toujours."}`
+        : `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. Nous vérifions ta candidature puis la transmettons à ${offreCible.employeur}. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds! Pour augmenter tes chances, postule aussi à d'autres offres qui vont avec ton horaire.${row.cv_path ? "" : " Petit conseil : joins ton CV à tes prochaines candidatures et apporte-le à l'entrevue, les employeurs le demandent presque toujours."}`);
       render();
     } catch (err) {
       say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)
