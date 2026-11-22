@@ -583,3 +583,8 @@ details.plus[open]{padding-bottom:14px}
 .liste-offre{display:grid;gap:3px;padding:12px 2px;border-bottom:1px solid var(--line)}
 .liste-offre a{color:var(--ink);text-decoration:none;font-size:15.5px}
 .liste-offre a:hover b{text-decoration:underline}
+
+/* Swipe par défaut : en-tête et bouton « Voir en liste » */
+.sw-marque{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.sw-marque b{font-size:15px;color:var(--ink)}
+.sw-liste{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:var(--raise);color:var(--ink);font:600 13.5px var(--sans);cursor:pointer;white-space:nowrap}
