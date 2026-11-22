@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "",
+  "installCommand": "",
+  "outputDirectory": "site",
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/employeur.html&:reste*", "destination": "/employeur.html", "permanent": true },
+    { "source": "/employeur&:reste*", "destination": "/employeur.html", "permanent": true },
+    { "source": "/&:reste*", "destination": "/", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/apple-touch-icon-precomposed.png", "destination": "/apple-touch-icon.png" },
+    { "source": "/employeur", "destination": "/employeur.html" },
+    { "source": "/confidentialite", "destination": "/confidentialite.html" },
+    { "source": "/conditions", "destination": "/conditions.html" },
+    { "source": "/admin", "destination": "/admin.html" }
+  ],
+  "headers": [
+    { "source": "/admin.html", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/admin", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+      { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+    ] }
+  ]
+}
