@@ -124,7 +124,7 @@ export default async (request) => {
     </dl>
     ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
     <div class="cta"><a class="btn" href="/#offre-${esc(o.id)}">Postuler</a><a class="btn ghost" href="/#offres">Voir les autres offres</a></div>
-    <p class="small">Gratuit, sans compte. ${o.offre_publique ? (o.lien ? `Offre reprise du site de ${esc(o.employeur)}. Postule via PremierJob ou directement sur son site.` : `Offre repérée dans une annonce publique de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.`) : o.candidature_externe ? `Tu postules directement sur le site officiel de ${esc(o.employeur)}.` : "Ta candidature est transmise à l'employeur seulement avec ton accord."}</p>
+    <p class="small">Gratuit, sans compte. ${o.offre_publique ? (o.lien ? `Offre reprise du site de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.` : `Offre repérée dans une annonce publique de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.`) : o.candidature_externe ? `Tu postules directement sur le site officiel de ${esc(o.employeur)}.` : "Ta candidature est transmise à l'employeur seulement avec ton accord."}</p>
   </article>`;
   return new Response(gabarit({ titre, desc, page, origin: url.origin, corps, jsonld: o.offre_publique ? null : jobPosting(o, page), indexer: true }), {
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" },

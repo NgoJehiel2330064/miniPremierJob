@@ -52,7 +52,7 @@
   <a class="employeur-lien" href="employeur.html">Vous êtes employeur? <b>Affichez un poste gratuitement →</b></a>
   <div class="meta-row">
     <span id="nbWrap" hidden><b id="nbOffres"></b> offres en ligne</span>
-    <span>Postule ici ou sur le site de l'employeur</span>
+    <span>Postule ici en 2 minutes</span>
     <span id="nouvTxt" hidden></span>
     <span id="majTxt"></span>
   </div>
@@ -386,13 +386,12 @@
       </dl>
       ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites) ? `<div><div class="small" style="margin-bottom:6px">Quarts : <span class="g req">R</span> requis · <span class="g ideal">I</span> idéal</div>${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}</div>` : ""}
       ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
-      ${estPublique(o) ? `<p class="small" style="margin:0">Offre reprise du site de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur. Tu peux aussi postuler directement sur son site.</p>` : ""}
+      ${estPublique(o) ? `<p class="small" style="margin:0">Offre reprise du site de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.</p>` : ""}
       ${o.offre_publique && !estPublique(o) ? `<p class="small" style="margin:0">Offre repérée dans une annonce publique de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.</p>` : ""}
       ${estExterne(o) ? `<p class="small" style="margin:0">${esc(o.employeur)} reçoit les candidatures sur son propre site. Si on te demande comment tu as connu l'entreprise, écris <b style="color:var(--ink)">PremierJob</b>.</p>` : ""}
       <div class="cta" style="margin-top:4px">
         ${estPublique(o)
-          ? `<button class="btn" type="button" data-apply="${esc(o.id)}">Postuler via PremierJob</button>
-             <a class="btn ghost" href="${esc(PJ.lienEtiquete(o.lien))}" target="_blank" rel="noopener" data-sortant="${esc(o.id)}">${o.employeur.length <= 24 ? "Postuler sur le site de " + esc(o.employeur) : "Postuler sur leur site"} ↗</a>`
+          ? `<button class="btn" type="button" data-apply="${esc(o.id)}">Postuler via PremierJob</button>`
           : estExterne(o)
           ? `<a class="btn" href="${esc(PJ.lienEtiquete(o.lien))}" target="_blank" rel="noopener" data-sortant="${esc(o.id)}">${o.employeur.length <= 24 ? "Postuler sur le site de " + esc(o.employeur) : "Postuler sur leur site"} ↗</a>`
           : `<button class="btn" type="button" data-apply="${esc(o.id)}">Postuler via PremierJob</button>`}
@@ -710,8 +709,8 @@
       }
       ajouterFiltreFit();
       fini(offreCible.offre_publique
-        ? `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. On contacte ${offreCible.employeur} pour lui présenter ta candidature. Pour mettre toutes les chances de ton côté, postule aussi sur leur site. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds!`
-        : `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. Nous vérifions ta candidature puis la transmettons à ${offreCible.employeur}. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds!`);
+        ? `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. On contacte ${offreCible.employeur} pour lui présenter ta candidature. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds! Pour augmenter tes chances, postule aussi à d'autres offres qui vont avec ton horaire.`
+        : `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. Nous vérifions ta candidature puis la transmettons à ${offreCible.employeur}. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds! Pour augmenter tes chances, postule aussi à d'autres offres qui vont avec ton horaire.`);
       render();
     } catch (err) {
       say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)
