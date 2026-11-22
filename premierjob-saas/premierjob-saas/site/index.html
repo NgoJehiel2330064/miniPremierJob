@@ -547,16 +547,19 @@
     const stamps = { oui: c.querySelector(".sw-stamp.oui"), non: c.querySelector(".sw-stamp.non") };
     const pose = () => { c.style.transform = `translate(${dx}px, ${dy * .3}px) rotate(${dx / 18}deg)`;
       stamps.oui.style.opacity = Math.max(0, Math.min(1, dx / 90)); stamps.non.style.opacity = Math.max(0, Math.min(1, -dx / 90)); };
-    c.addEventListener("pointerdown", e => { if (e.target.closest("[data-sw-voir]")) return; actif = true; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; t0 = Date.now(); c.classList.remove("snap"); try { c.setPointerCapture(e.pointerId); } catch (_) {} });
+    let glisse = false; // vrai si le doigt a bougé : le « click » qui suit ne doit pas ouvrir la fiche
+    c.addEventListener("pointerdown", e => { glisse = false; if (e.target.closest("[data-sw-voir]")) return; actif = true; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; t0 = Date.now(); c.classList.remove("snap"); try { c.setPointerCapture(e.pointerId); } catch (_) {} });
     c.addEventListener("pointermove", e => { if (!actif) return; dx = e.clientX - x0; dy = e.clientY - y0; pose(); });
     const fin = e => {
       if (!actif) return; actif = false;
       const v = Math.abs(dx) / Math.max(1, Date.now() - t0);
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) { swDetail(); return; }
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return; // simple toucher : géré par « click » (sinon le clic fantôme ferme la fiche)
+      glisse = true;
       if (Math.abs(dx) > 100 || (v > .6 && Math.abs(dx) > 40)) swSortir(dx > 0 ? 1 : -1);
       else { c.classList.add("snap"); dx = dy = 0; pose(); }
     };
-    c.addEventListener("pointerup", fin); c.addEventListener("pointercancel", () => { if (!actif) return; actif = false; c.classList.add("snap"); dx = dy = 0; pose(); });
+    c.addEventListener("pointerup", fin);
+    c.addEventListener("click", e => { if (glisse) { glisse = false; return; } e.stopPropagation(); swDetail(); }); c.addEventListener("pointercancel", () => { if (!actif) return; actif = false; c.classList.add("snap"); dx = dy = 0; pose(); });
   }
   let swOccupe = false;
   function swSortir(dir){
@@ -594,7 +597,6 @@
   $("#swRetour").addEventListener("click", swRetour);
   $("#swVoir").addEventListener("click", swDetail);
   $("#swZone").addEventListener("click", e => {
-    if (e.target.closest("[data-sw-voir]")) swDetail();
     if (e.target.closest("[data-sw-favs]")) { swFermer(); state.fav = true; favBtn.setAttribute("aria-pressed", "true"); state.sel = 0; render(); $("#offres").scrollIntoView({ block: "start" }); }
     if (e.target.closest("[data-sw-reset]")) { sw.passes.clear(); swGarder(); swMonter(); }
     if (e.target.closest("[data-sw-fermer]")) swFermer();
@@ -602,7 +604,8 @@
   // Après la fiche (sauvegarde faite dedans, par exemple) : remettre le paquet à jour
   ["#scrim", "#sheetX"].forEach(s => $(s).addEventListener("click", () => { if (sw.ouvert) setTimeout(swMonter, 0); }));
   document.addEventListener("keydown", e => {
-    if (!sw.ouvert || $("#sheet").classList.contains("open") || $("#apply").open) return;
+    if (!sw.ouvert) return;
+    if ($("#sheet").classList.contains("open") || $("#apply").open) { if (e.key === "Escape") setTimeout(swMonter, 0); return; }
     if (e.key === "ArrowRight") swSortir(1); else if (e.key === "ArrowLeft") swSortir(-1); else if (e.key === "Escape") swFermer();
   });
 
