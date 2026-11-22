@@ -10,8 +10,16 @@
   function sombre() { return racine.getAttribute("data-theme") === "dark"; }
   function appliquer(t) {
     if (t === "dark") racine.setAttribute("data-theme", "dark"); else racine.removeAttribute("data-theme");
-    var m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute("content", t === "dark" ? "#07080a" : "#f8f7f4");
+    // Safari (iPhone) ne relit pas toujours la couleur de la barre du haut : on remplace la balise au lieu de la modifier.
+    var ancien = document.querySelector('meta[name="theme-color"]'), m = document.createElement("meta");
+    m.name = "theme-color"; m.content = t === "dark" ? "#07080a" : "#f8f7f4";
+    if (ancien) ancien.parentNode.replaceChild(m, ancien); else document.head.appendChild(m);
+  }
+  // Après un changement, un défilement d'un pixel aller-retour oblige Safari à recalculer la couleur de la barre.
+  function rafraichirBarre() {
+    var y = window.scrollY, st = racine.style;
+    st.scrollBehavior = "auto"; window.scrollTo(0, y + 1);
+    setTimeout(function () { window.scrollTo(0, y); st.scrollBehavior = ""; }, 60);
   }
   appliquer(lire());
 
@@ -32,6 +40,7 @@
       try { localStorage.setItem(CLE, t); } catch (e) {}
       appliquer(t);
       maj();
+      rafraichirBarre();
     });
     maj();
     nav.appendChild(b);
