@@ -69,11 +69,24 @@
 <!-- Les offres, façon palette -->
 <section class="wrap" id="offres" aria-label="Offres d'emploi">
   <div class="palette">
+    <div class="vue-choix" role="group" aria-label="Affichage des offres">
+      <button type="button" id="swipeOuvrir" aria-pressed="false">Swipe</button><button type="button" id="swFermer" aria-pressed="true">☰ Liste</button>
+      <small id="swCompte"></small>
+    </div>
     <div class="libre" id="libre">
       <div class="libre-t" id="t-libre">Quand es-tu libre?</div>
       <div class="libre-btns" id="libreBtns" role="group" aria-labelledby="t-libre"></div>
       <div class="libre-r" id="libreR" aria-live="polite"></div>
-      <button class="btn-swipe" type="button" id="swipeOuvrir">Mode swipe : découvre les offres une à une</button>
+    </div>
+    <div class="swipe" id="swipe" role="region" aria-label="Offres une à une : glisse à droite pour sauvegarder, à gauche pour passer">
+      <div class="sw-zone" id="swZone"></div>
+      <div class="sw-actions">
+        <button class="mini" type="button" id="swRetour" aria-label="Revenir à l'offre précédente">↶</button>
+        <button class="non" type="button" id="swNon" aria-label="Passer cette offre">✕</button>
+        <button class="oui" type="button" id="swOui" aria-label="Sauvegarder cette offre">♥</button>
+        <button class="mini" type="button" id="swVoir" aria-label="Voir le détail et postuler">⋯</button>
+      </div>
+      <div class="sw-aide">Glisse à droite pour sauvegarder, à gauche pour passer. Touche la carte pour postuler.</div>
     </div>
     <div class="pal-search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -197,17 +210,6 @@
 <dialog id="signaler" aria-labelledby="sigT"></dialog>
 
 <!-- Détail sur mobile -->
-<div class="swipe" id="swipe" role="dialog" aria-modal="true" aria-label="Mode swipe : parcourir les offres">
-  <div class="sw-top"><span class="sw-marque"><b>Jobs sans expérience</b><small id="swCompte"></small></span><button class="sw-liste" type="button" id="swFermer">☰ Voir en liste</button></div>
-  <div class="sw-zone" id="swZone"></div>
-  <div class="sw-actions">
-    <button class="mini" type="button" id="swRetour" aria-label="Revenir à l'offre précédente">↶</button>
-    <button class="non" type="button" id="swNon" aria-label="Passer cette offre">✕</button>
-    <button class="oui" type="button" id="swOui" aria-label="Sauvegarder cette offre">♥</button>
-    <button class="mini" type="button" id="swVoir" aria-label="Voir le détail et postuler">⋯</button>
-  </div>
-  <div class="sw-aide">Glisse à droite pour sauvegarder, à gauche pour passer. Touche la carte pour postuler.</div>
-</div>
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Détail de l'offre"><div class="grab"></div><button class="sheet-x" type="button" id="sheetX" aria-label="Fermer">✕</button><div id="sheetBody"></div></div>
 
@@ -331,7 +333,7 @@
     b.addEventListener("click", () => {
       libreSel.has(k) ? libreSel.delete(k) : libreSel.add(k);
       try { localStorage.setItem("pj_libre", JSON.stringify([...libreSel])); } catch (e) {}
-      PJ.track("libre/" + [...libreSel].sort().join("-")); state.sel = 0; render();
+      PJ.track("libre/" + [...libreSel].sort().join("-")); state.sel = 0; render(); if (sw.ouvert) { sw.hist = []; swMonter(); }
     });
     $("#libreBtns").appendChild(b); return b;
   });
@@ -560,7 +562,11 @@
     };
     const annule = () => { if (!actif) return; actif = false; c.classList.add("snap"); dx = dy = 0; pose(); };
     c.addEventListener("touchstart", e => { if (e.touches.length !== 1) return annule(); const t = e.touches[0]; debut(t.clientX, t.clientY, e.target); }, { passive: true });
-    c.addEventListener("touchmove", e => { if (!actif) return; e.preventDefault(); const t = e.touches[0]; bouge(t.clientX, t.clientY); }, { passive: false });
+    c.addEventListener("touchmove", e => { if (!actif) return; const t = e.touches[0];
+      if (!glisse) { const ax = Math.abs(t.clientX - x0), ay = Math.abs(t.clientY - y0);
+        if (ax < 8 && ay < 8) return;
+        if (ay >= ax) return annule(); } // geste vertical : on laisse la page défiler
+      e.preventDefault(); bouge(t.clientX, t.clientY); }, { passive: false });
     c.addEventListener("touchend", e => { if (glisse && e.cancelable) e.preventDefault(); fin(); });
     c.addEventListener("touchcancel", annule);
     c.addEventListener("pointerdown", e => { if (e.pointerType === "touch") return; if (debut(e.clientX, e.clientY, e.target)) try { c.setPointerCapture(e.pointerId); } catch (_) {} });
@@ -595,26 +601,28 @@
   const VUE_CLE = "pj_vue";
   const vuePref = () => { try { return localStorage.getItem(VUE_CLE); } catch (e) { return null; } };
   const vueGarder = (v) => { try { localStorage.setItem(VUE_CLE, v); } catch (e) {} };
+  const vueBoutons = () => { $("#swipeOuvrir").setAttribute("aria-pressed", sw.ouvert); $("#swFermer").setAttribute("aria-pressed", !sw.ouvert); };
   function swOuvrir(auto){
     if (state.fav) { state.fav = false; favBtn.setAttribute("aria-pressed", "false"); }
     render(); sw.hist = []; sw.ouvert = true;
-    $("#swipe").classList.add("open"); document.body.style.overflow = "hidden";
+    $("#swipe").classList.add("open"); document.querySelector(".palette").classList.add("en-swipe"); vueBoutons();
     if (!auto) vueGarder("swipe");
-    PJ.track(auto ? "swipe/auto" : "swipe/ouvrir"); swMonter(); if (!auto) $("#swFermer").focus();
+    PJ.track(auto ? "swipe/auto" : "swipe/ouvrir"); swMonter();
   }
   function swFermer(choix){
-    sw.ouvert = false; $("#swipe").classList.remove("open"); document.body.style.overflow = ""; render();
+    sw.ouvert = false; $("#swipe").classList.remove("open"); document.querySelector(".palette").classList.remove("en-swipe"); vueBoutons();
+    $("#swCompte").textContent = ""; render();
     if (choix === "liste") { vueGarder("liste"); PJ.track("vue/liste"); }
   }
-  // Sur téléphone, le swipe s'ouvre tout seul… sauf lien direct (offre, alertes), choix « liste », ordinateur ou robot.
+  // Sur téléphone, les offres s'affichent en swipe dans la page… sauf choix « liste », ordinateur ou robot.
   function swipeParDefaut(){
-    if (large.matches || !OFFRES.length || location.hash || vuePref() === "liste") return;
+    if (large.matches || !OFFRES.length || sw.ouvert || vuePref() === "liste") return;
     if (/bot|crawl|spider|slurp|google|bing|facebookexternalhit|lighthouse|headless/i.test(navigator.userAgent)) return;
     swOuvrir(true);
   }
-  $("#swipeOuvrir").addEventListener("click", () => swOuvrir(false));
-  $("#swipe").addEventListener("touchmove", e => { if (!e.target.closest(".sw-card")) e.preventDefault(); }, { passive: false });
-  $("#swFermer").addEventListener("click", () => swFermer("liste"));
+  $("#swipeOuvrir").addEventListener("click", () => { if (!sw.ouvert) swOuvrir(false); });
+  $("#swFermer").addEventListener("click", () => { if (sw.ouvert) swFermer("liste"); });
+  large.addEventListener("change", () => { if (large.matches && sw.ouvert) swFermer(); else swipeParDefaut(); });
   $("#swOui").addEventListener("click", () => swSortir(1));
   $("#swNon").addEventListener("click", () => swSortir(-1));
   $("#swRetour").addEventListener("click", swRetour);
@@ -622,14 +630,14 @@
   $("#swZone").addEventListener("click", e => {
     if (e.target.closest("[data-sw-favs]")) { swFermer(); state.fav = true; favBtn.setAttribute("aria-pressed", "true"); state.sel = 0; render(); $("#offres").scrollIntoView({ block: "start" }); }
     if (e.target.closest("[data-sw-reset]")) { sw.passes.clear(); swGarder(); swMonter(); }
-    if (e.target.closest("[data-sw-fermer]")) swFermer();
   });
   // Après la fiche (sauvegarde faite dedans, par exemple) : remettre le paquet à jour
   ["#scrim", "#sheetX"].forEach(s => $(s).addEventListener("click", () => { if (sw.ouvert) setTimeout(swMonter, 0); }));
   document.addEventListener("keydown", e => {
     if (!sw.ouvert) return;
     if ($("#sheet").classList.contains("open") || $("#apply").open) { if (e.key === "Escape") setTimeout(swMonter, 0); return; }
-    if (e.key === "ArrowRight") swSortir(1); else if (e.key === "ArrowLeft") swSortir(-1); else if (e.key === "Escape") swFermer();
+    if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+    if (e.key === "ArrowRight") swSortir(1); else if (e.key === "ArrowLeft") swSortir(-1);
   });
 
   // Clavier (ordinateur) : / pour chercher, flèches, Entrée
