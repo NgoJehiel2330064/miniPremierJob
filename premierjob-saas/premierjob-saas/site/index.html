@@ -153,7 +153,7 @@
           </div>
         </details>
         <label class="consent" for="consent"><input type="checkbox" id="consent" required>
-          <span>J'accepte que PremierJob garde ces infos pour m'envoyer des offres. Un employeur voit mon profil seulement si je dis oui. Je peux tout supprimer en tout temps. <a href="confidentialite.html">Confidentialité</a></span>
+          <span>J'ai 14 ans ou plus, et j'accepte que PremierJob garde ces infos pour m'envoyer des offres. Un employeur voit mon profil seulement si je dis oui. Je peux tout supprimer en tout temps. <a href="confidentialite.html">Confidentialité</a> <span class="opt">Moins de 14 ans : un parent doit nous écrire à premierjob.ca@gmail.com.</span></span>
         </label>
         <button class="btn" type="submit" id="submitBtn">M'inscrire aux alertes</button>
         <div id="formMsg" role="status"></div>
@@ -161,7 +161,7 @@
       <div id="inscrOk" class="merci" hidden role="status">
         <span class="merci-ico" aria-hidden="true">✓</span>
         <h3 id="merciT">C'est noté!</h3>
-        <p>Tu recevras un courriel dès qu'une offre tombe dans tes heures. Pas d'infolettre, seulement des offres qui fittent.</p>
+        <p>Tu recevras au plus un courriel par jour quand une offre tombe dans tes heures. Pas d'infolettre, seulement des offres qui fittent. Désabonnement en un clic.</p>
         <div class="cta"><a class="btn" href="#offres">Voir les offres</a><button class="btn ghost" type="button" id="partagerSite">Partager à un ami</button></div>
       </div>
     </div>
@@ -237,7 +237,7 @@
       </div>
       <label for="a_msg" class="seul-interne">Un mot pour l'employeur <span class="opt">(facultatif)</span><textarea id="a_msg" name="message" maxlength="500" placeholder="Ex. : Je peux commencer lundi, j'habite à 5 minutes."></textarea></label>
       <label class="consent" for="a_consent"><input type="checkbox" id="a_consent" required>
-        <span class="seul-interne">J'accepte que PremierJob transmette ma candidature et mon CV à <b class="applyEmp2"></b> pour ce poste. <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></span>
+        <span class="seul-interne">J'ai 14 ans ou plus, et j'accepte que PremierJob transmette ma candidature et mon CV à <b class="applyEmp2"></b> pour ce poste. <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a> <span class="opt">Moins de 14 ans : un parent doit nous écrire à premierjob.ca@gmail.com.</span></span>
       </label>
       <label class="consent seul-interne" for="a_alertes"><input type="checkbox" id="a_alertes">
         <span>Envoie-moi aussi les prochaines offres qui fittent avec mon horaire (facultatif).</span>
@@ -690,7 +690,7 @@
     const ref = PJ.uuid();
     const row = { id: ref, offre_id: offreCible.id, prenom: v("prenom"), nom: v("nom"), courriel: v("courriel"), telephone: v("telephone"),
       ville: f.ville.value, transport: aTransport || null, dispos: [...aDispo], message: v("message") || null, consentement: true,
-      consentement_texte: ("v1 · transmission de ma candidature et de mon CV à " + offreCible.employeur + " pour « " + offreCible.titre + " »").slice(0, 400) };
+      consentement_texte: ("v1 · 14 ans ou plus · transmission de ma candidature et de mon CV à " + offreCible.employeur + " pour « " + offreCible.titre + " »").slice(0, 400) };
     btn.disabled = true;
     try {
       if (fichier) { btn.textContent = "Envoi du CV…"; row.cv_path = await PJ.deposerCV(fichier); }
@@ -794,7 +794,7 @@
           <label for="r_prenom">Prénom<input type="text" id="r_prenom" name="prenom" maxlength="60" autocomplete="given-name" value="${esc(m.prenom || c.prenom || "")}"></label>
           <label for="r_courriel">Courriel<input type="email" id="r_courriel" name="courriel" maxlength="160" autocomplete="email" inputmode="email" value="${esc(m.courriel || c.courriel || "")}"></label>
         </div>
-        <label class="consent" for="r_alertes"><input type="checkbox" id="r_alertes"><span>Envoie-moi les prochaines offres qui fittent avec mon horaire.</span></label>
+        <label class="consent" for="r_alertes"><input type="checkbox" id="r_alertes"><span>Envoie-moi les prochaines offres qui fittent avec mon horaire (j'ai 14 ans ou plus).</span></label>
         <div id="r_dispoBox" hidden><div class="small" style="margin-bottom:6px">Quand peux-tu travailler?</div><div class="chips rapides" id="r_rapides"></div></div>
         ${c.local ? `<p class="small" style="margin:0">En enregistrant, tu acceptes que PremierJob garde ton prénom et ton courriel pour suivre cette candidature et puisse demander à ${esc(c.employeur)} de la confirmer. Pas de téléphone ni de CV. <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></p>` : ""}
         <div class="actions"><button class="btn sm" type="submit" id="r_btn">Enregistrer</button><button class="btn ghost sm" type="button" data-retour="non">Non merci</button></div>

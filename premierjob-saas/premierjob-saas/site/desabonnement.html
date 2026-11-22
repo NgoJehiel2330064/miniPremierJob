@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f8f7f4">
+<title>Désabonnement des alertes · PremierJob Saguenay</title>
+<meta name="description" content="Arrêter de recevoir les alertes d'offres de PremierJob.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<script src="/theme.js"></script>
+<style>.doc{max-width:720px}.doc h2{font-size:clamp(1.6rem,5vw,2.1rem);margin-top:40px}.doc p,.doc li{color:var(--muted);font-size:15px}.doc ul{padding-left:20px;display:grid;gap:6px}.doc b{color:var(--ink)}</style>
+<script src="/config.js"></script>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="page">
+<nav class="nav"><div class="wrap">
+  <a class="logo" href="index.html"><span class="mark">P</span>PremierJob <small>Saguenay</small></a>
+  <div class="navlinks"><a class="link" href="index.html">Offres</a></div>
+</div></nav>
+<main class="wrap hero center doc" style="margin-inline:auto;text-align:center">
+  <span class="place">Alertes d'offres</span>
+  <h1 style="font-size:clamp(2.2rem,7vw,3.2rem)" id="titre">Arrêter les <em>alertes</em> ?</h1>
+  <p class="lead" id="msg">Tu ne recevras plus de courriels de nouvelles offres. Tes candidatures déjà envoyées ne changent pas.</p>
+  <div class="cta" style="justify-content:center" id="actions">
+    <button class="btn" type="button" id="oui">Me désabonner</button>
+    <a class="btn ghost" href="/#offres">Garder mes alertes</a>
+  </div>
+  <p class="small" style="margin-top:28px">Pour faire effacer toutes tes données, écris à <a href="mailto:premierjob.ca@gmail.com">premierjob.ca@gmail.com</a>.</p>
+</main>
+<script>
+(function () {
+  var j = new URLSearchParams(location.search).get("j") || "";
+  var titre = document.getElementById("titre"), msg = document.getElementById("msg"), actions = document.getElementById("actions"), oui = document.getElementById("oui");
+  function fin(t, m) { titre.textContent = t; msg.textContent = m; actions.innerHTML = '<a class="btn ghost" href="/#offres">Voir les offres</a>'; }
+  if (!/^[0-9a-f-]{36}$/i.test(j)) { fin("Lien incomplet", "Ouvre le lien « Te désabonner » directement depuis le courriel, ou écris-nous à premierjob.ca@gmail.com."); return; }
+  oui.addEventListener("click", function () {
+    oui.disabled = true; oui.textContent = "Un instant…";
+    fetch("https://hejkousthfnfckblwkqw.supabase.co/functions/v1/alertes?desabo=" + encodeURIComponent(j), { method: "POST" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.ok) fin("C'est fait.", d.deja ? "Tu étais déjà désabonné(e). Tu ne recevras plus d'alertes." : "Tu ne recevras plus d'alertes de PremierJob. Tu peux te réinscrire quand tu veux sur le site.");
+        else fin("Ça n'a pas marché", "Écris-nous à premierjob.ca@gmail.com et on te désabonne à la main.");
+      })
+      .catch(function () { fin("Ça n'a pas marché", "Vérifie ta connexion et réessaie, ou écris-nous à premierjob.ca@gmail.com."); });
+  });
+})();
+</script>
+<footer><div class="wrap"><div>PremierJob · lancé au Saguenay · <a href="/conditions.html">Conditions</a> · <a href="/confidentialite.html">Confidentialité</a></div></div></footer>
+</div>
+</body>
+</html>
