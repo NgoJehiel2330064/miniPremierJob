@@ -129,8 +129,8 @@ Deno.serve(async (req) => {
     const admins: string[] = ((await rest("admins?select=email")).data ?? []).map((x: any) => x.email);
     if (c?.courriel) {
       const titre = d.o.titre ?? "le poste", emp = d.o.employeur ?? "L'employeur";
-      if (r === "appele") await envoyerCandidat("candidat_appele", [d.c.id], c.courriel, `Bonne nouvelle · ${titre}`, texteAppele(d.c.prenom, titre, emp), admins[0]);
-      else await envoyerCandidat("candidat_embauche", [d.c.id], c.courriel, `Félicitations · ${titre}`, texteEmbauche(d.c.prenom, titre, emp), admins[0]);
+      if (r === "appele") await envoyerCandidat("candidat_appele", [d.c.id], c.courriel, `Ta candidature « ${titre} » : réponse de l'employeur`, texteAppele(d.c.prenom, titre, emp), admins[0]);
+      else await envoyerCandidat("candidat_embauche", [d.c.id], c.courriel, `Ta candidature « ${titre} » : réponse de l'employeur`, texteEmbauche(d.c.prenom, titre, emp), admins[0]);
     }
   }
 

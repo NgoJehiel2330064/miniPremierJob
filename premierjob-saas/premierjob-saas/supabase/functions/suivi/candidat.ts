@@ -85,7 +85,7 @@ export function texteAppele(prenom: string, titre: string, employeur: string) {
 
 export function texteEmbauche(prenom: string, titre: string, employeur: string) {
   return [`Bonjour ${prenom},`, "",
-    `Félicitations! ${employeur} nous dit t'avoir embauché(e) pour le poste « ${titre} ».`, "",
-    "Bonne première journée. Si tu as une minute dans quelques jours, réponds à ce courriel pour nous dire comment ça se passe : ça nous aide à trouver de bons emplois pour les prochains.",
-    "", "Bravo,", "L'équipe PremierJob"].join("\n");
+    `${employeur} nous confirme que tu es embauché(e) pour le poste « ${titre} ».`, "",
+    "Si tu as une minute dans quelques jours, réponds à ce courriel pour nous dire comment se passent tes débuts. Ça nous aide à trouver de bons emplois pour les prochains candidats.",
+    "", "L'équipe PremierJob", "", "Pour faire supprimer tes données, réponds simplement à ce courriel."].join("\n");
 }
