@@ -709,8 +709,8 @@
       }
       ajouterFiltreFit();
       fini(offreCible.offre_publique
-        ? `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. On contacte ${offreCible.employeur} pour lui présenter ta candidature. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds! Pour augmenter tes chances, postule aussi à d'autres offres qui vont avec ton horaire.`
-        : `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. Nous vérifions ta candidature puis la transmettons à ${offreCible.employeur}. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds! Pour augmenter tes chances, postule aussi à d'autres offres qui vont avec ton horaire.`);
+        ? `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. On contacte ${offreCible.employeur} pour lui présenter ta candidature. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds! Pour augmenter tes chances, postule aussi à d'autres offres qui vont avec ton horaire.${row.cv_path ? "" : " Petit conseil : joins ton CV à tes prochaines candidatures et apporte-le à l'entrevue, les employeurs le demandent presque toujours."}`
+        : `C'est envoyé, ${row.prenom}! Référence : ${ref.slice(0, 8).toUpperCase()}. Nous vérifions ta candidature puis la transmettons à ${offreCible.employeur}. S'ils t'appellent, ce sera peut-être d'un numéro inconnu : réponds! Pour augmenter tes chances, postule aussi à d'autres offres qui vont avec ton horaire.${row.cv_path ? "" : " Petit conseil : joins ton CV à tes prochaines candidatures et apporte-le à l'entrevue, les employeurs le demandent presque toujours."}`);
       render();
     } catch (err) {
       say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err)
