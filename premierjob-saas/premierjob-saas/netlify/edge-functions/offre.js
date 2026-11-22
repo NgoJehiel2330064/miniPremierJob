@@ -1,7 +1,7 @@
 // PremierJob — page publique d'une offre (Netlify Edge Function), /o/<id>
 // - Une vraie page lisible (aussi sans JavaScript), avec un bouton « Postuler ».
 // - Les balises Open Graph pour les aperçus de partage (Messenger, Facebook…).
-// - Les données JobPosting (JSON-LD) pour apparaître dans Google for Jobs.
+// - Les données JobPosting (JSON-LD) pour apparaître dans Google Emplois (toutes les offres publiées).
 // - Offre fermée ou introuvable : code 404 et page « plus disponible » (Google la retire).
 // Utilise seulement la clé publique : le public ne lit que les offres publiées.
 
@@ -60,7 +60,7 @@ export function jobPosting(o, page) {
 
 const json = (x) => JSON.stringify(x).replace(/</g, "\\u003c");
 
-function gabarit({ titre, desc, page, origin, corps, jsonld, indexer }) {
+export function gabarit({ titre, desc, page, origin, corps, jsonld, indexer }) {
   return `<!DOCTYPE html><html lang="fr-CA"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(titre)}</title><meta name="description" content="${esc(desc)}">
@@ -126,7 +126,8 @@ export default async (request) => {
     <div class="cta"><a class="btn" href="/#offre-${esc(o.id)}">Postuler</a><a class="btn ghost" href="/#offres">Voir les autres offres</a></div>
     <p class="small">Gratuit, sans compte. ${o.offre_publique ? (o.lien ? `Offre reprise du site de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.` : `Offre repérée dans une annonce publique de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.`) : o.candidature_externe ? `Tu postules directement sur le site officiel de ${esc(o.employeur)}.` : "Ta candidature est transmise à l'employeur seulement avec ton accord."}</p>
   </article>`;
-  return new Response(gabarit({ titre, desc, page, origin: url.origin, corps, jsonld: o.offre_publique ? null : jobPosting(o, page), indexer: true }), {
+  // Toutes les offres publiées sont annoncées à Google Emplois (offres publiques comprises : PremierJob est un site d'emploi tiers).
+  return new Response(gabarit({ titre, desc, page, origin: url.origin, corps, jsonld: jobPosting(o, page), indexer: true }), {
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" },
   });
 };
