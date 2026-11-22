@@ -543,23 +543,31 @@
     swBrancher(z.querySelector(".sw-card:not(.back)"));
   }
   function swBrancher(c){
-    let x0 = 0, y0 = 0, dx = 0, dy = 0, t0 = 0, actif = false;
+    // Doigt : événements « touch » (Safari iPhone annule parfois les « pointer » en plein geste).
+    // Souris : événements « pointer ». Un simple toucher ouvre la fiche via « click ».
+    let x0 = 0, y0 = 0, dx = 0, dy = 0, t0 = 0, actif = false, glisse = false;
     const stamps = { oui: c.querySelector(".sw-stamp.oui"), non: c.querySelector(".sw-stamp.non") };
     const pose = () => { c.style.transform = `translate(${dx}px, ${dy * .3}px) rotate(${dx / 18}deg)`;
       stamps.oui.style.opacity = Math.max(0, Math.min(1, dx / 90)); stamps.non.style.opacity = Math.max(0, Math.min(1, -dx / 90)); };
-    let glisse = false; // vrai si le doigt a bougé : le « click » qui suit ne doit pas ouvrir la fiche
-    c.addEventListener("pointerdown", e => { glisse = false; if (e.target.closest("[data-sw-voir]")) return; actif = true; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; t0 = Date.now(); c.classList.remove("snap"); try { c.setPointerCapture(e.pointerId); } catch (_) {} });
-    c.addEventListener("pointermove", e => { if (!actif) return; dx = e.clientX - x0; dy = e.clientY - y0; pose(); });
-    const fin = e => {
+    const debut = (x, y, cible) => { glisse = false; if (cible.closest("[data-sw-voir]")) return false; actif = true; x0 = x; y0 = y; dx = dy = 0; t0 = Date.now(); c.classList.remove("snap"); return true; };
+    const bouge = (x, y) => { if (!actif) return; dx = x - x0; dy = y - y0; if (Math.abs(dx) > 8 || Math.abs(dy) > 8) glisse = true; pose(); };
+    const fin = () => {
       if (!actif) return; actif = false;
+      if (!glisse) return;
       const v = Math.abs(dx) / Math.max(1, Date.now() - t0);
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return; // simple toucher : géré par « click » (sinon le clic fantôme ferme la fiche)
-      glisse = true;
-      if (Math.abs(dx) > 100 || (v > .6 && Math.abs(dx) > 40)) swSortir(dx > 0 ? 1 : -1);
+      if (Math.abs(dx) > 90 || (v > .5 && Math.abs(dx) > 35)) swSortir(dx > 0 ? 1 : -1);
       else { c.classList.add("snap"); dx = dy = 0; pose(); }
     };
-    c.addEventListener("pointerup", fin);
-    c.addEventListener("click", e => { if (glisse) { glisse = false; return; } e.stopPropagation(); swDetail(); }); c.addEventListener("pointercancel", () => { if (!actif) return; actif = false; c.classList.add("snap"); dx = dy = 0; pose(); });
+    const annule = () => { if (!actif) return; actif = false; c.classList.add("snap"); dx = dy = 0; pose(); };
+    c.addEventListener("touchstart", e => { if (e.touches.length !== 1) return annule(); const t = e.touches[0]; debut(t.clientX, t.clientY, e.target); }, { passive: true });
+    c.addEventListener("touchmove", e => { if (!actif) return; e.preventDefault(); const t = e.touches[0]; bouge(t.clientX, t.clientY); }, { passive: false });
+    c.addEventListener("touchend", e => { if (glisse && e.cancelable) e.preventDefault(); fin(); });
+    c.addEventListener("touchcancel", annule);
+    c.addEventListener("pointerdown", e => { if (e.pointerType === "touch") return; if (debut(e.clientX, e.clientY, e.target)) try { c.setPointerCapture(e.pointerId); } catch (_) {} });
+    c.addEventListener("pointermove", e => { if (e.pointerType !== "touch") bouge(e.clientX, e.clientY); });
+    c.addEventListener("pointerup", e => { if (e.pointerType !== "touch") fin(); });
+    c.addEventListener("pointercancel", e => { if (e.pointerType !== "touch") annule(); });
+    c.addEventListener("click", e => { if (glisse) { glisse = false; return; } e.stopPropagation(); swDetail(); });
   }
   let swOccupe = false;
   function swSortir(dir){
@@ -591,6 +599,7 @@
   }
   function swFermer(){ sw.ouvert = false; $("#swipe").classList.remove("open"); document.body.style.overflow = ""; render(); }
   $("#swipeOuvrir").addEventListener("click", swOuvrir);
+  $("#swipe").addEventListener("touchmove", e => { if (!e.target.closest(".sw-card")) e.preventDefault(); }, { passive: false });
   $("#swFermer").addEventListener("click", swFermer);
   $("#swOui").addEventListener("click", () => swSortir(1));
   $("#swNon").addEventListener("click", () => swSortir(-1));
