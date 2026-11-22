@@ -531,19 +531,23 @@ details.plus[open]{padding-bottom:14px}
 @media (hover:none){.recherche-admin kbd{display:none}}
 
 /* ===== Mode swipe (mobile) ===== */
-.btn-swipe{display:none}
+.vue-choix{display:none}
 @media (max-width:899px){
-  .btn-swipe{display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;width:100%;margin-top:2px;border-radius:12px;border:1px solid var(--line-2);background:var(--inv-bg);color:var(--inv-ink);font:600 14px var(--sans);cursor:pointer}
+  .vue-choix{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+  .vue-choix button{min-height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--line-2);background:var(--raise);color:var(--ink);font:600 14px var(--sans);cursor:pointer}
+  .vue-choix button[aria-pressed="true"]{background:var(--inv-bg);color:var(--inv-ink);border-color:var(--inv-bg)}
+  .vue-choix small{margin-left:auto;color:var(--muted);font-size:12.5px;white-space:nowrap}
+  .palette.en-swipe .pal-search,.palette.en-swipe .pal-filters,.palette.en-swipe .pal-body,.palette.en-swipe .pal-foot{display:none}
 }
-.palette.vide .btn-swipe{display:none}
-.swipe{position:fixed;inset:0;z-index:38;overflow:hidden;background:var(--bg);display:none;flex-direction:column;padding:12px 14px calc(14px + env(safe-area-inset-bottom));touch-action:none;overscroll-behavior:contain}
+.palette.vide .vue-choix{display:none}
+.swipe{position:relative;display:none;flex-direction:column;height:min(540px,calc(100svh - 70px));min-height:430px;margin-top:6px;overflow:hidden;overflow-x:clip;overflow-y:visible}
 .swipe.open{display:flex}
 .sw-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .sw-top b{font-size:15px;color:var(--ink);flex:1}
 .sw-top small{color:var(--muted);font-size:12.5px}
 .sw-x{width:40px;height:40px;border-radius:50%;border:1px solid var(--line-2);background:var(--raise);color:var(--muted);font:15px var(--sans);cursor:pointer}
-.sw-zone{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
-.sw-card{position:absolute;inset:0;height:fit-content;margin:auto;max-height:100%;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:20px;border:1px solid var(--line-2);border-radius:22px;background:var(--panel-solid);box-shadow:0 10px 30px -12px rgba(0,0,0,.35);will-change:transform;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
+.sw-zone{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;margin:0 2px}
+.sw-card{position:absolute;inset:0;height:fit-content;margin:0 0 auto;max-height:100%;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:20px;border:1px solid var(--line-2);border-radius:22px;background:var(--panel-solid);box-shadow:0 10px 30px -12px rgba(0,0,0,.35);will-change:transform;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
 .sw-card.back{transform:scale(.95) translateY(12px);opacity:.7;pointer-events:none}
 .sw-card.go{transition:transform .22s ease-out,opacity .22s}
 .sw-card.snap{transition:transform .18s ease-out}
@@ -554,10 +558,10 @@ details.plus[open]{padding-bottom:14px}
 @media (max-height:780px){.sw-desc{-webkit-line-clamp:2}.sw-card{gap:10px;padding:18px}.sw-card .c-t{font-size:19px}.sw-card .c-sal{font-size:19px}}
 @media (max-height:640px){.sw-desc{display:none}.sw-actions button{width:56px;height:56px}.sw-actions .mini{width:44px;height:44px}.sw-aide{display:none}}
 @media (max-height:520px){
-  .swipe.open{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr);column-gap:16px;padding:8px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left))}
+  .swipe.open{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr);column-gap:16px;height:calc(100svh - 30px);min-height:0}
   .sw-top{grid-column:1/-1;margin-bottom:6px}
-  .sw-zone{grid-column:1;grid-row:2}
-  .sw-actions{grid-column:2;grid-row:2;flex-direction:column;justify-content:center;gap:10px;padding:0}
+  .sw-zone{grid-column:1;grid-row:1}
+  .sw-actions{grid-column:2;grid-row:1;flex-direction:column;justify-content:center;gap:10px;padding:0}
   .sw-actions button{width:52px;height:52px;font-size:22px}.sw-actions .mini{width:42px;height:42px}
   .sw-card{padding:14px 16px;gap:8px}.sw-card .ico.lg{width:38px;height:38px}
   .sw-card .c-segs,.sw-card .c-bas{display:none}
@@ -583,8 +587,3 @@ details.plus[open]{padding-bottom:14px}
 .liste-offre{display:grid;gap:3px;padding:12px 2px;border-bottom:1px solid var(--line)}
 .liste-offre a{color:var(--ink);text-decoration:none;font-size:15.5px}
 .liste-offre a:hover b{text-decoration:underline}
-
-/* Swipe par défaut : en-tête et bouton « Voir en liste » */
-.sw-marque{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
-.sw-marque b{font-size:15px;color:var(--ink)}
-.sw-liste{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:var(--raise);color:var(--ink);font:600 13.5px var(--sans);cursor:pointer;white-space:nowrap}
