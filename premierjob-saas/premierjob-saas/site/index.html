@@ -198,7 +198,7 @@
 
 <!-- Détail sur mobile -->
 <div class="swipe" id="swipe" role="dialog" aria-modal="true" aria-label="Mode swipe : parcourir les offres">
-  <div class="sw-top"><b>Mode swipe</b><small id="swCompte"></small><button class="sw-x" type="button" id="swFermer" aria-label="Fermer le mode swipe">✕</button></div>
+  <div class="sw-top"><span class="sw-marque"><b>Jobs sans expérience</b><small id="swCompte"></small></span><button class="sw-liste" type="button" id="swFermer">☰ Voir en liste</button></div>
   <div class="sw-zone" id="swZone"></div>
   <div class="sw-actions">
     <button class="mini" type="button" id="swRetour" aria-label="Revenir à l'offre précédente">↶</button>
@@ -591,16 +591,30 @@
     const i = VUE.findIndex(x => x.id === o.id); if (i < 0) return;
     PJ.track("swipe-detail/" + o.id); select(i, true);
   }
-  function swOuvrir(){
+  // Vue préférée sur téléphone : « swipe » (par défaut) ou « liste ». Le dernier choix est gardé sur l'appareil.
+  const VUE_CLE = "pj_vue";
+  const vuePref = () => { try { return localStorage.getItem(VUE_CLE); } catch (e) { return null; } };
+  const vueGarder = (v) => { try { localStorage.setItem(VUE_CLE, v); } catch (e) {} };
+  function swOuvrir(auto){
     if (state.fav) { state.fav = false; favBtn.setAttribute("aria-pressed", "false"); }
     render(); sw.hist = []; sw.ouvert = true;
     $("#swipe").classList.add("open"); document.body.style.overflow = "hidden";
-    PJ.track("swipe/ouvrir"); swMonter(); $("#swFermer").focus();
+    if (!auto) vueGarder("swipe");
+    PJ.track(auto ? "swipe/auto" : "swipe/ouvrir"); swMonter(); if (!auto) $("#swFermer").focus();
   }
-  function swFermer(){ sw.ouvert = false; $("#swipe").classList.remove("open"); document.body.style.overflow = ""; render(); }
-  $("#swipeOuvrir").addEventListener("click", swOuvrir);
+  function swFermer(choix){
+    sw.ouvert = false; $("#swipe").classList.remove("open"); document.body.style.overflow = ""; render();
+    if (choix === "liste") { vueGarder("liste"); PJ.track("vue/liste"); }
+  }
+  // Sur téléphone, le swipe s'ouvre tout seul… sauf lien direct (offre, alertes), choix « liste », ordinateur ou robot.
+  function swipeParDefaut(){
+    if (large.matches || !OFFRES.length || location.hash || vuePref() === "liste") return;
+    if (/bot|crawl|spider|slurp|google|bing|facebookexternalhit|lighthouse|headless/i.test(navigator.userAgent)) return;
+    swOuvrir(true);
+  }
+  $("#swipeOuvrir").addEventListener("click", () => swOuvrir(false));
   $("#swipe").addEventListener("touchmove", e => { if (!e.target.closest(".sw-card")) e.preventDefault(); }, { passive: false });
-  $("#swFermer").addEventListener("click", swFermer);
+  $("#swFermer").addEventListener("click", () => swFermer("liste"));
   $("#swOui").addEventListener("click", () => swSortir(1));
   $("#swNon").addEventListener("click", () => swSortir(-1));
   $("#swRetour").addEventListener("click", swRetour);
@@ -988,6 +1002,7 @@
       if (nb) { $("#nouvTxt").hidden = false; $("#nouvTxt").innerHTML = `<b>${nb}</b> nouvelle${nb > 1 ? "s" : ""} cette semaine`; }
       render();
       ouvrirDepuisAdresse();
+      swipeParDefaut();
     } catch (err) {
       $("#count").textContent = "";
       $("#list").innerHTML = `<div class="pal-empty"><span class="big">Impossible de charger les offres.</span><span>${esc(PJ.configMessage(err))}</span></div>`;
