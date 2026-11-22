@@ -16,11 +16,13 @@
     { "source": "/employeur", "destination": "/employeur.html" },
     { "source": "/confidentialite", "destination": "/confidentialite.html" },
     { "source": "/conditions", "destination": "/conditions.html" },
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/reponse", "destination": "/reponse.html" }
   ],
   "headers": [
     { "source": "/admin.html", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
     { "source": "/admin", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/reponse(.html)?", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }, { "key": "Cache-Control", "value": "no-store" }] },
     { "source": "/(.*)", "headers": [
       { "key": "X-Content-Type-Options", "value": "nosniff" },
       { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
