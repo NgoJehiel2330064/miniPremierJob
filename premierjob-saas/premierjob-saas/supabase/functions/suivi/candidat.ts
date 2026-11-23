@@ -69,7 +69,7 @@ export async function offresPour(courriel: string, dispos: string[], ville: stri
     .map(({ o }) => `- ${o.titre}, ${o.employeur} (${o.ville}) : ${SITE}/o/${o.id}`);
 }
 
-export const PIED = ["", "Bonne chance,", "L'équipe PremierJob", "", "Pour retirer ta candidature ou faire supprimer tes données, réponds simplement à ce courriel."];
+export const PIED = ["", "Bonne chance,", "L'équipe PremierJob", "", "Une question? Réponds simplement à ce courriel."];
 
 export function texteAppele(prenom: string, titre: string, employeur: string) {
   return [`Bonjour ${prenom},`, "",
@@ -87,5 +87,5 @@ export function texteEmbauche(prenom: string, titre: string, employeur: string) 
   return [`Bonjour ${prenom},`, "",
     `${employeur} nous confirme que tu es embauché(e) pour le poste « ${titre} ».`, "",
     "Si tu as une minute dans quelques jours, réponds à ce courriel pour nous dire comment se passent tes débuts. Ça nous aide à trouver de bons emplois pour les prochains candidats.",
-    "", "L'équipe PremierJob", "", "Pour faire supprimer tes données, réponds simplement à ce courriel."].join("\n");
+    "", "L'équipe PremierJob", "", "Une question? Réponds simplement à ce courriel."].join("\n");
 }
