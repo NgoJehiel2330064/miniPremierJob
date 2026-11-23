@@ -5,7 +5,10 @@
 // La page premierjob.ca/reponse demande toujours une confirmation avant le POST :
 // les antivirus de courriel ouvrent les liens tout seuls, un simple GET ne change donc rien.
 // Le jeton (uuid aléatoire) est la seule clé : pas de compte, rien d'autre n'est exposé.
-// L'admin reçoit un courriel à chaque réponse.
+// L'admin reçoit un courriel à chaque réponse. Le candidat est prévenu tout de suite pour « appelé » et
+// « embauché » ; pour « pas retenu », la fonction « suivi » le prévient une heure plus tard (le temps de
+// corriger un mauvais clic).
+import { envoyer as envoyerCandidat, texteAppele, texteEmbauche } from "./candidat.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -118,6 +121,18 @@ Deno.serve(async (req) => {
      `Tableau de bord : ${SITE}/admin.html`].join("\n"),
     d.c.id, `reponse_employeur_${r}_${(d.t.nb_reponses + 1)}`,
   );
+
+  // 4. Le candidat est prévenu (une seule fois par type de nouvelle).
+  //    Seulement si le statut correspond bien (pas de « bonne nouvelle » après une embauche ou un refus).
+  const c = ((await rest(`candidatures?id=eq.${d.c.id}&select=courriel,statut`)).data ?? [])[0];
+  if (c && ((r === "appele" && c.statut === "interview") || (r === "embauche" && c.statut === "hired"))) {
+    const admins: string[] = ((await rest("admins?select=email")).data ?? []).map((x: any) => x.email);
+    if (c?.courriel) {
+      const titre = d.o.titre ?? "le poste", emp = d.o.employeur ?? "L'employeur";
+      if (r === "appele") await envoyerCandidat("candidat_appele", [d.c.id], c.courriel, `Ta candidature « ${titre} » : réponse de l'employeur`, texteAppele(d.c.prenom, titre, emp), admins[0]);
+      else await envoyerCandidat("candidat_embauche", [d.c.id], c.courriel, `Ta candidature « ${titre} » : réponse de l'employeur`, texteEmbauche(d.c.prenom, titre, emp), admins[0]);
+    }
+  }
 
   return json({ ok: true, reponse: r, prenom: d.c.prenom });
 });
