@@ -665,8 +665,8 @@
     } catch (e) { /* sans liens, le courriel reste valable */ }
     const liensReponse = (p) => {
       const j = jetons[p.id]; if (!j) return "";
-      const u = (r) => `https://premierjob.ca/reponse.html?j=${j}&r=${r}`;
-      return `\n   Votre réponse en un clic :\n   - Appelé(e) ou entrevue prévue : ${u("appele")}\n   - Embauché(e) : ${u("embauche")}\n   - Pas retenu(e) ou poste comblé : ${u("pas_retenu")}`;
+      // Un seul lien : la page propose les trois choix (appelé, embauché, pas retenu).
+      return `\n   Donner un suivi (30 secondes) : https://premierjob.ca/reponse.html?j=${j}`;
     };
     for (const [i, p] of ps.entries()) {
       let lien = "pas de CV";
@@ -678,7 +678,7 @@
       blocs.push(`${i + 1}. ${nomComplet(p)} · ${p.telephone} · ${p.courriel}\n   ${p.ville || ""}${p.transport ? " · " + libTransport(p.transport) : ""}\n   Disponible : ${(p.dispos || []).map(PJ.nomCreneau).join(", ") || "non indiqué"}${f.manquants.length ? "\n   Attention, pas libre : " + f.manquants.map(PJ.nomCreneau).join(", ") : ""}\n   CV (lien valable 7 jours) : ${lien}${p.message ? "\n   Son mot : « " + p.message + " »" : ""}${liensReponse(p)}`);
     }
     const sujet = `PremierJob · ${ps.length} candidat${ps.length > 1 ? "s" : ""} pour « ${o.titre} »`;
-    const corps = `Bonjour ${o.contact_nom || ""},\n\nVoici ${ps.length > 1 ? ps.length + " candidatures" : "une candidature"} pour le poste « ${o.titre} ». Chaque personne a accepté que sa candidature vous soit transmise.\n\n${blocs.join("\n\n")}\n\nVous pouvez les appeler directement pour fixer une entrevue. Un clic sur le lien sous chaque nom nous dit où en est la candidature, même si ce n'est pas retenu : la personne a ainsi une réponse, et ça nous aide à vous envoyer les bons candidats.\n\nMerci!\nL'équipe PremierJob Saguenay`;
+    const corps = `Bonjour ${o.contact_nom || ""},\n\nVoici ${ps.length > 1 ? ps.length + " candidatures" : "une candidature"} pour le poste « ${o.titre} ». Chaque personne a accepté que sa candidature vous soit transmise.\n\n${blocs.join("\n\n")}\n\nVous pouvez les appeler directement pour fixer une entrevue. Le lien « Donner un suivi » sous chaque nom nous dit où en est la candidature, même si ce n'est pas retenu : la personne a ainsi une réponse.\n\nMerci!\nL'équipe PremierJob Saguenay`;
     mailIds = ps.map(p => p.id);
     $("#mailInfo").textContent = `À : ${o.contact_nom || ""} <${o.contact_courriel}>${o.reception === "telephone" ? " · cet employeur préfère aussi un appel." : ""}`;
     $("#mailTexte").value = `Objet : ${sujet}\n\n${corps}`;
