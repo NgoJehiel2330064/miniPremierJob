@@ -604,7 +604,7 @@
       ${preuve}
       <div class="small">${esc(p.telephone || "pas de téléphone")} · ${esc(p.courriel)}${ext ? (p.ville ? " · " + esc(p.ville) : "") : " · " + esc(p.ville || "ville ?") + " · " + esc(libTransport(p.transport))}</div>
       ${o && !(ext && !(p.dispos || []).length) ? `<div>${blocFit(o, p)}</div>${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites, p.dispos)}` : ""}
-      ${p.message ? `<div class="small">« ${esc(p.message)} »</div>` : ""}
+      ${p.message ? `<div class="small" style="white-space:pre-line"><b>Présentation :</b> ${esc(p.message)}</div>` : ""}
       <div class="small">Consentement donné le ${new Date(p.consentement_le || p.created_at).toLocaleString("fr-CA")}${p.transmise_le ? " · transmise le " + new Date(p.transmise_le).toLocaleDateString("fr-CA") : ""}${p.embauche_le ? " · embauche le " + fmtDate(p.embauche_le) : ""}</div>
       <div class="actions">${p.cv_path ? `<button class="btn ghost sm" data-cv="${esc(p.cv_path)}">Ouvrir le CV</button>` : ext ? "" : '<span class="small">Pas de CV</span>'}${confirmer}${actions}${!avecSelection ? `<button class="btn ghost sm" data-ouvrir-offre="${p.offre_id}">Dossier de l'offre</button>` : ""}</div>
     </div>`;
@@ -675,7 +675,7 @@
       const lien = p.cv_path ? "en pièce jointe" : "pas de CV";
       if (p.cv_path) cvs.push({ path: p.cv_path, nom: nomComplet(p) });
       const f = PJ.jumelerV2(o, p);
-      blocs.push(`${i + 1}. ${nomComplet(p)} · ${p.telephone} · ${p.courriel}\n   ${p.ville || ""}${p.transport ? " · " + libTransport(p.transport) : ""}\n   Disponible : ${(p.dispos || []).map(PJ.nomCreneau).join(", ") || "non indiqué"}${f.manquants.length ? "\n   Attention, pas libre : " + f.manquants.map(PJ.nomCreneau).join(", ") : ""}\n   CV : ${lien}${p.message ? "\n   Son mot : « " + p.message + " »" : ""}${liensReponse(p)}`);
+      blocs.push(`${i + 1}. ${nomComplet(p)} · ${p.telephone} · ${p.courriel}\n   ${p.ville || ""}${p.transport ? " · " + libTransport(p.transport) : ""}\n   Disponible : ${(p.dispos || []).map(PJ.nomCreneau).join(", ") || "non indiqué"}${f.manquants.length ? "\n   Attention, pas libre : " + f.manquants.map(PJ.nomCreneau).join(", ") : ""}\n   CV : ${lien}${p.message ? "\n   Sa présentation : " + p.message.trim().replace(/\s*\n+\s*/g, " / ") : ""}${liensReponse(p)}`);
     }
     const sujet = `PremierJob · ${ps.length} candidat${ps.length > 1 ? "s" : ""} pour « ${o.titre} »`;
     const corps = `Bonjour ${o.contact_nom || ""},\n\nVoici ${ps.length > 1 ? ps.length + " candidatures" : "une candidature"} pour le poste « ${o.titre} ». Chaque personne a accepté que sa candidature vous soit transmise.\n\n${blocs.join("\n\n")}\n\nVous pouvez les appeler directement pour fixer une entrevue. Le lien « Donner un suivi » sous chaque nom nous dit où en est la candidature, même si ce n'est pas retenu : la personne a ainsi une réponse.\n\nMerci!\nL'équipe PremierJob Saguenay`;
