@@ -147,11 +147,13 @@
       <label for="o_salaire">Salaire<input id="o_salaire" name="salaire" maxlength="40"></label>
       <label for="o_nb">Nombre de postes<input id="o_nb" name="nb_postes" type="number" min="1" max="50"></label>
       <label for="o_debut">Date de début<input id="o_debut" name="date_debut" type="date"></label>
+      <label for="o_limite">Date limite pour postuler <span class="opt">(facultatif)</span><input id="o_limite" name="date_limite" type="date"></label>
     </div>
     <fieldset><legend>Quarts <span class="opt"><span class="g req">R</span> requis · <span class="g ideal">I</span> idéal</span></legend><div class="avail"><table id="o_grille"></table></div></fieldset>
     <label for="o_description">Description du poste<textarea id="o_description" name="description" maxlength="1500"></textarea></label>
-    <label for="o_qualification">Permis ou qualification obligatoire<input id="o_qualification" name="qualification" maxlength="160"></label>
+    <label for="o_qualification">Permis ou qualifications obligatoires <span class="opt">(une exigence par ligne, 1000 caractères)</span><textarea id="o_qualification" name="qualification" maxlength="1000" rows="3" placeholder="Une exigence par ligne. Ex. :&#10;- Permis de conduire classe 5&#10;- Formation SIMDUT (donnée sur place)&#10;- Capable de soulever 25 kg"></textarea></label>
     <div id="o_alerte" role="status"></div>
+    <div id="o_doublon" role="status"></div>
     <label for="o_lien">Lien vers le formulaire officiel ou l'annonce de l'employeur<input id="o_lien" name="lien" type="url" maxlength="500" placeholder="https://"></label>
     <label class="consent" for="o_externe"><input type="checkbox" id="o_externe"><span>Les candidats postulent sur le <b>formulaire de l'employeur</b> (lien obligatoire). PremierJob note leur nom, les envoie au formulaire et signale leur candidature au gérant.</span></label>
     <label class="consent" for="o_publique"><input type="checkbox" id="o_publique"><span><b>Offre publique</b> : annonce reprise du site de l'employeur, sans son accord pour l'instant. Avec le lien du <b>poste précis</b> sur le site de l'employeur, le candidat choisit : PremierJob ou le site de l'employeur. Sans lien (annonce vue seulement sur Indeed, Jobillico…), seul « Postuler via PremierJob » s'affiche. Jamais de lien vers un site concurrent.</span></label>
@@ -446,7 +448,8 @@
       ${o.alerte_experience ? `<div class="alerte ${forte ? "forte" : "douce"}">${esc(o.alerte_experience)}</div>` : ""}
       ${o.offre_publique ? `<div class="small"><span class="pill-st">Offre publique</span> ${o.lien ? `reprise de : <a href="${esc(PJ.safeUrl(o.lien) || "#")}" target="_blank" rel="noopener">${esc(o.lien.slice(0, 70))}</a>` : "sans lien : candidatures via PremierJob seulement"}</div>` : ""}
       ${o.candidature_externe ? `<div class="small">Candidature sur le <b>formulaire de l'employeur</b> : <a href="${esc(PJ.safeUrl(o.lien) || "#")}" target="_blank" rel="noopener">${esc((o.lien || "").slice(0, 70))}</a></div>` : ""}
-      <div class="small">${esc(o.type)} · ${esc(o.salaire || "salaire ?")} · ${o.nb_postes || 1} poste(s)${o.date_debut ? " · début " + fmtDate(o.date_debut) : ""}${o.qualification ? " · exige : " + esc(o.qualification) : ""}</div>
+      <div class="small">${esc(o.type)} · ${esc(o.salaire || "salaire ?")} · ${o.nb_postes || 1} poste(s)${o.date_debut ? " · début " + fmtDate(o.date_debut) : ""}${o.date_limite ? (o.date_limite < PJ.today() ? ' · <b style="color:var(--accent)">date limite passée (' + fmtDate(o.date_limite) + ") : retirée du site</b>" : " · postuler avant le " + fmtDate(o.date_limite)) : ""}</div>
+      ${o.qualification ? `<div class="small" style="white-space:pre-line">Exige : ${esc(o.qualification)}</div>` : ""}
       ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}
       <div class="small">Contact : ${esc(o.contact_nom || "—")} · ${esc(o.contact_courriel || "—")} · ${esc(o.contact_tel || "—")} · reçoit par ${o.reception === "telephone" ? "téléphone" : "courriel"}${o.source === "employeur" ? " · soumise par l'employeur" : ""}</div>
       ${o.prospection ? `<div class="small">Suivi : <b>${esc(PROSPECTION[o.prospection] || o.prospection)}</b>${o.prospection_le ? " · " + fmtDate(o.prospection_le) : ""}${o.accord_employeur_le ? " · accord de l'employeur le " + fmtDate(o.accord_employeur_le) : ""}</div>` : ""}
@@ -496,6 +499,17 @@
     $("#btnPublier").disabled = !!ex;
   }
   ["titre","description","qualification"].forEach(n => $("#offForm")[n].addEventListener("input", verifAlerte));
+  // Doublons : avertit si une offre active du même employeur, même ville, au titre proche existe déjà (ne bloque pas).
+  let minuterieDoublon = null;
+  async function verifDoublon(){
+    const f = $("#offForm"), m = $("#o_doublon");
+    if (f.titre.value.trim().length < 3 || f.employeur.value.trim().length < 2) { m.className = ""; m.textContent = ""; return; }
+    const r = await sb.rpc("pj_offres_semblables", { p_employeur: f.employeur.value.trim(), p_titre: f.titre.value.trim(), p_ville: f.ville.value, p_exclure: editId });
+    if (r.error || !(r.data || []).length) { m.className = ""; m.textContent = ""; return; }
+    m.className = "alerte douce";
+    m.innerHTML = "Offre semblable déjà sur la plateforme : " + r.data.map(x => `<b>${esc(x.titre || "?")}</b> · ${esc(x.employeur || "")} (${esc(OFFRE_STATUTS[x.statut] || x.statut)})`).join(" ; ") + ". Vérifie qu'il ne s'agit pas du même poste avant de l'enregistrer.";
+  }
+  ["titre","employeur","ville"].forEach(n => $("#offForm")[n].addEventListener("input", () => { clearTimeout(minuterieDoublon); minuterieDoublon = setTimeout(verifDoublon, 500); }));
   function ouvrirEditeur(o){
     editId = o ? o.id : null;
     const f = $("#offForm"); f.reset(); $("#dlgMsg").className = ""; $("#dlgMsg").textContent = "";
@@ -504,14 +518,14 @@
     $("#o_externe").checked = !!(o && o.candidature_externe);
     $("#o_publique").checked = !!(o && o.offre_publique); majV1();
     f.prospection.value = (o && o.prospection) || "";
-    f.nb_postes.value = o ? (o.nb_postes || 1) : 1; f.date_debut.value = o ? (o.date_debut || "") : "";
+    f.nb_postes.value = o ? (o.nb_postes || 1) : 1; f.date_debut.value = o ? (o.date_debut || "") : ""; f.date_limite.value = o ? (o.date_limite || "") : "";
     if (!o) { f.ville.value = "Chicoutimi"; f.type.value = "Temps partiel"; f.reception.value = "courriel"; }
     grille = PJ.grilleOffre($("#o_grille"), o ? o.creneaux_obligatoires : [], o ? o.creneaux_souhaites : []);
     const deja = o && o.statut === "published";
     ["v1","v2","v3"].forEach(id => { $("#" + id).checked = !!deja; });
     $("#btnPublier").textContent = deja ? "Enregistrer (reste publiée)" : "Enregistrer et publier";
     $("#btnBrouillon").hidden = !!deja;
-    verifAlerte();
+    verifAlerte(); $("#o_doublon").className = ""; $("#o_doublon").textContent = ""; if (o) verifDoublon();
     $("#dlg").showModal();
   }
   function majV1(){
@@ -540,6 +554,8 @@
     const nbp = parseInt(f.nb_postes.value, 10);
     const row = {}; CHAMPS.forEach(k => { row[k] = v(k); });
     row.reception = f.reception.value; row.nb_postes = nbp >= 1 && nbp <= 50 ? nbp : 1; row.date_debut = f.date_debut.value || null;
+    row.date_limite = f.date_limite.value || null;
+    if (publier && row.date_limite && row.date_limite < PJ.today()) return dire("err", "La date limite est déjà passée : change-la ou efface-la pour publier.");
     row.creneaux_obligatoires = [...grille.O]; row.creneaux_souhaites = [...grille.S];
     row.candidature_externe = $("#o_externe").checked;
     row.offre_publique = publique;

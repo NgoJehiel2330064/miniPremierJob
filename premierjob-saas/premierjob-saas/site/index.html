@@ -309,11 +309,12 @@
   let avis = "";
   const icone = (o, lg) => `<span class="ico${lg ? " lg" : ""}" style="--h:${teinte(o.secteur || o.employeur)}">${esc(initiale(o.employeur))}</span>`;
 
+  const dateCourte = (d) => new Date(String(d).slice(0, 10) + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "short" });
   function ligne(o, i){
     const h = (o.horaires || []).map((x, n) => `<span class="k${n > 0 ? " hide-sm" : ""}">${esc(HORAIRES_COURTS[x] || x)}</span>`).join("");
     return `<button class="row" role="option" data-i="${i}" aria-selected="${i === state.sel}">
       ${icone(o)}
-      <span style="min-width:0"><span class="t">${estNouvelle(o) ? '<span class="new">Nouveau</span>' : ""}${esc(o.titre)}</span><span class="s">${favoris.a(o.id) ? '<span class="coeur" aria-label="Sauvegardée">♥</span> ' : ""}${esc(o.employeur)} · ${esc(o.ville)}${o.publiee_le ? ` · <span class="quand">${PJ.ilYa(o.publiee_le)}</span>` : ""}${(() => { const f = fitDe(o); return f ? (f.compatible ? ' · <span style="color:var(--go)">✓ fit avec tes dispos</span>' : '') : ""; })()}</span></span>
+      <span style="min-width:0"><span class="t">${estNouvelle(o) ? '<span class="new">Nouveau</span>' : ""}${esc(o.titre)}</span><span class="s">${favoris.a(o.id) ? '<span class="coeur" aria-label="Sauvegardée">♥</span> ' : ""}${esc(o.employeur)} · ${esc(o.ville)}${o.publiee_le ? ` · <span class="quand">${PJ.ilYa(o.publiee_le)}</span>` : ""}${o.date_limite ? ` · <b>postuler avant le ${esc(dateCourte(o.date_limite))}</b>` : ""}${(() => { const f = fitDe(o); return f ? (f.compatible ? ' · <span style="color:var(--go)">✓ fit avec tes dispos</span>' : '') : ""; })()}</span></span>
       <span class="acc">${h}${o.salaire ? `<span class="money hide-sm">${esc(o.salaire)}</span>` : ""}</span>
     </button>`;
   }
@@ -354,7 +355,7 @@
       : a === "non" ? '<span class="accord non">Pas sur tes disponibilités</span>'
       : a === "inconnu" ? '<span class="accord non">Horaire à confirmer</span>' : "";
     return `<button class="row carte" type="button" data-i="${i}" aria-selected="false">
-      <span class="c-haut">${icone(o)}<span class="c-emp"><span class="c-e">${esc(o.employeur)}</span><span class="c-v">${esc(o.ville)}${o.publiee_le ? " · " + PJ.ilYa(o.publiee_le) : ""}</span></span>${favoris.a(o.id) ? '<span class="coeur" aria-label="Sauvegardée">♥</span>' : ""}</span>
+      <span class="c-haut">${icone(o)}<span class="c-emp"><span class="c-e">${esc(o.employeur)}</span><span class="c-v">${esc(o.ville)}${o.publiee_le ? " · " + PJ.ilYa(o.publiee_le) : ""}${o.date_limite ? " · <b>avant le " + esc(dateCourte(o.date_limite)) + "</b>" : ""}</span></span>${favoris.a(o.id) ? '<span class="coeur" aria-label="Sauvegardée">♥</span>' : ""}</span>
       <span class="c-t">${esc(o.titre)}</span>
       <span class="c-sal${o.salaire ? "" : " vide"}">${o.salaire ? esc(o.salaire) : "Salaire non affiché"}</span>
       <span class="sr-only">Horaire : ${esc(h.map(x => HORAIRES[x] || x).join(", ") || "à confirmer")}.</span>
@@ -382,12 +383,14 @@
         ${o.salaire ? `<dt>Salaire</dt><dd>${esc(o.salaire)}</dd>` : ""}
         ${o.nb_postes > 1 ? `<dt>Postes</dt><dd>${o.nb_postes}</dd>` : ""}
         ${o.date_debut ? `<dt>Début</dt><dd>${fmtDate(o.date_debut)}</dd>` : ""}
-        ${o.qualification ? `<dt>Exigé</dt><dd>${esc(o.qualification)}</dd>` : ""}
+        ${o.date_limite ? `<dt>Postuler avant</dt><dd><b>${fmtDate(o.date_limite)}</b> (inclus)</dd>` : ""}
+        ${o.qualification && !/\n/.test(o.qualification) && o.qualification.length <= 60 ? `<dt>Exigé</dt><dd>${esc(o.qualification)}</dd>` : ""}
         ${(o.creneaux_obligatoires || []).length + (o.creneaux_souhaites || []).length === 0 ? `<dt>Horaire</dt><dd>${esc((o.horaires || []).map(x => HORAIRES[x] || x).join(", ") || "À confirmer avec l'employeur")}</dd>` : ""}
         ${o.publiee_le ? `<dt>Publiée</dt><dd>${PJ.ilYa(o.publiee_le)}</dd>` : ""}
         ${o.verifie_le ? `<dt>Vérifiée le</dt><dd>${fmtDate(o.verifie_le)}</dd>` : ""}
       </dl>
       ${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites) ? `<div><div class="small" style="margin-bottom:6px">Quarts : <span class="g req">R</span> requis · <span class="g ideal">I</span> idéal</div>${PJ.grilleLecture(o.creneaux_obligatoires, o.creneaux_souhaites)}</div>` : ""}
+      ${o.qualification && (/\n/.test(o.qualification) || o.qualification.length > 60) ? `<div><div class="small" style="margin-bottom:4px"><b style="color:var(--ink)">Exigé</b></div><p class="desc" style="color:var(--ink)">${esc(o.qualification)}</p></div>` : ""}
       ${o.description ? `<p class="desc">${esc(o.description)}</p>` : ""}
       ${estPublique(o) ? `<p class="small" style="margin:0">Offre reprise du site de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.</p>` : ""}
       ${o.offre_publique && !estPublique(o) ? `<p class="small" style="margin:0">Offre repérée dans une annonce publique de ${esc(o.employeur)}. Postule via PremierJob : on présente ta candidature à l'employeur.</p>` : ""}
@@ -516,7 +519,7 @@
     const badge = a === "ok" ? '<span class="accord ok">✓ Va avec ton horaire</span>' : a === "flex" ? '<span class="accord flex">Horaire flexible : à discuter</span>' : "";
     return `<div class="sw-card${back ? " back" : ""}" data-id="${esc(o.id)}"${back ? ' aria-hidden="true" inert' : ""}>
       <span class="sw-stamp oui" aria-hidden="true">SAUVER</span><span class="sw-stamp non" aria-hidden="true">PASSER</span>
-      <span class="c-haut">${icone(o, true)}<span class="c-emp"><span class="c-e">${esc(o.employeur)}</span><span class="c-v">${esc(o.ville)}${o.publiee_le ? " · " + PJ.ilYa(o.publiee_le) : ""}</span></span></span>
+      <span class="c-haut">${icone(o, true)}<span class="c-emp"><span class="c-e">${esc(o.employeur)}</span><span class="c-v">${esc(o.ville)}${o.publiee_le ? " · " + PJ.ilYa(o.publiee_le) : ""}${o.date_limite ? " · <b>avant le " + esc(dateCourte(o.date_limite)) + "</b>" : ""}</span></span></span>
       <span class="c-t">${esc(o.titre)}</span>
       <span class="c-sal${o.salaire ? "" : " vide"}">${o.salaire ? esc(o.salaire) : "Salaire non affiché"}</span>
       <span class="c-segs" aria-hidden="true">${segs}</span>
@@ -1005,7 +1008,8 @@
       const { data, error } = await PJ.client().from("offres").select(PJ.OFFRE_PUBLIQUE)
         .eq("statut","published").order("publiee_le", { ascending:false, nullsFirst:false });
       if (error) throw error;
-      OFFRES = data || [];
+      const auj = PJ.today();
+      OFFRES = (data || []).filter(o => !o.date_limite || o.date_limite >= auj); // date limite passée : l'offre n'est plus affichée
       $("#nbOffres").textContent = OFFRES.length;
       $("#nbWrap").hidden = OFFRES.length === 0;
       PJ.remplirVilles($("#ville"), { seulement: OFFRES.map(o => o.ville) }); // seulement les villes où il y a des offres
