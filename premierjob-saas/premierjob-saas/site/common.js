@@ -41,7 +41,7 @@
     return r;
   }
   // Colonnes que le public a le droit de lire (voir schema.sql).
-  const OFFRE_PUBLIQUE = "id,titre,employeur,ville,lieu,secteur,type,horaires,salaire,description,lien,confirme,statut,verifie_le,publiee_le,date_debut,qualification,nb_postes,creneaux_obligatoires,creneaux_souhaites,candidature_externe,offre_publique";
+  const OFFRE_PUBLIQUE = "id,titre,employeur,ville,lieu,secteur,type,horaires,salaire,description,lien,confirme,statut,verifie_le,publiee_le,date_debut,qualification,nb_postes,creneaux_obligatoires,creneaux_souhaites,candidature_externe,offre_publique,date_limite";
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmtDate = (d) => (d ? new Date(String(d).slice(0, 10) + "T12:00:00").toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" }) : "");

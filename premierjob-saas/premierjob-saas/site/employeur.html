@@ -84,8 +84,9 @@
               <label for="type">Type<select id="type" name="type"></select></label>
               <label for="nb_postes">Nombre de postes<input type="number" id="nb_postes" name="nb_postes" min="1" max="50" value="1" inputmode="numeric"></label>
               <label for="date_debut">Date de début<input type="date" id="date_debut" name="date_debut"></label>
+              <label for="date_limite">Date limite pour postuler <span class="opt">(si applicable)</span><input type="date" id="date_limite" name="date_limite"></label>
             </div>
-            <label for="qualification">Permis ou qualification obligatoire<input type="text" id="qualification" name="qualification" maxlength="160" placeholder="Ex. : permis de conduire"></label>
+            <label for="qualification">Permis ou qualifications obligatoires <span class="opt">(une exigence par ligne)</span><textarea id="qualification" name="qualification" maxlength="1000" rows="3" placeholder="Une exigence par ligne. Ex. :&#10;- Permis de conduire classe 5&#10;- Formation SIMDUT (donnée sur place)&#10;- Capable de soulever 25 kg"></textarea></label>
             <fieldset>
               <legend>Quarts exacts <span class="opt">Touchez une case : <span class="g req">R</span> requis, puis <span class="g ideal">I</span> idéal.</span></legend>
               <div class="avail"><table id="grille" aria-label="Quarts de travail du poste"></table></div>
@@ -149,6 +150,8 @@
     m.className = ""; m.textContent = ""; return true;
   }
   champsTexte.forEach(n => $("#form")[n].addEventListener("input", verifierTexte));
+  let doublonVu = false;
+  ["titre","employeur","ville"].forEach(n => $("#form")[n].addEventListener("input", () => { if (doublonVu) { doublonVu = false; $("#submitBtn").textContent = "Envoyer : on s'occupe du reste"; } }));
 
   $("#form").addEventListener("submit", async e => {
     e.preventDefault();
@@ -174,11 +177,24 @@
     if (PJ.lienConcurrent(v("lien"))) return say("err", "Indiquez le lien de votre propre site ou formulaire, pas celui d'une plateforme d'emploi.");
     if (!verifierTexte()) { return say("err", "Retirez l'exigence d'expérience du texte pour envoyer le poste."); }
     if (!$("#sansExp").checked) return say("err", "Cochez la case « aucune expérience exigée ». Sinon, ce poste ne peut pas être affiché sur PremierJob.");
+    if (f.date_limite.value && f.date_limite.value < PJ.today()) { f.date_limite.focus(); return say("err", "La date limite est déjà passée : choisissez une date à venir, ou laissez le champ vide."); }
+    // Doublon : un poste semblable existe déjà? On prévient une fois, l'employeur peut quand même envoyer.
+    if (!doublonVu) {
+      try {
+        const r = await PJ.client().rpc("pj_offres_semblables", { p_employeur: v("employeur"), p_titre: v("titre"), p_ville: f.ville.value, p_exclure: null });
+        if (!r.error && (r.data || []).length) {
+          doublonVu = true; btn.textContent = "Envoyer quand même";
+          const pub = r.data.find(x => x.statut === "published");
+          return say("info", pub ? `Ce poste semble déjà affiché sur PremierJob : « ${pub.titre} » chez ${pub.employeur}. S'il s'agit d'un autre poste, cliquez sur « Envoyer quand même ».`
+                                 : "Un poste semblable de votre entreprise a déjà été reçu et est en vérification. S'il s'agit d'un autre poste, cliquez sur « Envoyer quand même ».");
+        }
+      } catch (e) { /* la vérification ne doit jamais bloquer l'envoi */ }
+    }
     const nb = parseInt(f.nb_postes.value, 10);
     const row = {
       titre:v("titre"), employeur:v("employeur"), ville:f.ville.value, lieu:v("lieu") || null, secteur:null, type:f.type.value || "Temps partiel",
       salaire, description:v("description") || null, qualification:v("qualification") || null, lien:v("lien") || null,
-      nb_postes: nb >= 1 && nb <= 50 ? nb : 1, date_debut: f.date_debut.value || null,
+      nb_postes: nb >= 1 && nb <= 50 ? nb : 1, date_debut: f.date_debut.value || null, date_limite: f.date_limite.value || null,
       creneaux_obligatoires: exacts ? [...grille.O] : [], creneaux_souhaites: exacts ? [...grille.S] : creneauxRapides(), horaires:[],
       contact_nom:v("contact_nom"), contact_courriel:courriel || null, contact_tel:tel || null,
       reception: courriel ? reception : "telephone", aucune_experience_confirmee:true
@@ -192,11 +208,11 @@
       $("#form").hidden = true; $("#envoiOk").hidden = false; $("#envoiOk").scrollIntoView({ block: "nearest" });
     } catch (err) {
       say("err", err.message === "config" || err.message === "lib" ? PJ.configMessage(err) : PJ.messageErreur(err, "L'envoi n'a pas fonctionné. Vérifiez vos réponses et réessayez."));
-    } finally { btn.disabled = false; btn.textContent = "Envoyer : on s'occupe du reste"; }
+    } finally { btn.disabled = false; btn.textContent = "Envoyer : on s'occupe du reste"; doublonVu = false; }
   });
   $("#autrePoste").addEventListener("click", () => {
     const f = $("#form"), garder = ["employeur","ville","lieu","contact_nom","contact_tel","contact_courriel"].map(n => [n, f[n].value]);
-    f.reset(); garder.forEach(([n, x]) => { f[n].value = x; }); $("#type").value = "Temps partiel";
+    f.reset(); garder.forEach(([n, x]) => { f[n].value = x; }); $("#type").value = "Temps partiel"; doublonVu = false;
     choisis.clear(); document.querySelectorAll("#horRapide .chip").forEach(b => b.setAttribute("aria-pressed", "false"));
     grille = PJ.grilleOffre($("#grille")); $("#expMsg").textContent = ""; $("#expMsg").className = "";
     $("#envoiOk").hidden = true; f.hidden = false; f.titre.focus();
