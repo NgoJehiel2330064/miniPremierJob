@@ -183,8 +183,10 @@
 <dialog id="dlgMail" aria-labelledby="mailTitle">
   <h3 id="mailTitle" style="font-size:20px">Transmettre à l'employeur</h3>
   <p class="small" id="mailInfo"></p>
-  <label for="mailTexte">Courriel prêt à envoyer (les liens vers les CV expirent dans 7 jours)<textarea id="mailTexte" class="mail" readonly></textarea></label>
+  <label for="mailTexte">Courriel prêt à envoyer<textarea id="mailTexte" class="mail" readonly></textarea></label>
+  <p class="small" id="mailCVInfo" hidden></p>
   <div class="actions" style="margin-top:12px">
+    <button class="btn" type="button" id="mailCV" hidden>Envoyer avec les CV</button>
     <button class="btn ghost" type="button" id="mailCopier">Copier le texte</button>
     <a class="btn ghost" id="mailOuvrir" href="#">Ouvrir dans mon courriel</a>
     <button class="btn" type="button" id="mailMarquer">C'est envoyé : marquer comme transmises</button>
@@ -198,7 +200,7 @@
   const { HORAIRES, TYPES, VILLES, esc, fmtDate, OFFRE_STATUTS, CAND_STATUTS } = PJ;
   const $ = (s) => document.querySelector(s);
   let sb, OFFRES = [], CANDS = [], POSTS = [], NOTIFS = [], SIGNALS = [];
-  let vue = "apercu", filtreOff = "pending", filtreCand = "received", dossierId = null, editId = null, grille = null, selection = new Set(), mailIds = [];
+  let vue = "apercu", filtreOff = "pending", filtreCand = "received", dossierId = null, editId = null, grille = null, selection = new Set(), mailIds = [], mailCVs = [], mailEnvoi = null;
   const JOUR = 864e5;
   const flash = (cls, t) => { const f = $("#flash"); f.className = "msg " + cls; f.textContent = t; f.hidden = false; clearTimeout(flash.t); flash.t = setTimeout(() => { f.hidden = true; }, 6000); };
   const erreur = (e, d) => flash("err", PJ.messageErreur(e, d));
@@ -655,7 +657,7 @@
     if (o.candidature_externe) return preparerSignalement(o, ps);
     $("#mailTitle").textContent = "Transmettre à l'employeur";
     $("#mailMarquer").textContent = "C'est envoyé : marquer comme transmises";
-    const blocs = [];
+    const blocs = [], cvs = [];
     // Liens de réponse en un clic (un jeton secret par candidature, réutilisé si on retransmet)
     const jetons = {};
     try {
@@ -669,20 +671,20 @@
       return `\n   Donner un suivi (30 secondes) : https://premierjob.ca/reponse.html?j=${j}`;
     };
     for (const [i, p] of ps.entries()) {
-      let lien = "pas de CV";
-      if (p.cv_path) {
-        const { data, error } = await sb.storage.from("cvs").createSignedUrl(p.cv_path, 7 * 24 * 3600);
-        lien = error || !data ? "(lien indisponible, je vous l'envoie à part)" : data.signedUrl;
-      }
+      // Le CV part en pièce jointe (bouton « Envoyer avec les CV »), pas en lien.
+      const lien = p.cv_path ? "en pièce jointe" : "pas de CV";
+      if (p.cv_path) cvs.push({ path: p.cv_path, nom: nomComplet(p) });
       const f = PJ.jumelerV2(o, p);
-      blocs.push(`${i + 1}. ${nomComplet(p)} · ${p.telephone} · ${p.courriel}\n   ${p.ville || ""}${p.transport ? " · " + libTransport(p.transport) : ""}\n   Disponible : ${(p.dispos || []).map(PJ.nomCreneau).join(", ") || "non indiqué"}${f.manquants.length ? "\n   Attention, pas libre : " + f.manquants.map(PJ.nomCreneau).join(", ") : ""}\n   CV (lien valable 7 jours) : ${lien}${p.message ? "\n   Son mot : « " + p.message + " »" : ""}${liensReponse(p)}`);
+      blocs.push(`${i + 1}. ${nomComplet(p)} · ${p.telephone} · ${p.courriel}\n   ${p.ville || ""}${p.transport ? " · " + libTransport(p.transport) : ""}\n   Disponible : ${(p.dispos || []).map(PJ.nomCreneau).join(", ") || "non indiqué"}${f.manquants.length ? "\n   Attention, pas libre : " + f.manquants.map(PJ.nomCreneau).join(", ") : ""}\n   CV : ${lien}${p.message ? "\n   Son mot : « " + p.message + " »" : ""}${liensReponse(p)}`);
     }
     const sujet = `PremierJob · ${ps.length} candidat${ps.length > 1 ? "s" : ""} pour « ${o.titre} »`;
     const corps = `Bonjour ${o.contact_nom || ""},\n\nVoici ${ps.length > 1 ? ps.length + " candidatures" : "une candidature"} pour le poste « ${o.titre} ». Chaque personne a accepté que sa candidature vous soit transmise.\n\n${blocs.join("\n\n")}\n\nVous pouvez les appeler directement pour fixer une entrevue. Le lien « Donner un suivi » sous chaque nom nous dit où en est la candidature, même si ce n'est pas retenu : la personne a ainsi une réponse.\n\nMerci!\nL'équipe PremierJob Saguenay`;
-    mailIds = ps.map(p => p.id);
+    mailIds = ps.map(p => p.id); mailCVs = cvs; mailEnvoi = { a: o.contact_courriel, sujet, corps };
     $("#mailInfo").textContent = `À : ${o.contact_nom || ""} <${o.contact_courriel}>${o.reception === "telephone" ? " · cet employeur préfère aussi un appel." : ""}`;
     $("#mailTexte").value = `Objet : ${sujet}\n\n${corps}`;
     $("#mailOuvrir").href = `mailto:${encodeURIComponent(o.contact_courriel)}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+    $("#mailCV").hidden = !cvs.length; $("#mailCV").textContent = `Envoyer avec les CV (${cvs.length})`;
+    $("#mailCVInfo").hidden = true;
     $("#dlgMail").showModal();
   });
   // Offre sur le formulaire de l'employeur : on signale des noms, sans CV, en distinguant déclaré et intention
@@ -696,7 +698,7 @@
     if (inten.length) parts.push("", "Elles ont ouvert votre formulaire depuis PremierJob (envoi non confirmé) :", ...inten.map(ligne));
     parts.push("", "Pourriez-vous simplement nous confirmer que vous avez bien reçu leur candidature? Et si vous rencontrez ou embauchez l'une de ces personnes, un mot nous aide à vous envoyer les bons candidats.", "", "Merci!", "L'équipe PremierJob Saguenay");
     const corps = parts.join("\n");
-    mailIds = ps.map(p => p.id);
+    mailIds = ps.map(p => p.id); mailCVs = []; mailEnvoi = null;
     $("#mailTitle").textContent = "Signaler au gérant";
     $("#mailMarquer").textContent = "C'est envoyé : marquer comme signalées";
     $("#mailInfo").textContent = `À : ${o.contact_nom || ""} <${o.contact_courriel}> · ${decl.length} déclarée(s), ${inten.length} intention(s).`;
@@ -704,6 +706,34 @@
     $("#mailOuvrir").href = `mailto:${encodeURIComponent(o.contact_courriel)}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
     $("#dlgMail").showModal();
   }
+  // Envoi avec les CV en pièces jointes.
+  // Téléphone : la feuille de partage ouvre Gmail avec le texte et les CV joints (il reste à mettre le destinataire, déjà copié).
+  // Ordinateur : les CV se téléchargent et Gmail s'ouvre avec destinataire, objet et texte remplis ; il reste à glisser les CV.
+  $("#mailCV").addEventListener("click", async () => {
+    if (!mailEnvoi || !mailCVs.length) return;
+    const b = $("#mailCV"), info = $("#mailCVInfo"); b.disabled = true; b.textContent = "Préparation des CV…";
+    try { await navigator.clipboard.writeText(mailEnvoi.a); } catch (e) { /* pas grave */ }
+    const fichiers = [];
+    for (const c of mailCVs) {
+      const r = await sb.storage.from("cvs").download(c.path);
+      if (r.error || !r.data) continue;
+      const ext = (c.path.split(".").pop() || "pdf").toLowerCase();
+      fichiers.push(new File([r.data], `CV - ${c.nom}.${ext}`, { type: r.data.type || "application/octet-stream" }));
+    }
+    b.disabled = false; b.textContent = `Envoyer avec les CV (${mailCVs.length})`;
+    if (!fichiers.length) { info.hidden = false; info.textContent = "Les CV n'ont pas pu être chargés. Réessaie ou envoie-les à part."; return; }
+    const manquants = mailCVs.length - fichiers.length;
+    if (navigator.canShare && navigator.canShare({ files: fichiers })) {
+      try {
+        await navigator.share({ files: fichiers, title: mailEnvoi.sujet, text: mailEnvoi.corps });
+        info.hidden = false; info.textContent = `Choisis Gmail. Destinataire copié : ${mailEnvoi.a} (colle-le dans « À »). Objet : ${mailEnvoi.sujet}` + (manquants ? ` · ${manquants} CV non chargé(s).` : "");
+        return;
+      } catch (e) { if (e && e.name === "AbortError") return; }
+    }
+    for (const f of fichiers) { const u = URL.createObjectURL(f), a = document.createElement("a"); a.href = u; a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000); }
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(mailEnvoi.a)}&su=${encodeURIComponent(mailEnvoi.sujet)}&body=${encodeURIComponent(mailEnvoi.corps)}`, "_blank", "noopener");
+    info.hidden = false; info.textContent = `${fichiers.length} CV téléchargé(s). Gmail s'ouvre déjà rempli : glisse les CV dans le message, puis envoie.` + (manquants ? ` ${manquants} CV non chargé(s).` : "");
+  });
   $("#mailCopier").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#mailTexte").value); $("#mailCopier").textContent = "Copié ✓"; } catch (e) { $("#mailTexte").select(); } });
   $("#mailMarquer").addEventListener("click", async () => {
     const aMarquer = POSTS.filter(p => mailIds.includes(p.id) && ["received","intent","declared"].includes(p.statut));
