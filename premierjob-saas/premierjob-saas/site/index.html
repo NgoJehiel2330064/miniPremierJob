@@ -238,7 +238,7 @@
         <label class="drop" for="a_cv"><input type="file" id="a_cv" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
           <span class="drop-t" id="a_cvNom">Ajouter mon CV</span><span class="drop-s">Presque tous les employeurs le demandent. Sans CV, ta candidature passe quand même.</span></label>
       </div>
-      <label for="a_msg" class="seul-interne">Un mot pour l'employeur <span class="opt">(facultatif)</span><textarea id="a_msg" name="message" maxlength="500" placeholder="Ex. : Je peux commencer lundi, j'habite à 5 minutes."></textarea></label>
+      <label for="a_msg" class="seul-interne">Présente-toi à l'employeur <span class="opt" id="a_msgOpt">(fortement conseillé si tu n'as pas de CV)</span><textarea id="a_msg" name="message" maxlength="1500" rows="5" placeholder="En quelques lignes : qui tu es, ce que tu sais faire, tes expériences (même bénévolat, école, sport, aide à la maison) et pourquoi ce poste t'intéresse. Ex. : Étudiante au cégep, ponctuelle et à l'aise avec le public. J'ai aidé à la cantine de mon école pendant 2 ans. Je peux commencer lundi."></textarea><span class="opt" id="a_msgNb" aria-live="polite"></span></label>
       <label class="consent" for="a_consent"><input type="checkbox" id="a_consent" required>
         <span class="seul-interne">J'ai 14 ans ou plus, et j'accepte que PremierJob transmette ma candidature et mon CV à <b class="applyEmp2"></b> pour ce poste. <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a> <span class="opt">Moins de 14 ans : un parent doit nous écrire à premierjob.ca@gmail.com.</span></span>
       </label>
@@ -685,6 +685,7 @@
     document.querySelectorAll("#apply .applyEmp2").forEach(el => { el.textContent = offreCible.employeur; });
     $("#applyBtn").textContent = "Envoyer ma candidature";
     $("#a_cvNom").textContent = "Ajouter mon CV"; $("#a_cvNom").closest(".drop").classList.remove("ok","bad");
+    majPresentation();
     $("#applyFields").hidden = false; $("#applyDone").hidden = true; $("#applyMsg").className = ""; $("#applyMsg").textContent = "";
     $("#apply").showModal();
     PJ.track("postuler-ouvert/" + id);
@@ -694,7 +695,15 @@
     $("#a_cvNom").textContent = fi ? (err ? err : "✓ " + fi.name) : "Ajouter mon CV";
     $("#a_cvNom").closest(".drop").classList.toggle("ok", !!fi && !err);
     $("#a_cvNom").closest(".drop").classList.toggle("bad", !!err);
+    majPresentation();
   });
+  // La présentation remplace le CV pour l'employeur quand il n'y en a pas : on le dit clairement.
+  function majPresentation(){
+    const avecCV = !!($("#a_cv").files[0] && !PJ.verifierCV($("#a_cv").files[0]));
+    $("#a_msgOpt").textContent = avecCV ? "(facultatif)" : "(fortement conseillé si tu n'as pas de CV)";
+    const n = $("#a_msg").value.length; $("#a_msgNb").textContent = n > 1200 ? `${n} / 1500` : "";
+  }
+  $("#a_msg").addEventListener("input", majPresentation);
   $("#applyForm").addEventListener("submit", async e => {
     e.preventDefault();
     const f = e.target, msg = $("#applyMsg"), btn = $("#applyBtn");
